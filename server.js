@@ -27,11 +27,9 @@ const http = require('http');
 const url = require('url');
 var dateTime = require('node-datetime');
 //var botFunctions = require('./botFunctions.js');
-
 const get = require('simple-get')
 var five = require('johnny-five');
 var board = new five.Board();
-
 
 //Non-Printable characters - Hex 01 to 1F, and 7F
 const nonPrintableCharsStr = "[\x01-\x1F\x7F]";
@@ -44,55 +42,11 @@ function cleanStr(inStr) {
 // Global variables
 const EMONCMS_INPUT_URL = process.env.EMONCMS_INPUT_URL;
 
-
-// Process the data line from the Arduino
-/*
-function processData(data) {
-  data = cleanStr(data);
-  //console.log(data);
-  // pvVolts:19.000,pvAmps:12.903,battVolts:13.469,ampsBeingUsed:0.579,wattsBeingUsed:38.238
-  // pvVolts:19.000,pvAmps:12.903
-  // pvVolts:0.000,pvAmps:0.000
-  
-  var pvVolts = 0.0;
-  var pvAmps = 0.0;
-  var pvWatts = 0.0;
-  var pvWattsUsed = 0.0;
-  var dataArray = data.split(",");
-
-  var tempStr = "";
-  var i = 0;
-  for (i = 0; i < dataArray.length; i++) { 
-    tempStr = dataArray[i];
-    if (tempStr.search("pvVolts") >= 0) {
-      pvVolts = parseFloat(tempStr.substr(8));
-    } else if (tempStr.search("pvAmps") >= 0) {
-      pvAmps = parseFloat(tempStr.substr(7));
-    }
-  }
-
-  pvWatts = pvVolts * pvAmps;
-  pvWattsUsed = pvWatts * 0.85;
-  
-  var sURL = EMONCMS_INPUT_URL + "&json={" + data + ",pvWatts:" + pvWatts.toFixed(3) + ",pvWattsUsed:" + pvWattsUsed.toFixed(3) + "}";
-  //console.log("sURL = "+sURL);
-  
-  // Call the url to send the data to the website
-  //httpGet(sURL);   
-  get.concat('http://example.com', function (err, res, data) {
-    if (err) throw err
-    console.log(res.statusCode) // 200 
-    console.log(data) // Buffer('this is the server response') 
-  })
-
-} // End of function processData(data) {
-*/
-
-board.on("ready", function() {
-});
-
+var intervalSeconds = 30;
+var intVal = intervalSeconds * 1000;
+var nextSendMs = 0;
 board.on('ready', function () {
-    console.log("bbb board is ready");
+    console.log("board is ready");
     // This requires OneWire support using the ConfigurableFirmata
     var thermometer = new five.Thermometer({
         controller: "DS18B20",
@@ -100,9 +54,24 @@ board.on('ready', function () {
     });
 
     thermometer.on("change", function() {
-        //console.log(this.celsius + "°C");
-        console.log(this.fahrenheit + "°F");
-        // console.log("0x" + this.address.toString(16));
+        var currMs = Date.now();
+        //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
+        if (currMs > nextSendMs) {
+          //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
+          var sURL = EMONCMS_INPUT_URL + "&json={tempature:" + this.fahrenheit + "}";
+          //console.log("sURL = "+sURL);
+          // Send the data to the website
+          get.concat(sURL, function (err, res, data) {
+            //if (err) throw err
+            if (err) {
+              console.log("Error in tempature send, err = "+err);
+            } else {
+              //console.log(res.statusCode) // 200 
+              //console.log(data) // Buffer('this is the server response') 
+            }
+          })
+          nextSendMs = currMs + intVal;
+        }
     });
 
     console.log("end of board.on");
@@ -190,6 +159,6 @@ app.use(function (err, req, res, next) {
 })
  
 app.listen(process.env.WEB_PORT,function(){
-  console.log("Live at Port "+process.env.WEB_PORT+" - Let's rock!");
+  //console.log("Live at Port "+process.env.WEB_PORT+" - Let's rock!");
 });
 

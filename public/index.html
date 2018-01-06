@@ -4,9 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     
-    <title>JohnBot2</title>
-    <meta name="keywords" 	content="kauflin, jkauflin, jkauflin.com, johnkauflin.com, john kauflin, john j kauflin, jjk, JohnBot" />
-    <meta name="description" content="JohnBot2 robot interface" />
+    <title>GenvMonitor</title>
+    <meta name="keywords" 	content="kauflin, jkauflin, jkauflin.com, johnkauflin.com, john kauflin, john j kauflin, jjk" />
+    <meta name="description" content="Environment Monitor" />
     <meta name="author" 	content="John J Kauflin"/>
     <!-- Place favicon.ico in the root directory -->
     <!--
@@ -30,7 +30,7 @@
 <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
   <div class="container">
     <div class="navbar-header">
-      <a class="navbar-brand" data-toggle="modal" href="#">JohnBot2</a>
+      <a class="navbar-brand" data-toggle="modal" href="#">JJK Environment Monitor</a>
     </div> <!-- navbar-header -->
   </div> <!-- container -->
 </nav><!-- <nav class="navbar navbar-default navbar-fixed-top"> -->
@@ -49,85 +49,6 @@
       Tempature: <div id="TempatureDisplay" class="pull-right"></div>
 
     </div>
-    <!-- Add clearfix for only the required viewport -->
-    <div class="clearfix visible-xs"></div>
-    <!-- Column 3 -->
-    <div class="col-xs-6 col-sm-3">
-        <div id="SearchInput" >
-            <div class="form-group">
-              <input type="text" class="form-control resetval" name="searchStr"  	id="searchStr" 	placeholder="Enter value to search">
-            </div>
-            <button id="SearchButton" type="button" class="btn btn-primary">Search</button>
-          </div>
-
-        </br>
-          <div class="pull-right">
-
-              <button id="RotateLeftButton" type="button" class="btn btn-info"><i class="fa fa-undo fa-4x"></i></button>
-              <button id="RotateRightButton" type="button" class="btn btn-info"><i class="fa fa-repeat fa-4x"></i></button>
-              </div>
-  
-
-    </div>
-    <!-- Column 4 -->
-    <div class="col-xs-6 col-sm-3">
-      <button id="ForwardButton" type="button" class="btn btn-success center-block"><i class="fa fa-arrow-up fa-4x"></i></button>
-      </br>
-      <button id="BackwardButton" type="button" class="btn btn-success center-block"><i class="fa fa-arrow-down fa-4x"></i></button>
-    </div>
-
-  </div><!-- row -->	                
-
-  <div class="row">
-    <!-- Column 1 -->
-    <div class="col-xs-12">
-      <input id="ex6" type="text" data-slider-min="-5" data-slider-max="30" data-slider-step="1" data-slider-value="15" data-slider-orientation="vertical"/>
-      <span id="ex6CurrentSliderValLabel">Speed: <span id="ex6SliderVal">3</span></span>
-    </div>
-  </div>
-
-  <div class="row">
-
-
-      <div id="info">
-          <p id="info_start">Click on the microphone icon and begin speaking.</p>
-          <p id="info_speak_now">Speak now.</p>
-          <p id="info_no_speech">No speech was detected. You may need to adjust your
-            <a href="//support.google.com/chrome/bin/answer.py?hl=en&amp;answer=1407892">
-              microphone settings</a>.</p>
-          <p id="info_no_microphone" style="display:none">
-            No microphone was found. Ensure that a microphone is installed and that
-            <a href="//support.google.com/chrome/bin/answer.py?hl=en&amp;answer=1407892">
-            microphone settings</a> are configured correctly.</p>
-          <p id="info_allow">Click the "Allow" button above to enable your microphone.</p>
-          <p id="info_denied">Permission to use microphone was denied.</p>
-          <p id="info_blocked">Permission to use microphone is blocked. To change,
-            go to chrome://settings/contentExceptions#media-stream</p>
-          <p id="info_upgrade">Web Speech API is not supported by this browser.
-             Upgrade to <a href="//www.google.com/chrome">Chrome</a>
-             version 25 or later.</p>
-        </div>
-        <div class="right">
-          <button id="start_button" onclick="startButton(event)">
-            <img id="start_img" src="./img/mic.gif" alt="Start"></button>
-        </div>
-        <div id="results">
-          <span id="final_span" class="final"></span>
-          <span id="interim_span" class="interim"></span>
-          <p>
-        </div>
-        <div class="center">
-          <div class="sidebyside" style="text-align:right">
-            <button id="copy_button" class="button" onclick="copyButton()">
-              Copy and Paste</button>
-            <div id="copy_info" class="info">
-              Press Control-C to copy text.<br>(Command-C on Mac.)
-            </div>
-          </div>
-        </div>
-        
-
-
   </div>
 
 </div><!-- end of main container -->
