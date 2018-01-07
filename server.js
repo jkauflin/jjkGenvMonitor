@@ -28,8 +28,6 @@ const url = require('url');
 var dateTime = require('node-datetime');
 //var botFunctions = require('./botFunctions.js');
 const get = require('simple-get')
-var five = require('johnny-five');
-var board = new five.Board();
 
 //Non-Printable characters - Hex 01 to 1F, and 7F
 const nonPrintableCharsStr = "[\x01-\x1F\x7F]";
@@ -45,6 +43,15 @@ const EMONCMS_INPUT_URL = process.env.EMONCMS_INPUT_URL;
 var intervalSeconds = 30;
 var intVal = intervalSeconds * 1000;
 var nextSendMs = 0;
+
+// When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
+// be sure to shut the REPL off!
+var five = require("johnny-five");
+var board = new five.Board({
+  repl: false,
+  debug: false,
+});
+
 board.on('ready', function () {
     console.log("board is ready");
     // This requires OneWire support using the ConfigurableFirmata
@@ -77,7 +84,7 @@ board.on('ready', function () {
     console.log("end of board.on");
 });
 
-
+/*
 var app = express();
 var router = express.Router();
 //var path = __dirname + '/views/';
@@ -113,27 +120,11 @@ wss.on('connection', function (ws) {
   // showing the connection is still alive
   ws.on('pong', heartbeat);
 
-  // Broadcast?
-  /*
-  wss.clients.forEach(function each(client) {
-    if (client.readyState === ws.OPEN) {
-      client.send(data);
-    }
-  });
-  */
 
   ws.on('message', function (message) {
     console.log('received from client: %s', message)
   })
 
-  // register event listener
-  /*
-  botFunctions.thermometerEvent.on("tempatureChange", function(fahrenheit) {
-    // process data when someEvent occurs
-    //console.log(dateTime.create().format('H:M:S.N')+" in Server, Tempature = "+fahrenheit + "°F");
-    ws.send(fahrenheit);
-  });
-  */
 
 })
   
@@ -162,3 +153,4 @@ app.listen(process.env.WEB_PORT,function(){
   //console.log("Live at Port "+process.env.WEB_PORT+" - Let's rock!");
 });
 
+*/
