@@ -8,6 +8,7 @@ Modification History
 2018-01-06 JJK  Initial version
 2017-12-26 JJK  Got working as a systemd service on BBB after upgrading
                 to BBB Debian 9.3 and NodeJS 6.12
+2018-01-14 JJK  Got moisture sensor working and sending data to emoncms
 =============================================================================*/
 
 // Read environment variables from the .env file
@@ -42,7 +43,8 @@ const EMONCMS_INPUT_URL = process.env.EMONCMS_INPUT_URL;
 
 var intervalSeconds = 30;
 var intVal = intervalSeconds * 1000;
-var nextSendMs = 0;
+var nextSendMsTempature = 0;
+var nextSendMsMoisture = 0;
 
 // When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
 // be sure to shut the REPL off!
@@ -54,6 +56,45 @@ var board = new five.Board({
 
 board.on('ready', function () {
     console.log("board is ready");
+
+    var moistureSensor = new five.Sensor({
+      pin: 'A0',
+      freq: 1000
+    })
+
+    /*
+    moistureSensor.on('change', function (value) {
+      // max seems to be 660  (maybe because the sensor's maximum output is 2.3V )
+      // and the Arduino sensor measure from 0 to 5V (for 0 to 1024 values)
+        console.log(dateTime.create().format('Y-m-d H:M:S')+", moisture = "+value);
+    })
+    */
+
+    // Scale the sensor's data from 0-1023 to 0-10 and log changes
+    moistureSensor.on("change", function() {
+      var currMs = Date.now();
+      if (currMs > nextSendMsMoisture) {
+        // this shows "6" when in water 100% (660 because 2.3v of the 5.0v max - 1024)
+        //console.log(dateTime.create().format('Y-m-d H:M:S')+", moisture = "+this.scaleTo(0, 10)+", this = "+this.value);
+
+        var sURL = EMONCMS_INPUT_URL + "&json={moisture:" + this.value + "}";
+        //console.log("sURL = "+sURL);
+        // Send the data to the website
+        
+        get.concat(sURL, function (err, res, data) {
+          //if (err) throw err
+          if (err) {
+            console.log("Error in tempature send, err = "+err);
+          } else {
+            //console.log(res.statusCode) // 200 
+            //console.log(data) // Buffer('this is the server response') 
+          }
+        })
+      
+        nextSendMsMoisture = currMs + intVal;
+      }
+    });
+
     // This requires OneWire support using the ConfigurableFirmata
     var thermometer = new five.Thermometer({
         controller: "DS18B20",
@@ -63,11 +104,12 @@ board.on('ready', function () {
     thermometer.on("change", function() {
         var currMs = Date.now();
         //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
-        if (currMs > nextSendMs) {
+        if (currMs > nextSendMsTempature) {
           //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
           var sURL = EMONCMS_INPUT_URL + "&json={tempature:" + this.fahrenheit + "}";
           //console.log("sURL = "+sURL);
           // Send the data to the website
+          
           get.concat(sURL, function (err, res, data) {
             //if (err) throw err
             if (err) {
@@ -77,7 +119,8 @@ board.on('ready', function () {
               //console.log(data) // Buffer('this is the server response') 
             }
           })
-          nextSendMs = currMs + intVal;
+          
+          nextSendMsTempature = currMs + intVal;
         }
     });
 
