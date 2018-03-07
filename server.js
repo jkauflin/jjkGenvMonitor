@@ -91,6 +91,7 @@ board.on('ready', function () {
     // Close the relay on pin 10.
     //relays[0].close();
     //relays[0].open();
+    relays[0].off();
 
 
     // Scale the sensor's data from 0-1023 to 0-10 and log changes
@@ -100,11 +101,11 @@ board.on('ready', function () {
 
         if (relayOFF) {
           console.log("Turning relay 10 ON");
-          relays[0].close();
+          relays[0].on();
           relayOFF = false;
         } else {
           console.log("Turning relay 10 OFF");
-          relays[0].close();
+          relays[0].off();
           relayOFF = true;
         }
 
