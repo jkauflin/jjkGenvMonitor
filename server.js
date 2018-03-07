@@ -91,7 +91,7 @@ board.on('ready', function () {
     // Close the relay on pin 10.
     //relays[0].close();
     //relays[0].open();
-    relays[0].off();
+    relays.off();
 
 
     // Scale the sensor's data from 0-1023 to 0-10 and log changes
@@ -99,6 +99,7 @@ board.on('ready', function () {
       var currMs = Date.now();
       if (currMs > nextSendMsMoisture) {
 
+        /*
         if (relayOFF) {
           console.log("Turning relay 10 ON");
           relays[0].on();
@@ -108,6 +109,7 @@ board.on('ready', function () {
           relays[0].off();
           relayOFF = true;
         }
+        */
 
         // this shows "6" when in water 100% (660 because 2.3v of the 5.0v max - 1024)
         //console.log(dateTime.create().format('Y-m-d H:M:S')+", moisture = "+this.scaleTo(0, 10)+", this = "+this.value);
