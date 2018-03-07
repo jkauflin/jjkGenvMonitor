@@ -45,6 +45,9 @@ var intervalSeconds = 30;
 var intVal = intervalSeconds * 1000;
 var nextSendMsTempature = 0;
 var nextSendMsMoisture = 0;
+var relays = null;
+
+var relayOFF = true;
 
 // When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
 // be sure to shut the REPL off!
@@ -70,10 +73,41 @@ board.on('ready', function () {
     })
     */
 
+    //type: "NO"  // Normally open - electricity not flowing - normally OFF
+    relays = new five.Relays([{
+      pin: 10, 
+      type: "NO",
+    }, {
+      pin: 11, 
+      type: "NO",
+    }, {
+      pin: 12, 
+      type: "NO",
+    }, {
+      pin: 13, 
+      type: "NO",
+    }]);
+
+    // Close the relay on pin 10.
+    //relays[0].close();
+    //relays[0].open();
+
+
     // Scale the sensor's data from 0-1023 to 0-10 and log changes
     moistureSensor.on("change", function() {
       var currMs = Date.now();
       if (currMs > nextSendMsMoisture) {
+
+        if (relayOFF) {
+          console.log("Turning relay 10 ON");
+          relays[0].close();
+          relayOFF = false;
+        } else {
+          console.log("Turning relay 10 OFF");
+          relays[0].close();
+          relayOFF = true;
+        }
+
         // this shows "6" when in water 100% (660 because 2.3v of the 5.0v max - 1024)
         //console.log(dateTime.create().format('Y-m-d H:M:S')+", moisture = "+this.scaleTo(0, 10)+", this = "+this.value);
 
@@ -143,6 +177,9 @@ const wsUrl = "ws://"+process.env.HOST+":"+process.env.WS_PORT;
 
 function heartbeat() {
   this.isAlive = true;
+    //relays[0].close();
+    //relays[0].close();
+    //relays[0].close();
 }
 
 const interval = setInterval(function ping() {
