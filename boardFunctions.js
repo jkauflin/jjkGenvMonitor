@@ -135,7 +135,7 @@ board.on("ready", function() {
       var currMs = Date.now();
       //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
       if (currMs > nextSendMsTempature) {
-        console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
+        //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
         var sURL = EMONCMS_INPUT_URL + "&json={tempature:" + this.fahrenheit + "}";
         //console.log("sURL = "+sURL);
         // Send the data to the website
