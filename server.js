@@ -97,10 +97,10 @@ wss.on('connection', function (ws) {
     ws.send(JSON.stringify(serverMessage));
   });
 
-  boardFunctions.boardEvent.on("proxIn", function(proxIn) {
+  boardFunctions.boardEvent.on("lightsVal", function(lightsVal) {
     // JJK - you can either construct it as a string and send with no JSON.stringify
     //       or construct a JSON object, with easier syntax, and then you have to stringify it
-    var serverMessage = {"proxIn" : proxIn};
+    var serverMessage = {"lightsVal" : lightsVal};
     ws.send(JSON.stringify(serverMessage));
   });
 

@@ -30,6 +30,7 @@ var intVal = intervalSeconds * 1000;
 var nextSendMsTempature = 0;
 var nextSendMsMoisture = 0;
 var moistureSensor = null;
+var thermometer = null;
 
 var relays = null;
 var relayOFF = true;
@@ -126,7 +127,7 @@ board.on("ready", function() {
   });
 
   // This requires OneWire support using the ConfigurableFirmata
-  var thermometer = new five.Thermometer({
+  thermometer = new five.Thermometer({
       controller: "DS18B20",
       pin: 2
   });
@@ -140,7 +141,6 @@ board.on("ready", function() {
         //console.log("sURL = "+sURL);
         // Send the data to the website
 
-        /*
         get.concat(sURL, function (err, res, data) {
           //if (err) throw err
           if (err) {
@@ -150,7 +150,6 @@ board.on("ready", function() {
             //console.log(data) // Buffer('this is the server response') 
           }
         })
-        */
 
         nextSendMsTempature = currMs + intVal;
       }
@@ -179,8 +178,8 @@ function webControl(boardMessage) {
   */
 
   if (boardMessage.lights != null) {
-    console.log("lights = "+boardMessage.lights);
-    boardEvent.emit("lightsVal", boardMessage.lights);
+    //console.log("lights = "+boardMessage.lights);
+    boardEvent.emit("lightsVal",boardMessage.lights);
   }
 
 

@@ -70,21 +70,17 @@ $(document).ready(function(){
 
 			// event emmited when receiving message from the server
 			ws.onmessage = function (messageEvent) {
-				console.log("on Message, messageEvent.data = "+messageEvent.data);
-				/*
+				//console.log("on Message, messageEvent.data = "+messageEvent.data);
 				var serverMessage = JSON.parse(messageEvent.data);
 				if (serverMessage.errorMessage != null) {
 					logMessage(serverMessage.errorMessage);
 				}
-				*/
 
 				// add other board event handling here
-				/*
 				if (serverMessage.lightsVal != null) {
-					//$("#LightsDisplay").html("lightsVal = "+serverMessage.lightsVal);
-					$("#LightsDisplay").html("lightsVal = "+messageEvent.data);
+					$("#LightsDisplay").html("lightsVal = "+serverMessage.lightsVal);
+					//$("#LightsDisplay").html("lightsVal = "+messageEvent.data);
 				}
-				*/
 			} // on message (from server)
 
 		} // Websocket open
