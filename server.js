@@ -31,7 +31,142 @@ const express = require('express');
 const http = require('http');
 const url = require('url');
 var dateTime = require('node-datetime');
-var boardFunctions = require('./boardFunctions.js');
+//var botFunctions = require('./botFunctions.js');
+const get = require('simple-get')
+
+//Non-Printable characters - Hex 01 to 1F, and 7F
+const nonPrintableCharsStr = "[\x01-\x1F\x7F]";
+//"g" global so it does more than 1 substitution
+const regexNonPrintableChars = new RegExp(nonPrintableCharsStr,"g");
+function cleanStr(inStr) {
+	return inStr.replace(regexNonPrintableChars,'');
+}
+
+// Global variables
+const EMONCMS_INPUT_URL = process.env.EMONCMS_INPUT_URL;
+
+var intervalSeconds = 30;
+var intVal = intervalSeconds * 1000;
+var nextSendMsTempature = 0;
+var nextSendMsMoisture = 0;
+var relays = null;
+
+var relayOFF = true;
+
+// When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
+// be sure to shut the REPL off!
+var five = require("johnny-five");
+var board = new five.Board({
+  repl: false,
+  debug: false,
+});
+
+board.on('ready', function () {
+    console.log("board is ready");
+
+    var moistureSensor = new five.Sensor({
+      pin: 'A0',
+      freq: 1000
+    })
+
+    /*
+    moistureSensor.on('change', function (value) {
+      // max seems to be 660  (maybe because the sensor's maximum output is 2.3V )
+      // and the Arduino sensor measure from 0 to 5V (for 0 to 1024 values)
+        console.log(dateTime.create().format('Y-m-d H:M:S')+", moisture = "+value);
+    })
+    */
+
+    //type: "NO"  // Normally open - electricity not flowing - normally OFF
+    relays = new five.Relays([{
+      pin: 10, 
+      type: "NO",
+    }, {
+      pin: 11, 
+      type: "NO",
+    }, {
+      pin: 12, 
+      type: "NO",
+    }, {
+      pin: 13, 
+      type: "NO",
+    }]);
+
+    // Close the relay on pin 10.
+    //relays[0].close();
+    //relays[0].open();
+    relays.off();
+
+
+    // Scale the sensor's data from 0-1023 to 0-10 and log changes
+    moistureSensor.on("change", function() {
+      var currMs = Date.now();
+      if (currMs > nextSendMsMoisture) {
+
+        /*
+        if (relayOFF) {
+          console.log("Turning relay 10 ON");
+          relays[0].on();
+          relayOFF = false;
+        } else {
+          console.log("Turning relay 10 OFF");
+          relays[0].off();
+          relayOFF = true;
+        }
+        */
+
+        // this shows "6" when in water 100% (660 because 2.3v of the 5.0v max - 1024)
+        //console.log(dateTime.create().format('Y-m-d H:M:S')+", moisture = "+this.scaleTo(0, 10)+", this = "+this.value);
+
+        var sURL = EMONCMS_INPUT_URL + "&json={moisture:" + this.value + "}";
+        //console.log("sURL = "+sURL);
+        // Send the data to the website
+        
+        get.concat(sURL, function (err, res, data) {
+          //if (err) throw err
+          if (err) {
+            console.log("Error in tempature send, err = "+err);
+          } else {
+            //console.log(res.statusCode) // 200 
+            //console.log(data) // Buffer('this is the server response') 
+          }
+        })
+      
+        nextSendMsMoisture = currMs + intVal;
+      }
+    });
+
+    // This requires OneWire support using the ConfigurableFirmata
+    var thermometer = new five.Thermometer({
+        controller: "DS18B20",
+        pin: 2
+    });
+
+    thermometer.on("change", function() {
+        var currMs = Date.now();
+        //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
+        if (currMs > nextSendMsTempature) {
+          //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
+          var sURL = EMONCMS_INPUT_URL + "&json={tempature:" + this.fahrenheit + "}";
+          //console.log("sURL = "+sURL);
+          // Send the data to the website
+          
+          get.concat(sURL, function (err, res, data) {
+            //if (err) throw err
+            if (err) {
+              console.log("Error in tempature send, err = "+err);
+            } else {
+              //console.log(res.statusCode) // 200 
+              //console.log(data) // Buffer('this is the server response') 
+            }
+          })
+          
+          nextSendMsTempature = currMs + intVal;
+        }
+    });
+
+    console.log("end of board.on");
+});
 
 var app = express();
 //var path = __dirname + '/';
