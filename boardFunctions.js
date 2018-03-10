@@ -33,7 +33,6 @@ var nextSendMsMoisture = 0;
 var moistureSensor = null;
 var thermometer = null;
 
-var relay = null;
 var relays = null;
 var relayOFF = true;
 const RELAY_AIR = 0;
@@ -54,12 +53,10 @@ board.on("error", function() {
 board.on("ready", function() {
   console.log("board is ready");
   
-  /*
   moistureSensor = new five.Sensor({
     pin: 'A0',
     freq: 1000
   })
-  */
 
   /*
   moistureSensor.on('change', function (value) {
@@ -103,7 +100,6 @@ board.on("ready", function() {
 
 
   // Scale the sensor's data from 0-1023 to 0-10 and log changes
-  /*
   moistureSensor.on("change", function() {
     var currMs = Date.now();
     if (currMs > nextSendMsMoisture) {
@@ -127,10 +123,8 @@ board.on("ready", function() {
       nextSendMsMoisture = currMs + intVal;
     }
   });
-  */
 
   // This requires OneWire support using the ConfigurableFirmata
-  /*
   thermometer = new five.Thermometer({
       controller: "DS18B20",
       pin: 2
@@ -158,7 +152,6 @@ board.on("ready", function() {
         nextSendMsTempature = currMs + intVal;
       }
   });
-  */
  
   console.log("end of board.on");
 }); // board.on("ready", function() {
@@ -182,19 +175,17 @@ function webControl(boardMessage) {
     }
   */
 
-  if (boardMessage.lights != null) {
+  //if (boardMessage.lights != null) {
     //console.log("lights = "+boardMessage.lights);
     //boardEvent.emit("lightsVal",boardMessage.lights);
-  }
+  //}
 
   if (boardMessage.relay1 != null) {
     console.log("relay1 = "+boardMessage.relay1);
     if (boardMessage.relay1 == 1) {
       relays[0].open();
-      //relay.on();
     } else {
       relays[0].close();
-      //relay.off();
     }
   }
   if (boardMessage.relay2 != null) {
