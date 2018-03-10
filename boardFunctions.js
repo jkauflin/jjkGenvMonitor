@@ -8,6 +8,7 @@ Modification History
 2018-01-06 JJK  Initial version
 2018-01-14 JJK  Got moisture sensor working and sending data to emoncms
 2018-03-06 JJK  Got relays working to control electric systems
+2018-03-10 JJK  Testing production relays
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -83,7 +84,8 @@ board.on("ready", function() {
   // Close the relay on pin 10.
   //relays[0].close();
   //relays[0].open();
-  relays.off();
+  //relays.off();
+  //relays.off();
 
 
   // Scale the sensor's data from 0-1023 to 0-10 and log changes
@@ -179,9 +181,41 @@ function webControl(boardMessage) {
 
   if (boardMessage.lights != null) {
     //console.log("lights = "+boardMessage.lights);
-    boardEvent.emit("lightsVal",boardMessage.lights);
+    //boardEvent.emit("lightsVal",boardMessage.lights);
   }
 
+  if (boardMessage.relay1 != null) {
+    console.log("relay1 = "+boardMessage.relay1);
+    if (boardMessage.relay1 == 1) {
+      relays[0].on();
+    } else {
+      relays[0].off();
+    }
+  }
+  if (boardMessage.relay2 != null) {
+    console.log("relay2 = "+boardMessage.relay2);
+    if (boardMessage.relay2 == 1) {
+      relays[1].on();
+    } else {
+      relays[1].off();
+    }
+  }
+  if (boardMessage.relay3 != null) {
+    console.log("relay3 = "+boardMessage.relay3);
+    if (boardMessage.relay3 == 1) {
+      relays[2].on();
+    } else {
+      relays[2].off();
+    }
+  }
+  if (boardMessage.relay4 != null) {
+    console.log("relay4 = "+boardMessage.relay4);
+    if (boardMessage.relay4 == 1) {
+      relays[3].on();
+    } else {
+      relays[3].off();
+    }
+  }
 
 } // function webControl(boardMessage) {
 

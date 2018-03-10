@@ -115,6 +115,62 @@ $(document).ready(function(){
 			if (isTouchDevice)  { lightsReleased(); }
 	});
 
+	$("#Relay1Button")
+		.mousedown(function() {
+			if (!isTouchDevice) { relay1Pushed(); }
+		})
+		.mouseup(function() {
+			if (!isTouchDevice) { relay1Released(); }
+		})
+		.on('touchstart', function(){
+			if (isTouchDevice) { relay1Pushed(); }
+		})
+		.on('touchend', function(){
+			if (isTouchDevice)  { relay1Released(); }
+	});
+
+	$("#Relay2Button")
+	.mousedown(function() {
+		if (!isTouchDevice) { relay2Pushed(); }
+	})
+	.mouseup(function() {
+		if (!isTouchDevice) { relay2Released(); }
+	})
+	.on('touchstart', function(){
+		if (isTouchDevice) { relay2Pushed(); }
+	})
+	.on('touchend', function(){
+		if (isTouchDevice)  { relay2Released(); }
+	});
+
+	$("#Relay3Button")
+		.mousedown(function() {
+			if (!isTouchDevice) { relay3Pushed(); }
+		})
+		.mouseup(function() {
+			if (!isTouchDevice) { relay3Released(); }
+		})
+		.on('touchstart', function(){
+			if (isTouchDevice) { relay3Pushed(); }
+		})
+		.on('touchend', function(){
+			if (isTouchDevice)  { relay3Released(); }
+	});
+
+	$("#Relay4Button")
+	.mousedown(function() {
+		if (!isTouchDevice) { relay4Pushed(); }
+	})
+	.mouseup(function() {
+		if (!isTouchDevice) { relay4Released(); }
+	})
+	.on('touchstart', function(){
+		if (isTouchDevice) { relay4Pushed(); }
+	})
+	.on('touchend', function(){
+		if (isTouchDevice)  { relay4Released(); }
+});
+
 
 }); // $(document).ready(function(){
 
@@ -134,4 +190,32 @@ function lightsReleased() {
 	//console.log("Lights - Released");
 	//$("#logMessage").html("Button - Released");
 	wsSend('{"lights" : 0}');
+}
+
+function relay1Pushed() {
+	wsSend('{"relay1" : 1}');
+}
+function relay1Released() {
+	wsSend('{"relay1" : 0}');
+}
+
+function relay2Pushed() {
+	wsSend('{"relay2" : 1}');
+}
+function relay2Released() {
+	wsSend('{"relay2" : 0}');
+}
+
+function relay3Pushed() {
+	wsSend('{"relay3" : 1}');
+}
+function relay3Released() {
+	wsSend('{"relay3" : 0}');
+}
+
+function relay4Pushed() {
+	wsSend('{"relay4" : 1}');
+}
+function relay4Released() {
+	wsSend('{"relay4" : 0}');
 }
