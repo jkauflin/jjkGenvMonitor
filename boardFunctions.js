@@ -33,6 +33,7 @@ var nextSendMsMoisture = 0;
 var moistureSensor = null;
 var thermometer = null;
 
+var relay = null;
 var relays = null;
 var relayOFF = true;
 const RELAY_AIR = 0;
@@ -53,10 +54,12 @@ board.on("error", function() {
 board.on("ready", function() {
   console.log("board is ready");
   
+  /*
   moistureSensor = new five.Sensor({
     pin: 'A0',
     freq: 1000
   })
+  */
 
   /*
   moistureSensor.on('change', function (value) {
@@ -80,31 +83,30 @@ board.on("ready", function() {
     pin: 13, 
     type: "NO",
   }]);
+ 
+  /*
+  relay = new five.Relay(10);
+  //relay.on();
+  relay.close();   light out
+  */
 
   // Close the relay on pin 10.
   //relays[0].close();
   //relays[0].open();
   //relays.off();
   //relays.off();
+  //relays.on();
+  relays.close();  // turn all the power OFF
+  // for the Sunfounder relay, normal open, use OPEN to electrify the coil and allow electricity
+  // use CLOSE to de-electrify the coil, and stop electricity
+  // (a little backward according to Johnny-Five documentation)
 
 
   // Scale the sensor's data from 0-1023 to 0-10 and log changes
+  /*
   moistureSensor.on("change", function() {
     var currMs = Date.now();
     if (currMs > nextSendMsMoisture) {
-
-      /*
-      if (relayOFF) {
-        console.log("Turning relay 10 ON");
-        relays[RELAY_AIR].on();
-        relayOFF = false;
-      } else {
-        console.log("Turning relay 10 OFF");
-        relays[RELAY_AIR].off();
-        relayOFF = true;
-      }
-      */
-
       // this shows "6" when in water 100% (660 because 2.3v of the 5.0v max - 1024)
       //console.log(dateTime.create().format('Y-m-d H:M:S')+", moisture = "+this.scaleTo(0, 10)+", this = "+this.value);
 
@@ -112,7 +114,6 @@ board.on("ready", function() {
       //console.log("sURL = "+sURL);
       // Send the data to the website
       
-      /*
       get.concat(sURL, function (err, res, data) {
         //if (err) throw err
         if (err) {
@@ -122,13 +123,14 @@ board.on("ready", function() {
           //console.log(data) // Buffer('this is the server response') 
         }
       })
-      */
 
       nextSendMsMoisture = currMs + intVal;
     }
   });
+  */
 
   // This requires OneWire support using the ConfigurableFirmata
+  /*
   thermometer = new five.Thermometer({
       controller: "DS18B20",
       pin: 2
@@ -156,7 +158,8 @@ board.on("ready", function() {
         nextSendMsTempature = currMs + intVal;
       }
   });
-
+  */
+ 
   console.log("end of board.on");
 }); // board.on("ready", function() {
 
@@ -187,33 +190,35 @@ function webControl(boardMessage) {
   if (boardMessage.relay1 != null) {
     console.log("relay1 = "+boardMessage.relay1);
     if (boardMessage.relay1 == 1) {
-      relays[0].on();
+      relays[0].open();
+      //relay.on();
     } else {
-      relays[0].off();
+      relays[0].close();
+      //relay.off();
     }
   }
   if (boardMessage.relay2 != null) {
     console.log("relay2 = "+boardMessage.relay2);
     if (boardMessage.relay2 == 1) {
-      relays[1].on();
+      relays[1].open();
     } else {
-      relays[1].off();
+      relays[1].close();
     }
   }
   if (boardMessage.relay3 != null) {
     console.log("relay3 = "+boardMessage.relay3);
     if (boardMessage.relay3 == 1) {
-      relays[2].on();
+      relays[2].open();
     } else {
-      relays[2].off();
+      relays[2].close();
     }
   }
   if (boardMessage.relay4 != null) {
     console.log("relay4 = "+boardMessage.relay4);
     if (boardMessage.relay4 == 1) {
-      relays[3].on();
+      relays[3].open();
     } else {
-      relays[3].off();
+      relays[3].close();
     }
   }
 
