@@ -9,6 +9,7 @@ Modification History
 2018-01-14 JJK  Got moisture sensor working and sending data to emoncms
 2018-03-06 JJK  Got relays working to control electric systems
 2018-03-10 JJK  Testing production relays
+2018-03-11 JJK  Adding emoncms logging of relay activity
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -20,11 +21,12 @@ var board = new five.Board({
   repl: false,
   debug: false,
 });
-//var dt = dateTime.create();
-//var formatted = dt.format('Y-m-d H:M:S');
 
 // Global variables
+const development = process.env.NODE_ENV !== 'production';
+const debug = process.env.DEBUG;
 const EMONCMS_INPUT_URL = process.env.EMONCMS_INPUT_URL;
+var emoncmsUrl = "";
 
 var intervalSeconds = 30;
 var intVal = intervalSeconds * 1000;
@@ -34,11 +36,11 @@ var moistureSensor = null;
 var thermometer = null;
 
 var relays = null;
-var relayOFF = true;
-const RELAY_AIR = 0;
-const RELAY_WATER = 1;
-const RELAY_EARTH = 2;
-const RELAY_FIRE = 3;
+const LIGHTS = 0;
+const AIR = 1;
+const HEAT = 2;
+const WATER = 3;
+var relayNames = ["lights","air","heat","water"];
 
 // create EventEmitter object
 var boardEvent = new EventEmitter();
@@ -47,7 +49,6 @@ board.on("error", function() {
   //console.log("*** Error in Board ***");
   boardEvent.emit("error", "*** Error in Board ***");
 }); // board.on("error", function() {
-  
 
 // When the board is ready, create and intialize global component objects (to be used by functions)
 board.on("ready", function() {
@@ -81,22 +82,14 @@ board.on("ready", function() {
     type: "NO",
   }]);
  
-  /*
-  relay = new five.Relay(10);
-  //relay.on();
-  relay.close();   light out
-  */
-
-  // Close the relay on pin 10.
-  //relays[0].close();
-  //relays[0].open();
-  //relays.off();
-  //relays.off();
-  //relays.on();
   relays.close();  // turn all the power OFF
   // for the Sunfounder relay, normal open, use OPEN to electrify the coil and allow electricity
   // use CLOSE to de-electrify the coil, and stop electricity
   // (a little backward according to Johnny-Five documentation)
+  setRelay(LIGHTS,0);
+  setRelay(AIR,0);
+  setRelay(HEAT,0);
+  setRelay(WATER,0);
 
 
   // Scale the sensor's data from 0-1023 to 0-10 and log changes
@@ -104,22 +97,7 @@ board.on("ready", function() {
     var currMs = Date.now();
     if (currMs > nextSendMsMoisture) {
       // this shows "6" when in water 100% (660 because 2.3v of the 5.0v max - 1024)
-      //console.log(dateTime.create().format('Y-m-d H:M:S')+", moisture = "+this.scaleTo(0, 10)+", this = "+this.value);
-
-      var sURL = EMONCMS_INPUT_URL + "&json={moisture:" + this.value + "}";
-      //console.log("sURL = "+sURL);
-      // Send the data to the website
-      
-      get.concat(sURL, function (err, res, data) {
-        //if (err) throw err
-        if (err) {
-          console.log("Error in tempature send, err = "+err);
-        } else {
-          //console.log(res.statusCode) // 200 
-          //console.log(data) // Buffer('this is the server response') 
-        }
-      })
-
+      logMetric("moisture:"+this.value);
       nextSendMsMoisture = currMs + intVal;
     }
   });
@@ -134,27 +112,33 @@ board.on("ready", function() {
       var currMs = Date.now();
       //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
       if (currMs > nextSendMsTempature) {
-        //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
-        var sURL = EMONCMS_INPUT_URL + "&json={tempature:" + this.fahrenheit + "}";
-        //console.log("sURL = "+sURL);
-        // Send the data to the website
-
-        get.concat(sURL, function (err, res, data) {
-          //if (err) throw err
-          if (err) {
-            console.log("Error in tempature send, err = "+err);
-          } else {
-            //console.log(res.statusCode) // 200 
-            //console.log(data) // Buffer('this is the server response') 
-          }
-        })
-
+        logMetric("tempature:"+this.fahrenheit);
         nextSendMsTempature = currMs + intVal;
       }
   });
  
   console.log("end of board.on");
 }); // board.on("ready", function() {
+
+function logMetric(metricJSON) {
+  log("logMetric",metricJSON);
+  emoncmsUrl = EMONCMS_INPUT_URL + "&json={" + metricJSON +"}";
+  get.concat(emoncmsUrl, function (err, res, data) {
+    if (err) {
+      console.log("Error in logMetric send, metricJSON = "+metricJSON);
+      console.log("err = "+err);
+    } else {
+      //console.log(res.statusCode) // 200 
+      //console.log(data) // Buffer('this is the server response') 
+    }
+  });
+}
+
+function log(logId,logStr) {
+  if (development && debug) {
+    console.log(dateTime.create().format('H:M:S')+" "+logId+", "+logStr);
+  }
+}
 
 function webControl(boardMessage) {
   /*
@@ -181,39 +165,31 @@ function webControl(boardMessage) {
   //}
 
   if (boardMessage.relay1 != null) {
-    console.log("relay1 = "+boardMessage.relay1);
-    if (boardMessage.relay1 == 1) {
-      relays[0].open();
-    } else {
-      relays[0].close();
-    }
+    setRelay(LIGHTS,boardMessage.relay1);
   }
   if (boardMessage.relay2 != null) {
-    console.log("relay2 = "+boardMessage.relay2);
-    if (boardMessage.relay2 == 1) {
-      relays[1].open();
-    } else {
-      relays[1].close();
-    }
+    setRelay(AIR,boardMessage.relay2);
   }
   if (boardMessage.relay3 != null) {
-    console.log("relay3 = "+boardMessage.relay3);
-    if (boardMessage.relay3 == 1) {
-      relays[2].open();
-    } else {
-      relays[2].close();
-    }
+    setRelay(HEAT,boardMessage.relay3);
   }
   if (boardMessage.relay4 != null) {
-    console.log("relay4 = "+boardMessage.relay4);
-    if (boardMessage.relay4 == 1) {
-      relays[3].open();
-    } else {
-      relays[3].close();
-    }
+    setRelay(WATER,boardMessage.relay4);
   }
 
 } // function webControl(boardMessage) {
+
+function setRelay(relayNum,relayVal) {
+  if (relayVal) {
+    // If value is 1 or true, set the relay to turn ON and let the electricity flow
+    relays[relayNum].open();
+    logMetric(relayNames[relayNum]+":"+(90+relayNum));
+  } else {
+    // If value is 0 or false, set the relay to turn OFF and stop the flow of electricity
+    relays[relayNum].close();
+    logMetric(relayNames[relayNum]+":0");
+  }
+}
 
 module.exports = {
     boardEvent,
