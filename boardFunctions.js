@@ -40,7 +40,13 @@ const LIGHTS = 0;
 const AIR = 1;
 const HEAT = 2;
 const WATER = 3;
-var relayNames = ["lights","air","heat","water"];
+const relayNames = ["lights","air","heat","water"];
+const OFF = 0;
+const ON = 1;
+var toggleVal = OFF;
+
+var airInterval = 5 * 60 * 1000;
+var airDuration = 1 * 60 * 1000;
 
 // create EventEmitter object
 var boardEvent = new EventEmitter();
@@ -50,7 +56,9 @@ board.on("error", function() {
   boardEvent.emit("error", "*** Error in Board ***");
 }); // board.on("error", function() {
 
+//-------------------------------------------------------------------------------------------------------
 // When the board is ready, create and intialize global component objects (to be used by functions)
+//-------------------------------------------------------------------------------------------------------
 board.on("ready", function() {
   console.log("board is ready");
   
@@ -82,15 +90,41 @@ board.on("ready", function() {
     type: "NO",
   }]);
  
-  relays.close();  // turn all the power OFF
+  //relays.close();  // turn all the power OFF
   // for the Sunfounder relay, normal open, use OPEN to electrify the coil and allow electricity
   // use CLOSE to de-electrify the coil, and stop electricity
   // (a little backward according to Johnny-Five documentation)
-  setRelay(LIGHTS,0);
-  setRelay(AIR,0);
-  setRelay(HEAT,0);
-  setRelay(WATER,0);
 
+  // Turn all the relays off when the borard start
+  setRelay(LIGHTS,OFF);
+  setRelay(AIR,OFF);
+  setRelay(HEAT,OFF);
+  setRelay(WATER,OFF);
+
+  //console.log("Testing lights and air - checking tempature");
+  //setRelay(LIGHTS,ON);
+  //setRelay(AIR,ON);
+
+/*
+setTimeout
+setInterval
+
+myVar = setTimeout(function, milliseconds);
+clearTimeout(myVar);
+
+myVar = setInterval(function, milliseconds);
+clearInterval(myVar);
+*/
+/*
+  var airInterval = 5 * 60 * 1000;
+  var airDuration = 1 * 60 * 1000;
+    
+  setInterval(functionName,millisecondsVal,optionalParameter)
+  A - time period between ventilation runs
+  B - time of ventilation run
+*/
+
+  setInterval(testInterval,10000);
 
   // Scale the sensor's data from 0-1023 to 0-10 and log changes
   moistureSensor.on("change", function() {
@@ -120,13 +154,28 @@ board.on("ready", function() {
   console.log("end of board.on");
 }); // board.on("ready", function() {
 
+function testInterval() {
+  log("testInterval",">>> toggleVal = "+toggleVal);
+  if (toggleVal == OFF) {
+    log("testInterval","Turning ON");
+    setRelay(LIGHTS,ON);
+    setRelay(AIR,ON);
+    toggleVal = ON;
+  } else {
+    log("testInterval","Turning OFF");
+    setRelay(LIGHTS,OFF);
+    setRelay(AIR,OFF);
+    toggleVal = OFF;
+  }
+}
+
 function logMetric(metricJSON) {
   log("logMetric",metricJSON);
   emoncmsUrl = EMONCMS_INPUT_URL + "&json={" + metricJSON +"}";
   get.concat(emoncmsUrl, function (err, res, data) {
     if (err) {
-      console.log("Error in logMetric send, metricJSON = "+metricJSON);
-      console.log("err = "+err);
+      console.error("Error in logMetric send, metricJSON = "+metricJSON);
+      console.error("err = "+err);
     } else {
       //console.log(res.statusCode) // 200 
       //console.log(data) // Buffer('this is the server response') 
