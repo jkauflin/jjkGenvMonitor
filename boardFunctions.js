@@ -9,7 +9,8 @@ Modification History
 2018-01-14 JJK  Got moisture sensor working and sending data to emoncms
 2018-03-06 JJK  Got relays working to control electric systems
 2018-03-10 JJK  Testing production relays
-2018-03-11 JJK  Adding emoncms logging of relay activity
+2018-03-11 JJK  Adding emoncms logging of relay activity, and using 
+                setTimeout to turn air ventiliation ON and OFF
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -43,8 +44,9 @@ const WATER = 3;
 const relayNames = ["lights","air","heat","water"];
 const OFF = 0;
 const ON = 1;
-var toggleVal = OFF;
+var currAirVal = OFF;
 
+// Run the air ventilation for 1 minute, then wait for 5 minutes
 var airInterval = 5 * 60 * 1000;
 var airDuration = 1 * 60 * 1000;
 
@@ -101,30 +103,8 @@ board.on("ready", function() {
   setRelay(HEAT,OFF);
   setRelay(WATER,OFF);
 
-  //console.log("Testing lights and air - checking tempature");
-  //setRelay(LIGHTS,ON);
-  //setRelay(AIR,ON);
-
-/*
-setTimeout
-setInterval
-
-myVar = setTimeout(function, milliseconds);
-clearTimeout(myVar);
-
-myVar = setInterval(function, milliseconds);
-clearInterval(myVar);
-*/
-/*
-  var airInterval = 5 * 60 * 1000;
-  var airDuration = 1 * 60 * 1000;
-    
-  setInterval(functionName,millisecondsVal,optionalParameter)
-  A - time period between ventilation runs
-  B - time of ventilation run
-*/
-
-  setInterval(testInterval,10000);
+  // Start the function to toggle air ventilation ON and OFF
+  setTimeout(toggleAir,airInterval);
 
   // Scale the sensor's data from 0-1023 to 0-10 and log changes
   moistureSensor.on("change", function() {
@@ -154,19 +134,23 @@ clearInterval(myVar);
   console.log("end of board.on");
 }); // board.on("ready", function() {
 
-function testInterval() {
-  log("testInterval",">>> toggleVal = "+toggleVal);
-  if (toggleVal == OFF) {
-    log("testInterval","Turning ON");
-    setRelay(LIGHTS,ON);
+// Function to toggle air ventilation ON and OFF
+function toggleAir() {
+  var timeoutMs = airInterval;
+  if (currAirVal == OFF) {
+    //log("testInterval","Turning ON");
     setRelay(AIR,ON);
-    toggleVal = ON;
+    currAirVal = ON;
+    timeoutMs = airDuration;
   } else {
-    log("testInterval","Turning OFF");
-    setRelay(LIGHTS,OFF);
+    //log("testInterval","Turning OFF");
     setRelay(AIR,OFF);
-    toggleVal = OFF;
+    currAirVal = OFF;
+    timeoutMs = airInterval;
   }
+
+  // Recursively call the function with the current timeout value  
+  setTimeout(toggleAir,timeoutMs);
 }
 
 function logMetric(metricJSON) {
@@ -213,6 +197,7 @@ function webControl(boardMessage) {
     //boardEvent.emit("lightsVal",boardMessage.lights);
   //}
 
+  /*
   if (boardMessage.relay1 != null) {
     setRelay(LIGHTS,boardMessage.relay1);
   }
@@ -225,6 +210,7 @@ function webControl(boardMessage) {
   if (boardMessage.relay4 != null) {
     setRelay(WATER,boardMessage.relay4);
   }
+  */
 
 } // function webControl(boardMessage) {
 
@@ -232,7 +218,7 @@ function setRelay(relayNum,relayVal) {
   if (relayVal) {
     // If value is 1 or true, set the relay to turn ON and let the electricity flow
     relays[relayNum].open();
-    logMetric(relayNames[relayNum]+":"+(90+relayNum));
+    logMetric(relayNames[relayNum]+":"+(80+(relayNum*2)));
   } else {
     // If value is 0 or false, set the relay to turn OFF and stop the flow of electricity
     relays[relayNum].close();
