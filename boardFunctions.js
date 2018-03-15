@@ -11,6 +11,7 @@ Modification History
 2018-03-10 JJK  Testing production relays
 2018-03-11 JJK  Adding emoncms logging of relay activity, and using 
                 setTimeout to turn air ventiliation ON and OFF
+2018-03-13 JJK  Added logic to run lights for 18 hours
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -45,10 +46,13 @@ const relayNames = ["lights","air","heat","water"];
 const OFF = 0;
 const ON = 1;
 var currAirVal = OFF;
+var currLightsVal = OFF;
+var date;
+var hours = 0;
 
 // Run the air ventilation for 1 minute, then wait for 5 minutes
-var airInterval = 5 * 60 * 1000;
-var airDuration = 1 * 60 * 1000;
+var airInterval = 2 * 60 * 1000;
+var airDuration = 2 * 60 * 1000;
 
 // create EventEmitter object
 var boardEvent = new EventEmitter();
@@ -104,7 +108,8 @@ board.on("ready", function() {
   setRelay(WATER,OFF);
 
   // Start the function to toggle air ventilation ON and OFF
-  setTimeout(toggleAir,airInterval);
+  //setTimeout(toggleAir,airInterval);
+  setInterval(toggleAir,airInterval);
 
   // Scale the sensor's data from 0-1023 to 0-10 and log changes
   moistureSensor.on("change", function() {
@@ -125,7 +130,7 @@ board.on("ready", function() {
   thermometer.on("change", function() {
       var currMs = Date.now();
       //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
-      if (currMs > nextSendMsTempature) {
+      if (currMs > nextSendMsTempature && this.fahrenheit < 135.0) {
         logMetric("tempature:"+this.fahrenheit);
         nextSendMsTempature = currMs + intVal;
       }
@@ -135,6 +140,30 @@ board.on("ready", function() {
 }); // board.on("ready", function() {
 
 // Function to toggle air ventilation ON and OFF
+function toggleAir() {
+  if (currAirVal == OFF) {
+    setRelay(AIR,ON);
+    //setRelay(HEAT,OFF);
+    currAirVal = ON;
+  } else {
+    setRelay(AIR,OFF);
+    //setRelay(HEAT,ON);
+    currAirVal = OFF;
+  }
+
+  date = new Date();
+  hours = date.getHours();
+  if (hours > 0 && currLightsVal == OFF) {
+    setRelay(LIGHTS,ON);
+    currLightsVal = ON;
+  }
+  if (hours > 17 && currLightsVal == ON) {
+    setRelay(LIGHTS,OFF);
+    currLightsVal = OFF;
+  }
+}
+
+/*
 function toggleAir() {
   var timeoutMs = airInterval;
   if (currAirVal == OFF) {
@@ -152,6 +181,7 @@ function toggleAir() {
   // Recursively call the function with the current timeout value  
   setTimeout(toggleAir,timeoutMs);
 }
+*/
 
 function logMetric(metricJSON) {
   log("logMetric",metricJSON);
