@@ -153,15 +153,19 @@ function toggleAir() {
 
   date = new Date();
   hours = date.getHours();
-  if (hours > 0 && currLightsVal == OFF) {
-    setRelay(LIGHTS,ON);
-    currLightsVal = ON;
+  if (hours > 17) {
+    if (currLightsVal == ON) {
+      setRelay(LIGHTS,OFF);
+      currLightsVal = OFF;
+    }
+  } else {
+    if (currLightsVal == OFF) {
+      setRelay(LIGHTS,ON);
+      currLightsVal = ON;
+    }
   }
-  if (hours > 17 && currLightsVal == ON) {
-    setRelay(LIGHTS,OFF);
-    currLightsVal = OFF;
-  }
-}
+
+} // function toggleAir() {
 
 /*
 function toggleAir() {
