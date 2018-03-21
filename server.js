@@ -9,6 +9,7 @@ Modification History
 2017-12-26 JJK  Got working as a systemd service on BBB after upgrading
                 to BBB Debian 9.3 and NodeJS 6.12
 2018-03-07 JJK  Moved board functions to boardFunctions
+2018-03-21 JJK  Working on moisture and water control
 =============================================================================*/
 
 // Read environment variables from the .env file
