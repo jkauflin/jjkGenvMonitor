@@ -12,6 +12,8 @@ Modification History
 2018-03-11 JJK  Adding emoncms logging of relay activity, and using 
                 setTimeout to turn air ventiliation ON and OFF
 2018-03-13 JJK  Added logic to run lights for 18 hours
+2018-03-25 JJK  Added logging of moisture sensor data
+2018-03-26 JJK  Working on control of water relay
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -36,6 +38,8 @@ var nextSendMsTempature = 0;
 var nextSendMsMoisture = 0;
 var moistureSensor = null;
 var thermometer = null;
+var currMoisture = 0;
+var currTemperature = 0.0;
 
 var relays = null;
 const LIGHTS = 0;
@@ -44,15 +48,17 @@ const HEAT = 2;
 const WATER = 3;
 const relayNames = ["lights","air","heat","water"];
 const OFF = 0;
+const OFF_VALUE = 65;
 const ON = 1;
+const MOISTURE_WARNING = 999;
 var currAirVal = OFF;
 var currLightsVal = OFF;
 var date;
 var hours = 0;
 
-// Run the air ventilation for 1 minute, then wait for 5 minutes
+// Value for air ventilation interval (check every 2 minutes - 2 minutes on, 2 minutes off) 
 var airInterval = 2 * 60 * 1000;
-var airDuration = 2 * 60 * 1000;
+//var airDuration = 2 * 60 * 1000;
 
 // create EventEmitter object
 var boardEvent = new EventEmitter();
@@ -116,8 +122,15 @@ board.on("ready", function() {
     var currMs = Date.now();
     if (currMs > nextSendMsMoisture) {
       // this shows "6" when in water 100% (660 because 2.3v of the 5.0v max - 1024)
+      currMoisture = this.value;
       logMetric("moisture:"+this.value);
       nextSendMsMoisture = currMs + intVal;
+
+      if (currMoisture < MOISTURE_WARNING) {
+
+        //log("Warning: LOW MOISTURE, curr = ",currMoisture);
+        
+      }
     }
   });
 
@@ -129,8 +142,9 @@ board.on("ready", function() {
 
   thermometer.on("change", function() {
       var currMs = Date.now();
-      //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
       if (currMs > nextSendMsTempature && this.fahrenheit < 135.0) {
+        //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
+        currTemperature = this.fahrenheit;
         logMetric("tempature:"+this.fahrenheit);
         nextSendMsTempature = currMs + intVal;
       }
@@ -256,7 +270,7 @@ function setRelay(relayNum,relayVal) {
   } else {
     // If value is 0 or false, set the relay to turn OFF and stop the flow of electricity
     relays[relayNum].close();
-    logMetric(relayNames[relayNum]+":0");
+    logMetric(relayNames[relayNum]+":"+OFF_VALUE);
   }
 }
 
