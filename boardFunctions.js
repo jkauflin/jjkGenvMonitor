@@ -139,9 +139,24 @@ board.on("ready", function() {
       controller: "DS18B20",
       pin: 2
   });
-
+/*
+Live at Port 3001 - Let's rock!
+board is ready
+19:55:50 logMetric, lights:65
+19:55:50 logMetric, air:65
+19:55:50 logMetric, heat:65
+19:55:50 logMetric, water:65
+end of board.on
+(node:1926) UnhandledPromiseRejectionWarning: Unhandled promise rejection (rejection id: 1): Error: FAILED TO FIND TEMPERATURE DEVICE
+19:55:51 logMetric, moisture:606
+*/
   thermometer.on("change", function() {
+
+    //this.fahrenheit
+    //this.fahrenheit
+    
       var currMs = Date.now();
+      console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
       if (currMs > nextSendMsTempature && this.fahrenheit < 135.0) {
         //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
         currTemperature = this.fahrenheit;
@@ -252,6 +267,9 @@ function webControl(boardMessage) {
   if (boardMessage.relay2 != null) {
     setRelay(AIR,boardMessage.relay2);
   }
+  */
+ 
+  /*
   if (boardMessage.relay3 != null) {
     setRelay(HEAT,boardMessage.relay3);
   }
@@ -259,7 +277,7 @@ function webControl(boardMessage) {
     setRelay(WATER,boardMessage.relay4);
   }
   */
-
+ 
 } // function webControl(boardMessage) {
 
 function setRelay(relayNum,relayVal) {
