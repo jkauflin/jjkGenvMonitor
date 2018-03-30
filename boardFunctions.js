@@ -14,6 +14,7 @@ Modification History
 2018-03-13 JJK  Added logic to run lights for 18 hours
 2018-03-25 JJK  Added logging of moisture sensor data
 2018-03-26 JJK  Working on control of water relay
+2018-03-29 JJK  Added 10 value arrays for smoothing
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -60,6 +61,31 @@ var hours = 0;
 var airInterval = 2 * 60 * 1000;
 //var airDuration = 2 * 60 * 1000;
 
+var numReadings = 10;   // Total number of readings to average
+var readingsA0 = [];    // Array of readings
+var indexA0 = 0;        // the index of the current reading
+var totalA0 = 0;        // the running total
+var averageA0 = 0;      // the average
+
+// initialize all the readings to 0:
+for (var i = 0; i < numReadings; i++) {
+    readingsA0[i] = 0;     
+}
+
+var arrayFull = false;
+
+var readingsA1 = [];    // Array of readings
+var indexA1 = 0;        // the index of the current reading
+var totalA1 = 0;        // the running total
+var averageA1 = 0;      // the average
+
+// initialize all the readings to 0:
+for (var i = 0; i < numReadings; i++) {
+    readingsA1[i] = 0;     
+}
+
+var arrayFull2 = false;
+
 // create EventEmitter object
 var boardEvent = new EventEmitter();
 
@@ -73,12 +99,13 @@ board.on("error", function() {
 //-------------------------------------------------------------------------------------------------------
 board.on("ready", function() {
   console.log("board is ready");
+  //setTimeout(startRelays,5000);
   
   moistureSensor = new five.Sensor({
     pin: 'A0',
     freq: 1000
   })
-
+ 
   /*
   moistureSensor.on('change', function (value) {
     // max seems to be 660  (maybe because the sensor's maximum output is 2.3V )
@@ -87,43 +114,33 @@ board.on("ready", function() {
   })
   */
 
-  //type: "NO"  // Normally open - electricity not flowing - normally OFF
-  relays = new five.Relays([{
-    pin: 10, 
-    type: "NO",
-  }, {
-    pin: 11, 
-    type: "NO",
-  }, {
-    pin: 12, 
-    type: "NO",
-  }, {
-    pin: 13, 
-    type: "NO",
-  }]);
- 
-  //relays.close();  // turn all the power OFF
-  // for the Sunfounder relay, normal open, use OPEN to electrify the coil and allow electricity
-  // use CLOSE to de-electrify the coil, and stop electricity
-  // (a little backward according to Johnny-Five documentation)
-
-  // Turn all the relays off when the borard start
-  setRelay(LIGHTS,OFF);
-  setRelay(AIR,OFF);
-  setRelay(HEAT,OFF);
-  setRelay(WATER,OFF);
-
-  // Start the function to toggle air ventilation ON and OFF
-  //setTimeout(toggleAir,airInterval);
-  setInterval(toggleAir,airInterval);
-
   // Scale the sensor's data from 0-1023 to 0-10 and log changes
   moistureSensor.on("change", function() {
+
+    // subtract the last reading:
+    totalA1 = totalA1 - readingsA1[indexA1];        
+    readingsA1[indexA1] = this.value;
+    // add the reading to the total:
+    totalA1 = totalA1 + readingsA1[indexA1];      
+    // advance to the next position in the array: 
+    indexA1 = indexA1 + 1;                   
+    // if we're at the end of the array...
+    if (indexA1 >= numReadings) {             
+        // ...wrap around to the beginning:
+        indexA1 = 0;                       
+        arrayFull2 = true;  
+    }
+
+    // calculate the average:
+    if (arrayFull2) {
+        averageA1 = totalA1 / numReadings;        
+    }
+
     var currMs = Date.now();
-    if (currMs > nextSendMsMoisture) {
+    if (currMs > nextSendMsMoisture && arrayFull2) {
       // this shows "6" when in water 100% (660 because 2.3v of the 5.0v max - 1024)
-      currMoisture = this.value;
-      logMetric("moisture:"+this.value);
+      currMoisture = averageA1;
+      logMetric("moisture:"+currMoisture);
       nextSendMsMoisture = currMs + intVal;
 
       if (currMoisture < MOISTURE_WARNING) {
@@ -133,7 +150,7 @@ board.on("ready", function() {
       }
     }
   });
-
+ 
   // This requires OneWire support using the ConfigurableFirmata
   thermometer = new five.Thermometer({
       controller: "DS18B20",
@@ -154,19 +171,72 @@ end of board.on
 
     //this.fahrenheit
     //this.fahrenheit
+
+    // subtract the last reading:
+    totalA0 = totalA0 - readingsA0[indexA0];        
+    readingsA0[indexA0] = this.fahrenheit;
+    // add the reading to the total:
+    totalA0 = totalA0 + readingsA0[indexA0];      
+    // advance to the next position in the array: 
+    indexA0 = indexA0 + 1;                   
+    // if we're at the end of the array...
+    if (indexA0 >= numReadings) {             
+        // ...wrap around to the beginning:
+        indexA0 = 0;                       
+        arrayFull = true;  
+    }
+
+    // calculate the average:
+    if (arrayFull) {
+        averageA0 = totalA0 / numReadings;        
+    }
     
+
       var currMs = Date.now();
-      console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
-      if (currMs > nextSendMsTempature && this.fahrenheit < 135.0) {
-        //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
-        currTemperature = this.fahrenheit;
-        logMetric("tempature:"+this.fahrenheit);
+      //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
+      if (currMs > nextSendMsTempature && averageA0 > 60.0 && averageA0 < 135.0 && arrayFull) {
+        //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+averageA0 + "°F");
+        currTemperature = averageA0;
+        logMetric("tempature:"+averageA0);
         nextSendMsTempature = currMs + intVal;
       }
   });
- 
+
   console.log("end of board.on");
 }); // board.on("ready", function() {
+
+function startRelays() {
+  //type: "NO"  // Normally open - electricity not flowing - normally OFF
+  relays = new five.Relays([{
+    pin: 10, 
+    type: "NO",
+  }, {
+    pin: 11, 
+    type: "NO",
+  }, {
+    pin: 12, 
+    type: "NO",
+  }, {
+    pin: 13, 
+    type: "NO",
+  }]);
+
+  //relays.close();  // turn all the power OFF
+  // for the Sunfounder relay, normal open, use OPEN to electrify the coil and allow electricity
+  // use CLOSE to de-electrify the coil, and stop electricity
+  // (a little backward according to Johnny-Five documentation)
+
+  // Turn all the relays off when the borard start
+  setRelay(LIGHTS,OFF);
+  setRelay(AIR,OFF);
+  setRelay(HEAT,OFF);
+  setRelay(WATER,OFF);
+
+  // Start the function to toggle air ventilation ON and OFF
+  //setTimeout(toggleAir,airInterval);
+  //setInterval(toggleAir,airInterval);
+  
+}
 
 // Function to toggle air ventilation ON and OFF
 function toggleAir() {
