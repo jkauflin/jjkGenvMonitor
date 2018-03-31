@@ -62,7 +62,7 @@ var hours = 0;
 
 // Value for air ventilation interval (check every 2 minutes - 2 minutes on, 2 minutes off) 
 //var airInterval = 2 * 60 * 1000;
-var airInterval = 1 * 60 * 1000;
+var airInterval = 2 * 60 * 1000;
 //var airDuration = 2 * 60 * 1000;
 
 var numReadings = 10;   // Total number of readings to average
