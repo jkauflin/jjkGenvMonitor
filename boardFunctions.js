@@ -101,6 +101,37 @@ board.on("ready", function() {
   console.log("board is ready");
   //setTimeout(startRelays,5000);
   
+  //type: "NO"  // Normally open - electricity not flowing - normally OFF
+  relays = new five.Relays([{
+    pin: 10, 
+    type: "NO",
+  }, {
+    pin: 11, 
+    type: "NO",
+  }, {
+    pin: 12, 
+    type: "NO",
+  }, {
+    pin: 13, 
+    type: "NO",
+  }]);
+
+  //relays.close();  // turn all the power OFF
+  // for the Sunfounder relay, normal open, use OPEN to electrify the coil and allow electricity
+  // use CLOSE to de-electrify the coil, and stop electricity
+  // (a little backward according to Johnny-Five documentation)
+
+  // Turn all the relays off when the borard start
+  setRelay(LIGHTS,OFF);
+  setRelay(AIR,OFF);
+  setRelay(HEAT,OFF);
+  setRelay(WATER,OFF);
+
+  // Start the function to toggle air ventilation ON and OFF
+  //setTimeout(toggleAir,airInterval);
+  //setInterval(toggleAir,airInterval);
+
+
   moistureSensor = new five.Sensor({
     pin: 'A0',
     freq: 1000
@@ -205,38 +236,6 @@ end of board.on
   console.log("end of board.on");
 }); // board.on("ready", function() {
 
-function startRelays() {
-  //type: "NO"  // Normally open - electricity not flowing - normally OFF
-  relays = new five.Relays([{
-    pin: 10, 
-    type: "NO",
-  }, {
-    pin: 11, 
-    type: "NO",
-  }, {
-    pin: 12, 
-    type: "NO",
-  }, {
-    pin: 13, 
-    type: "NO",
-  }]);
-
-  //relays.close();  // turn all the power OFF
-  // for the Sunfounder relay, normal open, use OPEN to electrify the coil and allow electricity
-  // use CLOSE to de-electrify the coil, and stop electricity
-  // (a little backward according to Johnny-Five documentation)
-
-  // Turn all the relays off when the borard start
-  setRelay(LIGHTS,OFF);
-  setRelay(AIR,OFF);
-  setRelay(HEAT,OFF);
-  setRelay(WATER,OFF);
-
-  // Start the function to toggle air ventilation ON and OFF
-  //setTimeout(toggleAir,airInterval);
-  //setInterval(toggleAir,airInterval);
-  
-}
 
 // Function to toggle air ventilation ON and OFF
 function toggleAir() {
