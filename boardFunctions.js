@@ -15,6 +15,9 @@ Modification History
 2018-03-25 JJK  Added logging of moisture sensor data
 2018-03-26 JJK  Working on control of water relay
 2018-03-29 JJK  Added 10 value arrays for smoothing
+2018-03-31 JJK  Swapped the arduino and relays boards, and re-ordered the
+                initialization sequence to solve the board timeout errors
+
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -58,7 +61,8 @@ var date;
 var hours = 0;
 
 // Value for air ventilation interval (check every 2 minutes - 2 minutes on, 2 minutes off) 
-var airInterval = 2 * 60 * 1000;
+//var airInterval = 2 * 60 * 1000;
+var airInterval = 1 * 60 * 1000;
 //var airDuration = 2 * 60 * 1000;
 
 var numReadings = 10;   // Total number of readings to average
@@ -99,44 +103,63 @@ board.on("error", function() {
 //-------------------------------------------------------------------------------------------------------
 board.on("ready", function() {
   console.log("board is ready");
-  //setTimeout(startRelays,5000);
+
+  // This requires OneWire support using the ConfigurableFirmata
+  thermometer = new five.Thermometer({
+    controller: "DS18B20",
+    pin: 2
+  });
+
+  /*
+Live at Port 3001 - Let's rock!
+board is ready
+19:55:50 logMetric, lights:65
+19:55:50 logMetric, air:65
+19:55:50 logMetric, heat:65
+19:55:50 logMetric, water:65
+end of board.on
+(node:1926) UnhandledPromiseRejectionWarning: Unhandled promise rejection (rejection id: 1): Error: FAILED TO FIND TEMPERATURE DEVICE
+19:55:51 logMetric, moisture:606
+*/
+thermometer.on("change", function() {
+
+  //this.fahrenheit
+  //this.fahrenheit
+
+  // subtract the last reading:
+  totalA0 = totalA0 - readingsA0[indexA0];        
+  readingsA0[indexA0] = this.fahrenheit;
+  // add the reading to the total:
+  totalA0 = totalA0 + readingsA0[indexA0];      
+  // advance to the next position in the array: 
+  indexA0 = indexA0 + 1;                   
+  // if we're at the end of the array...
+  if (indexA0 >= numReadings) {             
+      // ...wrap around to the beginning:
+      indexA0 = 0;                       
+      arrayFull = true;  
+  }
+
+  // calculate the average:
+  if (arrayFull) {
+      averageA0 = totalA0 / numReadings;        
+  }
   
-  //type: "NO"  // Normally open - electricity not flowing - normally OFF
-  relays = new five.Relays([{
-    pin: 10, 
-    type: "NO",
-  }, {
-    pin: 11, 
-    type: "NO",
-  }, {
-    pin: 12, 
-    type: "NO",
-  }, {
-    pin: 13, 
-    type: "NO",
-  }]);
 
-  //relays.close();  // turn all the power OFF
-  // for the Sunfounder relay, normal open, use OPEN to electrify the coil and allow electricity
-  // use CLOSE to de-electrify the coil, and stop electricity
-  // (a little backward according to Johnny-Five documentation)
-
-  // Turn all the relays off when the borard start
-  setRelay(LIGHTS,OFF);
-  setRelay(AIR,OFF);
-  setRelay(HEAT,OFF);
-  setRelay(WATER,OFF);
-
-  // Start the function to toggle air ventilation ON and OFF
-  //setTimeout(toggleAir,airInterval);
-  //setInterval(toggleAir,airInterval);
-
+    var currMs = Date.now();
+    //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
+    if (currMs > nextSendMsTempature && averageA0 > 60.0 && averageA0 < 135.0 && arrayFull) {
+      //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+averageA0 + "°F");
+      currTemperature = averageA0;
+      logMetric("tempature:"+averageA0);
+      nextSendMsTempature = currMs + intVal;
+    }
+});
 
   moistureSensor = new five.Sensor({
     pin: 'A0',
     freq: 1000
   })
- 
   /*
   moistureSensor.on('change', function (value) {
     // max seems to be 660  (maybe because the sensor's maximum output is 2.3V )
@@ -181,57 +204,37 @@ board.on("ready", function() {
       }
     }
   });
- 
-  // This requires OneWire support using the ConfigurableFirmata
-  thermometer = new five.Thermometer({
-      controller: "DS18B20",
-      pin: 2
-  });
-/*
-Live at Port 3001 - Let's rock!
-board is ready
-19:55:50 logMetric, lights:65
-19:55:50 logMetric, air:65
-19:55:50 logMetric, heat:65
-19:55:50 logMetric, water:65
-end of board.on
-(node:1926) UnhandledPromiseRejectionWarning: Unhandled promise rejection (rejection id: 1): Error: FAILED TO FIND TEMPERATURE DEVICE
-19:55:51 logMetric, moisture:606
-*/
-  thermometer.on("change", function() {
 
-    //this.fahrenheit
-    //this.fahrenheit
+  //type: "NO"  // Normally open - electricity not flowing - normally OFF
+  relays = new five.Relays([{
+    pin: 10, 
+    type: "NO",
+  }, {
+    pin: 11, 
+    type: "NO",
+  }, {
+    pin: 12, 
+    type: "NO",
+  }, {
+    pin: 13, 
+    type: "NO",
+  }]);
 
-    // subtract the last reading:
-    totalA0 = totalA0 - readingsA0[indexA0];        
-    readingsA0[indexA0] = this.fahrenheit;
-    // add the reading to the total:
-    totalA0 = totalA0 + readingsA0[indexA0];      
-    // advance to the next position in the array: 
-    indexA0 = indexA0 + 1;                   
-    // if we're at the end of the array...
-    if (indexA0 >= numReadings) {             
-        // ...wrap around to the beginning:
-        indexA0 = 0;                       
-        arrayFull = true;  
-    }
+  //relays.close();  // turn all the power OFF
+  // for the Sunfounder relay, normal open, use OPEN to electrify the coil and allow electricity
+  // use CLOSE to de-electrify the coil, and stop electricity
+  // (a little backward according to Johnny-Five documentation)
 
-    // calculate the average:
-    if (arrayFull) {
-        averageA0 = totalA0 / numReadings;        
-    }
-    
+  // Turn all the relays off when the borard start
+  // *** maybe delay this for a second or two???
+  setRelay(LIGHTS,OFF);
+  setRelay(AIR,OFF);
+  setRelay(HEAT,OFF);
+  setRelay(WATER,OFF);
 
-      var currMs = Date.now();
-      //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
-      if (currMs > nextSendMsTempature && averageA0 > 60.0 && averageA0 < 135.0 && arrayFull) {
-        //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+averageA0 + "°F");
-        currTemperature = averageA0;
-        logMetric("tempature:"+averageA0);
-        nextSendMsTempature = currMs + intVal;
-      }
-  });
+  // Start the function to toggle air ventilation ON and OFF
+  //setTimeout(toggleAir,airInterval);
+  setInterval(toggleAir,airInterval);
 
   console.log("end of board.on");
 }); // board.on("ready", function() {
@@ -338,14 +341,12 @@ function webControl(boardMessage) {
   }
   */
  
-  /*
   if (boardMessage.relay3 != null) {
     setRelay(HEAT,boardMessage.relay3);
   }
   if (boardMessage.relay4 != null) {
     setRelay(WATER,boardMessage.relay4);
   }
-  */
  
 } // function webControl(boardMessage) {
 
