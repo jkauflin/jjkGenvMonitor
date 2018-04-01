@@ -17,7 +17,10 @@ Modification History
 2018-03-29 JJK  Added 10 value arrays for smoothing
 2018-03-31 JJK  Swapped the arduino and relays boards, and re-ordered the
                 initialization sequence to solve the board timeout errors
-
+2018-04-01 JJK  Working on initialization stability
+                Doubled the board initialization timeout from 10 to 20 secs
+                Added set relays OFF on exit
+                Delay set of initial relays and air toggle
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -28,6 +31,7 @@ var five = require("johnny-five");
 var board = new five.Board({
   repl: false,
   debug: false,
+  timeout: 25
 });
 
 // Global variables
@@ -61,7 +65,6 @@ var date;
 var hours = 0;
 
 // Value for air ventilation interval (check every 2 minutes - 2 minutes on, 2 minutes off) 
-//var airInterval = 2 * 60 * 1000;
 var airInterval = 2 * 60 * 1000;
 //var airDuration = 2 * 60 * 1000;
 
@@ -94,9 +97,12 @@ var arrayFull2 = false;
 var boardEvent = new EventEmitter();
 
 board.on("error", function() {
-  //console.log("*** Error in Board ***");
   boardEvent.emit("error", "*** Error in Board ***");
 }); // board.on("error", function() {
+
+board.on("message", function(event) {
+  console.log("Received a %s message, from %s, reporting: %s", event.type, event.class, event.message);
+});
 
 //-------------------------------------------------------------------------------------------------------
 // When the board is ready, create and intialize global component objects (to be used by functions)
@@ -105,46 +111,34 @@ board.on("ready", function() {
   console.log("board is ready");
 
   // This requires OneWire support using the ConfigurableFirmata
+  console.log("Initialize tempature sensor");
   thermometer = new five.Thermometer({
     controller: "DS18B20",
     pin: 2
   });
 
-  /*
-Live at Port 3001 - Let's rock!
-board is ready
-19:55:50 logMetric, lights:65
-19:55:50 logMetric, air:65
-19:55:50 logMetric, heat:65
-19:55:50 logMetric, water:65
-end of board.on
-(node:1926) UnhandledPromiseRejectionWarning: Unhandled promise rejection (rejection id: 1): Error: FAILED TO FIND TEMPERATURE DEVICE
-19:55:51 logMetric, moisture:606
-*/
-thermometer.on("change", function() {
+  thermometer.on("change", function() {
+    //this.fahrenheit
 
-  //this.fahrenheit
-  //this.fahrenheit
+    // subtract the last reading:
+    totalA0 = totalA0 - readingsA0[indexA0];        
+    readingsA0[indexA0] = this.fahrenheit;
+    // add the reading to the total:
+    totalA0 = totalA0 + readingsA0[indexA0];      
+    // advance to the next position in the array: 
+    indexA0 = indexA0 + 1;                   
+    // if we're at the end of the array...
+    if (indexA0 >= numReadings) {             
+        // ...wrap around to the beginning:
+        indexA0 = 0;                       
+        arrayFull = true;  
+    }
 
-  // subtract the last reading:
-  totalA0 = totalA0 - readingsA0[indexA0];        
-  readingsA0[indexA0] = this.fahrenheit;
-  // add the reading to the total:
-  totalA0 = totalA0 + readingsA0[indexA0];      
-  // advance to the next position in the array: 
-  indexA0 = indexA0 + 1;                   
-  // if we're at the end of the array...
-  if (indexA0 >= numReadings) {             
-      // ...wrap around to the beginning:
-      indexA0 = 0;                       
-      arrayFull = true;  
-  }
-
-  // calculate the average:
-  if (arrayFull) {
-      averageA0 = totalA0 / numReadings;        
-  }
-  
+    // calculate the average:
+    if (arrayFull) {
+        averageA0 = totalA0 / numReadings;        
+    }
+    
 
     var currMs = Date.now();
     //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
@@ -154,22 +148,19 @@ thermometer.on("change", function() {
       logMetric("tempature:"+averageA0);
       nextSendMsTempature = currMs + intVal;
     }
-});
+  });
 
+  console.log("Initialize moisture sensor");
   moistureSensor = new five.Sensor({
     pin: 'A0',
     freq: 1000
   })
-  /*
-  moistureSensor.on('change', function (value) {
-    // max seems to be 660  (maybe because the sensor's maximum output is 2.3V )
-    // and the board sensor measure from 0 to 5V (for 0 to 1024 values)
-      console.log(dateTime.create().format('Y-m-d H:M:S')+", moisture = "+value);
-  })
-  */
 
   // Scale the sensor's data from 0-1023 to 0-10 and log changes
   moistureSensor.on("change", function() {
+    // max seems to be 660  (maybe because the sensor's maximum output is 2.3V )
+    // and the board sensor measure from 0 to 5V (for 0 to 1024 values)
+    //console.log(dateTime.create().format('Y-m-d H:M:S')+", moisture = "+this.value);
 
     // subtract the last reading:
     totalA1 = totalA1 - readingsA1[indexA1];        
@@ -180,14 +171,14 @@ thermometer.on("change", function() {
     indexA1 = indexA1 + 1;                   
     // if we're at the end of the array...
     if (indexA1 >= numReadings) {             
-        // ...wrap around to the beginning:
-        indexA1 = 0;                       
-        arrayFull2 = true;  
+      // ...wrap around to the beginning:
+      indexA1 = 0;                       
+      arrayFull2 = true;  
     }
 
     // calculate the average:
     if (arrayFull2) {
-        averageA1 = totalA1 / numReadings;        
+      averageA1 = totalA1 / numReadings;        
     }
 
     var currMs = Date.now();
@@ -198,14 +189,13 @@ thermometer.on("change", function() {
       nextSendMsMoisture = currMs + intVal;
 
       if (currMoisture < MOISTURE_WARNING) {
-
         //log("Warning: LOW MOISTURE, curr = ",currMoisture);
-        
       }
     }
   });
 
   //type: "NO"  // Normally open - electricity not flowing - normally OFF
+  console.log("Initialize relays");
   relays = new five.Relays([{
     pin: 10, 
     type: "NO",
@@ -225,18 +215,31 @@ thermometer.on("change", function() {
   // use CLOSE to de-electrify the coil, and stop electricity
   // (a little backward according to Johnny-Five documentation)
 
-  // Turn all the relays off when the borard start
-  // *** maybe delay this for a second or two???
-  setRelay(LIGHTS,OFF);
-  setRelay(AIR,OFF);
-  setRelay(HEAT,OFF);
-  setRelay(WATER,OFF);
+  // Turn all the relays off when the borard start (after a few seconds)
+  this.wait(3000, function() {
+    console.log("Setting relays OFF");
+    setRelay(LIGHTS,OFF);
+    setRelay(AIR,OFF);
+    setRelay(HEAT,OFF);
+    setRelay(WATER,OFF);
 
-  // Start the function to toggle air ventilation ON and OFF
-  //setTimeout(toggleAir,airInterval);
-  setInterval(toggleAir,airInterval);
+    // Start the function to toggle air ventilation ON and OFF
+    //setTimeout(toggleAir,airInterval);
+    console.log("Starting Air toggle interval");
+    setInterval(toggleAir,airInterval);
+  });
+
+  // If the board is exiting, turn all the relays off
+  this.on("exit", function() {
+    console.log("Setting relays OFF");
+    setRelay(LIGHTS,OFF);
+    setRelay(AIR,OFF);
+    setRelay(HEAT,OFF);
+    setRelay(WATER,OFF);
+  });
 
   console.log("end of board.on");
+  console.log(" ");
 }); // board.on("ready", function() {
 
 
