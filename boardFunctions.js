@@ -21,6 +21,7 @@ Modification History
                 Doubled the board initialization timeout from 10 to 20 secs
                 Added set relays OFF on exit
                 Delay set of initial relays and air toggle
+2018-04-02 JJK  Added node-webcam to take photos of environment
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -33,6 +34,32 @@ var board = new five.Board({
   debug: false,
   timeout: 25
 });
+
+var nodeWebcam = require( "node-webcam" );
+//Default options 
+var nodewebcamOptions = {
+  //Picture related 
+  width: 1280,
+  height: 720,
+  quality: 100,
+  //Delay to take shot 
+  delay: 0,
+  //Save shots in memory 
+  //saveShots: true,
+  saveShots: false,
+  // [jpeg, png] support varies 
+  // Webcam.OutputTypes 
+  output: "jpeg",
+  //Which camera to use 
+  //Use Webcam.list() for results 
+  //false for default device 
+  device: false,
+  // [location, buffer, base64] 
+  // Webcam.CallbackReturnTypes 
+  callbackReturn: "location",
+  //Logging 
+  verbose: false
+};
 
 // Global variables
 const development = process.env.NODE_ENV !== 'production';
@@ -110,6 +137,8 @@ board.on("message", function(event) {
 board.on("ready", function() {
   console.log("board is ready");
 
+
+  this.wait(1000, function() {
   // This requires OneWire support using the ConfigurableFirmata
   console.log("Initialize tempature sensor");
   thermometer = new five.Thermometer({
@@ -117,38 +146,42 @@ board.on("ready", function() {
     pin: 2
   });
 
-  thermometer.on("change", function() {
-    //this.fahrenheit
 
-    // subtract the last reading:
-    totalA0 = totalA0 - readingsA0[indexA0];        
-    readingsA0[indexA0] = this.fahrenheit;
-    // add the reading to the total:
-    totalA0 = totalA0 + readingsA0[indexA0];      
-    // advance to the next position in the array: 
-    indexA0 = indexA0 + 1;                   
-    // if we're at the end of the array...
-    if (indexA0 >= numReadings) {             
-        // ...wrap around to the beginning:
-        indexA0 = 0;                       
-        arrayFull = true;  
-    }
-
-    // calculate the average:
-    if (arrayFull) {
-        averageA0 = totalA0 / numReadings;        
-    }
-    
-
-    var currMs = Date.now();
-    //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
-    if (currMs > nextSendMsTempature && averageA0 > 60.0 && averageA0 < 135.0 && arrayFull) {
-      //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+averageA0 + "°F");
-      currTemperature = averageA0;
-      logMetric("tempature:"+averageA0);
-      nextSendMsTempature = currMs + intVal;
-    }
+    console.log("Declare on Thermometer change");
+    thermometer.on("change", function() {
+      //this.fahrenheit
+  
+      // subtract the last reading:
+      totalA0 = totalA0 - readingsA0[indexA0];        
+      readingsA0[indexA0] = this.fahrenheit;
+      // add the reading to the total:
+      totalA0 = totalA0 + readingsA0[indexA0];      
+      // advance to the next position in the array: 
+      indexA0 = indexA0 + 1;                   
+      // if we're at the end of the array...
+      if (indexA0 >= numReadings) {             
+          // ...wrap around to the beginning:
+          indexA0 = 0;                       
+          arrayFull = true;  
+      }
+  
+      // calculate the average:
+      if (arrayFull) {
+          averageA0 = totalA0 / numReadings;        
+      }
+      
+  
+      var currMs = Date.now();
+      //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
+      if (currMs > nextSendMsTempature && averageA0 > 60.0 && averageA0 < 135.0 && arrayFull) {
+        //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+averageA0 + "°F");
+        currTemperature = averageA0;
+        logMetric("tempature:"+averageA0);
+        nextSendMsTempature = currMs + intVal;
+      }
+    });
   });
+
 
   console.log("Initialize moisture sensor");
   moistureSensor = new five.Sensor({
@@ -266,6 +299,8 @@ function toggleAir() {
     if (currLightsVal == OFF) {
       setRelay(LIGHTS,ON);
       currLightsVal = ON;
+      // Take a selfie when you turn the lights on
+      letMeTakeASelfie();
     }
   }
 
@@ -350,7 +385,11 @@ function webControl(boardMessage) {
   if (boardMessage.relay4 != null) {
     setRelay(WATER,boardMessage.relay4);
   }
- 
+
+  if (boardMessage.selfie != null) {
+    letMeTakeASelfie();
+  }
+
 } // function webControl(boardMessage) {
 
 function setRelay(relayNum,relayVal) {
@@ -363,6 +402,20 @@ function setRelay(relayNum,relayVal) {
     relays[relayNum].close();
     logMetric(relayNames[relayNum]+":"+OFF_VALUE);
   }
+}
+
+function letMeTakeASelfie() {
+  // Turn on the light plugged into the HEAT relay
+  setRelay(HEAT,ON);
+  // Wait for the light to come on
+  setTimeout(() => {
+    //log("Taking a selfie","fswebcam capture");
+    nodeWebcam.capture(process.env.IMAGES_DIR+"genvImage", nodewebcamOptions, function( err, data ) {
+      //var image = "<img src='" + data + "'>";
+      setRelay(HEAT,OFF);
+    });
+  }, 2000);
+
 }
 
 module.exports = {

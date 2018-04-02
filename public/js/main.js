@@ -158,19 +158,29 @@ $(document).ready(function(){
 	});
 
 	$("#Relay4Button")
+		.mousedown(function() {
+			if (!isTouchDevice) { relay4Pushed(); }
+		})
+		.mouseup(function() {
+			if (!isTouchDevice) { relay4Released(); }
+		})
+		.on('touchstart', function(){
+			if (isTouchDevice) { relay4Pushed(); }
+		})
+		.on('touchend', function(){
+			if (isTouchDevice)  { relay4Released(); }
+	});
+
+	$("#SelfieButton")
 	.mousedown(function() {
-		if (!isTouchDevice) { relay4Pushed(); }
-	})
-	.mouseup(function() {
-		if (!isTouchDevice) { relay4Released(); }
+		if (!isTouchDevice) { selfiePushed(); }
 	})
 	.on('touchstart', function(){
-		if (isTouchDevice) { relay4Pushed(); }
-	})
-	.on('touchend', function(){
-		if (isTouchDevice)  { relay4Released(); }
-});
+		if (isTouchDevice) { selfiePushed(); }
+	});
 
+	//$("#SelfieDisplay").html("");
+	//document.getElementById("myImg").src = "hackanm.gif";
 
 }); // $(document).ready(function(){
 
@@ -218,4 +228,8 @@ function relay4Pushed() {
 }
 function relay4Released() {
 	wsSend('{"relay4" : 0}');
+}
+
+function selfiePushed() {
+	wsSend('{"selfie" : 1}');
 }
