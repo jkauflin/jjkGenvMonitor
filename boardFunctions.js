@@ -21,7 +21,8 @@ Modification History
                 Doubled the board initialization timeout from 10 to 20 secs
                 Added set relays OFF on exit
                 Delay set of initial relays and air toggle
-2018-04-02 JJK  Added node-webcam to take photos of environment
+2018-04-02 JJK  Added node-webcam to take selfies of environment
+                Added water for X seconds when lights are turned on
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -94,6 +95,7 @@ var hours = 0;
 // Value for air ventilation interval (check every 2 minutes - 2 minutes on, 2 minutes off) 
 var airInterval = 2 * 60 * 1000;
 //var airDuration = 2 * 60 * 1000;
+var msToWater = 3 * 1000;
 
 var numReadings = 10;   // Total number of readings to average
 var readingsA0 = [];    // Array of readings
@@ -301,6 +303,8 @@ function toggleAir() {
       currLightsVal = ON;
       // Take a selfie when you turn the lights on
       letMeTakeASelfie();
+      // Water the plants for a few seconds when the light come on
+      waterThePlants();
     }
   }
 
@@ -383,7 +387,10 @@ function webControl(boardMessage) {
     setRelay(HEAT,boardMessage.relay3);
   }
   if (boardMessage.relay4 != null) {
-    setRelay(WATER,boardMessage.relay4);
+    //setRelay(WATER,boardMessage.relay4);
+    if (boardMessage.relay4 == 1) {
+      waterThePlants();
+    }
   }
 
   if (boardMessage.selfie != null) {
@@ -415,7 +422,13 @@ function letMeTakeASelfie() {
       setRelay(HEAT,OFF);
     });
   }, 2000);
+}
 
+function waterThePlants() {
+  setRelay(WATER,ON);
+  setTimeout(() => {
+    setRelay(WATER,OFF);
+  }, msToWater);
 }
 
 module.exports = {

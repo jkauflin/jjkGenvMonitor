@@ -6,6 +6,7 @@
  * Modification History
  * 2017-09-08 JJK 	Initial version 
  * 2017-12-29 JJK	Initial controls and WebSocket communication
+ * 2018-04-02 JJK   Added control to manually trigger watering
  *============================================================================*/
 
 // Global variables
@@ -224,10 +225,10 @@ function relay3Released() {
 }
 
 function relay4Pushed() {
-	wsSend('{"relay4" : 1}');
+	//wsSend('{"relay4" : 1}');
 }
 function relay4Released() {
-	wsSend('{"relay4" : 0}');
+	//wsSend('{"relay4" : 0}');
 }
 
 function selfiePushed() {
