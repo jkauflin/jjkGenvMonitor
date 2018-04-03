@@ -32,8 +32,8 @@ const EventEmitter = require('events');
 var five = require("johnny-five");
 var board = new five.Board({
   repl: false,
-  debug: false,
-  timeout: 25
+  debug: true,
+  timeout: 30
 });
 
 var nodeWebcam = require( "node-webcam" );
@@ -95,7 +95,7 @@ var hours = 0;
 // Value for air ventilation interval (check every 2 minutes - 2 minutes on, 2 minutes off) 
 var airInterval = 2 * 60 * 1000;
 //var airDuration = 2 * 60 * 1000;
-var msToWater = 3 * 1000;
+var msToWater = 4 * 1000;
 
 var numReadings = 10;   // Total number of readings to average
 var readingsA0 = [];    // Array of readings
@@ -139,7 +139,6 @@ board.on("message", function(event) {
 board.on("ready", function() {
   console.log("board is ready");
 
-
   this.wait(1000, function() {
   // This requires OneWire support using the ConfigurableFirmata
   console.log("Initialize tempature sensor");
@@ -147,7 +146,6 @@ board.on("ready", function() {
     controller: "DS18B20",
     pin: 2
   });
-
 
     console.log("Declare on Thermometer change");
     thermometer.on("change", function() {
@@ -302,9 +300,9 @@ function toggleAir() {
       setRelay(LIGHTS,ON);
       currLightsVal = ON;
       // Take a selfie when you turn the lights on
-      letMeTakeASelfie();
+      setTimeout(letMeTakeASelfie, 0);
       // Water the plants for a few seconds when the light come on
-      waterThePlants();
+      setTimeout(waterThePlants, 500);
     }
   }
 
@@ -412,6 +410,7 @@ function setRelay(relayNum,relayVal) {
 }
 
 function letMeTakeASelfie() {
+  log("letMeTakeASelfie","Starting the function");
   // Turn on the light plugged into the HEAT relay
   setRelay(HEAT,ON);
   // Wait for the light to come on
@@ -425,6 +424,7 @@ function letMeTakeASelfie() {
 }
 
 function waterThePlants() {
+  log("waterThePlants","Starting the function");
   setRelay(WATER,ON);
   setTimeout(() => {
     setRelay(WATER,OFF);
