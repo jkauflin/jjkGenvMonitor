@@ -75,14 +75,12 @@ wss.on('connection', function (ws) {
   // showing the connection is still alive
   ws.on('pong', heartbeat);
 
-  /* Broadcast example
-  wss.clients.forEach(function each(client) {
-    if (client.readyState === ws.OPEN) {
-      client.send(data);
-    }
-  });
-  */
-
+  //Broadcast example
+  //wss.clients.forEach(function each(client) {
+  //  if (client.readyState === ws.OPEN) {
+  //    client.send(data);
+  //  }
+ // });
 
   // Handle messages from the client browser
   ws.on('message', function (boardMessage) {
@@ -105,14 +103,8 @@ wss.on('connection', function (ws) {
     ws.send(JSON.stringify(serverMessage));
   });
 
-  /*
-  setInterval(
-    sendDate,
-    1000,ws)
-  */
 });
 
-  //boardFunctions.testLed();
 
 // test send data to client
 function sendDate(ws) {
@@ -150,13 +142,6 @@ app.get('/start', function (req, res, next) {
    
 app.use('/',express.static('public'));
 
-/*
-app.use("*",function(req,res){
-  console.log("Not in Public, URL = "+req.url);
-  res.sendFile(path + "404.html");
-});
-*/
- 
 // jjk new
 app.use(function (err, req, res, next) {
   console.error(err.stack)

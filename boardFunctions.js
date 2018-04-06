@@ -33,7 +33,7 @@ var five = require("johnny-five");
 var board = new five.Board({
   repl: false,
   debug: true,
-  timeout: 30
+  timeout: 5000
 });
 
 var nodeWebcam = require( "node-webcam" );
@@ -94,8 +94,9 @@ var hours = 0;
 
 // Value for air ventilation interval (check every 2 minutes - 2 minutes on, 2 minutes off) 
 var airInterval = 2 * 60 * 1000;
-//var airDuration = 2 * 60 * 1000;
+var airDuration = 2 * 60 * 1000;
 var msToWater = 4 * 1000;
+var timeoutMs = airDuration;
 
 var numReadings = 10;   // Total number of readings to average
 var readingsA0 = [];    // Array of readings
@@ -133,11 +134,12 @@ board.on("message", function(event) {
   console.log("Received a %s message, from %s, reporting: %s", event.type, event.class, event.message);
 });
 
+log("Starting board initialization","");
 //-------------------------------------------------------------------------------------------------------
 // When the board is ready, create and intialize global component objects (to be used by functions)
 //-------------------------------------------------------------------------------------------------------
 board.on("ready", function() {
-  console.log("board is ready");
+  log("board is ready","");
 
   this.wait(1000, function() {
   // This requires OneWire support using the ConfigurableFirmata
@@ -182,7 +184,7 @@ board.on("ready", function() {
     });
   });
 
-
+/*
   console.log("Initialize moisture sensor");
   moistureSensor = new five.Sensor({
     pin: 'A0',
@@ -226,6 +228,7 @@ board.on("ready", function() {
       }
     }
   });
+  */
 
   //type: "NO"  // Normally open - electricity not flowing - normally OFF
   console.log("Initialize relays");
@@ -250,16 +253,16 @@ board.on("ready", function() {
 
   // Turn all the relays off when the borard start (after a few seconds)
   this.wait(3000, function() {
-    console.log("Setting relays OFF");
+    log("Setting relays OFF","");
     setRelay(LIGHTS,OFF);
     setRelay(AIR,OFF);
     setRelay(HEAT,OFF);
     setRelay(WATER,OFF);
 
     // Start the function to toggle air ventilation ON and OFF
-    //setTimeout(toggleAir,airInterval);
+    setTimeout(toggleAir,airInterval);
     console.log("Starting Air toggle interval");
-    setInterval(toggleAir,airInterval);
+    //setInterval(toggleAir,airInterval);
   });
 
   // If the board is exiting, turn all the relays off
@@ -271,22 +274,27 @@ board.on("ready", function() {
     setRelay(WATER,OFF);
   });
 
-  console.log("end of board.on");
+  log("end of board.on","");
   console.log(" ");
 }); // board.on("ready", function() {
 
 
 // Function to toggle air ventilation ON and OFF
 function toggleAir() {
+  timeoutMs = airInterval;
+  
   if (currAirVal == OFF) {
     setRelay(AIR,ON);
-    //setRelay(HEAT,OFF);
+    setRelay(HEAT,ON);
     currAirVal = ON;
+    timeoutMs = airDuration;
   } else {
     setRelay(AIR,OFF);
-    //setRelay(HEAT,ON);
+    setRelay(HEAT,OFF);
     currAirVal = OFF;
+    timeoutMs = airInterval;
   }
+  log("in toggleAir","timeoutMs = "+timeoutMs);
 
   date = new Date();
   hours = date.getHours();
@@ -306,27 +314,11 @@ function toggleAir() {
     }
   }
 
-} // function toggleAir() {
-
-/*
-function toggleAir() {
-  var timeoutMs = airInterval;
-  if (currAirVal == OFF) {
-    //log("testInterval","Turning ON");
-    setRelay(AIR,ON);
-    currAirVal = ON;
-    timeoutMs = airDuration;
-  } else {
-    //log("testInterval","Turning OFF");
-    setRelay(AIR,OFF);
-    currAirVal = OFF;
-    timeoutMs = airInterval;
-  }
-
   // Recursively call the function with the current timeout value  
   setTimeout(toggleAir,timeoutMs);
-}
-*/
+
+} // function toggleAir() {
+
 
 function logMetric(metricJSON) {
   log("logMetric",metricJSON);
