@@ -30,11 +30,6 @@ const EventEmitter = require('events');
 // When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
 // be sure to shut the REPL off!
 var five = require("johnny-five");
-var board = new five.Board({
-  repl: false,
-  debug: true,
-  timeout: 5000
-});
 
 var nodeWebcam = require( "node-webcam" );
 //Default options 
@@ -95,7 +90,7 @@ var hours = 0;
 // Value for air ventilation interval (check every 2 minutes - 2 minutes on, 2 minutes off) 
 var airInterval = 2 * 60 * 1000;
 var airDuration = 2 * 60 * 1000;
-var msToWater = 4 * 1000;
+var msToWater = 3 * 1000;
 var timeoutMs = airDuration;
 
 var numReadings = 10;   // Total number of readings to average
@@ -125,6 +120,12 @@ var arrayFull2 = false;
 
 // create EventEmitter object
 var boardEvent = new EventEmitter();
+
+var board = new five.Board({
+  repl: false,
+  debug: true,
+  timeout: 12000
+});
 
 board.on("error", function() {
   boardEvent.emit("error", "*** Error in Board ***");
@@ -183,6 +184,7 @@ board.on("ready", function() {
       }
     });
   });
+  
 
 /*
   console.log("Initialize moisture sensor");
@@ -335,9 +337,9 @@ function logMetric(metricJSON) {
 }
 
 function log(logId,logStr) {
-  if (development && debug) {
+  //if (development && debug) {
     console.log(dateTime.create().format('H:M:S')+" "+logId+", "+logStr);
-  }
+  //}
 }
 
 function webControl(boardMessage) {
@@ -404,15 +406,15 @@ function setRelay(relayNum,relayVal) {
 function letMeTakeASelfie() {
   log("letMeTakeASelfie","Starting the function");
   // Turn on the light plugged into the HEAT relay
-  setRelay(HEAT,ON);
+  //setRelay(HEAT,ON);
   // Wait for the light to come on
   setTimeout(() => {
     //log("Taking a selfie","fswebcam capture");
     nodeWebcam.capture(process.env.IMAGES_DIR+"genvImage", nodewebcamOptions, function( err, data ) {
       //var image = "<img src='" + data + "'>";
-      setRelay(HEAT,OFF);
+      //setRelay(HEAT,OFF);
     });
-  }, 2000);
+  }, 100);
 }
 
 function waterThePlants() {
