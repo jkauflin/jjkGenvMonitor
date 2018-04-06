@@ -26,7 +26,7 @@ Modification History
 2018-04-05 JJK  Working on clean board initializations
                 Removed moisture sensor (wasn't really giving good info)
 2018-04-06 JJK  Re-working metrics logging to give consistent values to
-                web ecomcms
+                web ecomcms.
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
