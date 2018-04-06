@@ -23,6 +23,10 @@ Modification History
                 Delay set of initial relays and air toggle
 2018-04-02 JJK  Added node-webcam to take selfies of environment
                 Added water for X seconds when lights are turned on
+2018-04-05 JJK  Working on clean board initializations
+                Removed moisture sensor (wasn't really giving good info)
+2018-04-06 JJK  Re-working metrics logging to give consistent values to
+                web ecomcms
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -65,21 +69,24 @@ var emoncmsUrl = "";
 
 var intervalSeconds = 30;
 var intVal = intervalSeconds * 1000;
+var currMs;
 var nextSendMsTempature = 0;
 var nextSendMsMoisture = 0;
 var moistureSensor = null;
 var thermometer = null;
-var currMoisture = 0;
-var currTemperature = 0.0;
+var currMoisture = 600;
+var currTemperature = 72.0;
 
 var relays = null;
+const relayNames = ["lights","air","heat","water"];
+const relayMetricON = 60;
+const relayMetricOFF = 50;
+const relayMetricValues = [relayMetricOFF,relayMetricOFF,relayMetricOFF,relayMetricOFF];
 const LIGHTS = 0;
 const AIR = 1;
 const HEAT = 2;
 const WATER = 3;
-const relayNames = ["lights","air","heat","water"];
 const OFF = 0;
-const OFF_VALUE = 65;
 const ON = 1;
 const MOISTURE_WARNING = 999;
 var currAirVal = OFF;
@@ -89,7 +96,7 @@ var hours = 0;
 
 // Value for air ventilation interval (check every 2 minutes - 2 minutes on, 2 minutes off) 
 var airInterval = 2 * 60 * 1000;
-var airDuration = 2 * 60 * 1000;
+var airDuration = 1 * 60 * 1000;
 var msToWater = 3 * 1000;
 var timeoutMs = airDuration;
 
@@ -135,25 +142,23 @@ board.on("message", function(event) {
   console.log("Received a %s message, from %s, reporting: %s", event.type, event.class, event.message);
 });
 
-log("Starting board initialization","");
+console.log("Starting board initialization");
 //-------------------------------------------------------------------------------------------------------
 // When the board is ready, create and intialize global component objects (to be used by functions)
 //-------------------------------------------------------------------------------------------------------
 board.on("ready", function() {
-  log("board is ready","");
+  console.log("board is ready");
 
   this.wait(1000, function() {
-  // This requires OneWire support using the ConfigurableFirmata
-  console.log("Initialize tempature sensor");
-  thermometer = new five.Thermometer({
-    controller: "DS18B20",
-    pin: 2
-  });
+    // This requires OneWire support using the ConfigurableFirmata
+    console.log("Initialize tempature sensor");
+    thermometer = new five.Thermometer({
+      controller: "DS18B20",
+      pin: 2
+    });
 
     console.log("Declare on Thermometer change");
     thermometer.on("change", function() {
-      //this.fahrenheit
-  
       // subtract the last reading:
       totalA0 = totalA0 - readingsA0[indexA0];        
       readingsA0[indexA0] = this.fahrenheit;
@@ -163,28 +168,24 @@ board.on("ready", function() {
       indexA0 = indexA0 + 1;                   
       // if we're at the end of the array...
       if (indexA0 >= numReadings) {             
-          // ...wrap around to the beginning:
-          indexA0 = 0;                       
-          arrayFull = true;  
+        // ...wrap around to the beginning:
+        indexA0 = 0;                       
+        arrayFull = true;  
       }
-  
       // calculate the average:
       if (arrayFull) {
-          averageA0 = totalA0 / numReadings;        
+        averageA0 = totalA0 / numReadings;        
       }
-      
   
-      var currMs = Date.now();
-      //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+this.fahrenheit + "°F");
+      currMs = Date.now();
+      //console.debug("Tempature = "+this.fahrenheit + "°F");
       if (currMs > nextSendMsTempature && averageA0 > 60.0 && averageA0 < 135.0 && arrayFull) {
-        //console.log(dateTime.create().format('Y-m-d H:M:S')+", "+averageA0 + "°F");
         currTemperature = averageA0;
-        logMetric("tempature:"+averageA0);
+        setTimeout(logMetric);
         nextSendMsTempature = currMs + intVal;
       }
-    });
+    }); // on termometer change
   });
-  
 
 /*
   console.log("Initialize moisture sensor");
@@ -255,28 +256,27 @@ board.on("ready", function() {
 
   // Turn all the relays off when the borard start (after a few seconds)
   this.wait(3000, function() {
-    log("Setting relays OFF","");
+    console.log("Setting relays OFF");
     setRelay(LIGHTS,OFF);
     setRelay(AIR,OFF);
     setRelay(HEAT,OFF);
     setRelay(WATER,OFF);
 
     // Start the function to toggle air ventilation ON and OFF
-    setTimeout(toggleAir,airInterval);
     console.log("Starting Air toggle interval");
-    //setInterval(toggleAir,airInterval);
+    setTimeout(toggleAir,airInterval);
   });
 
   // If the board is exiting, turn all the relays off
   this.on("exit", function() {
-    console.log("Setting relays OFF");
+    console.log("EXIT - Setting relays OFF");
     setRelay(LIGHTS,OFF);
     setRelay(AIR,OFF);
     setRelay(HEAT,OFF);
     setRelay(WATER,OFF);
   });
 
-  log("end of board.on","");
+  console.log("End of board.on");
   console.log(" ");
 }); // board.on("ready", function() {
 
@@ -296,7 +296,6 @@ function toggleAir() {
     currAirVal = OFF;
     timeoutMs = airInterval;
   }
-  log("in toggleAir","timeoutMs = "+timeoutMs);
 
   date = new Date();
   hours = date.getHours();
@@ -310,7 +309,7 @@ function toggleAir() {
       setRelay(LIGHTS,ON);
       currLightsVal = ON;
       // Take a selfie when you turn the lights on
-      setTimeout(letMeTakeASelfie, 0);
+      setTimeout(letMeTakeASelfie, 100);
       // Water the plants for a few seconds when the light come on
       setTimeout(waterThePlants, 500);
     }
@@ -322,9 +321,14 @@ function toggleAir() {
 } // function toggleAir() {
 
 
-function logMetric(metricJSON) {
-  log("logMetric",metricJSON);
-  emoncmsUrl = EMONCMS_INPUT_URL + "&json={" + metricJSON +"}";
+function logMetric() {
+  emoncmsUrl = EMONCMS_INPUT_URL + "&json={" + "tempature:"+currTemperature 
+      +","+relayNames[0]+":"+relayMetricValues[0]
+      +","+relayNames[1]+":"+relayMetricValues[1]
+      +","+relayNames[2]+":"+relayMetricValues[2]
+      +","+relayNames[3]+":"+relayMetricValues[3]
+      +"}";
+
   get.concat(emoncmsUrl, function (err, res, data) {
     if (err) {
       console.error("Error in logMetric send, metricJSON = "+metricJSON);
@@ -336,11 +340,13 @@ function logMetric(metricJSON) {
   });
 }
 
+/*
 function log(logId,logStr) {
-  //if (development && debug) {
+  if (development && debug) {
     console.log(dateTime.create().format('H:M:S')+" "+logId+", "+logStr);
-  //}
+  }
 }
+*/
 
 function webControl(boardMessage) {
   /*
@@ -381,12 +387,12 @@ function webControl(boardMessage) {
   if (boardMessage.relay4 != null) {
     //setRelay(WATER,boardMessage.relay4);
     if (boardMessage.relay4 == 1) {
-      waterThePlants();
+      setTimeout(waterThePlants);
     }
   }
 
   if (boardMessage.selfie != null) {
-    letMeTakeASelfie();
+    setTimeout(letMeTakeASelfie);
   }
 
 } // function webControl(boardMessage) {
@@ -395,21 +401,23 @@ function setRelay(relayNum,relayVal) {
   if (relayVal) {
     // If value is 1 or true, set the relay to turn ON and let the electricity flow
     relays[relayNum].open();
-    logMetric(relayNames[relayNum]+":"+(80+(relayNum*2)));
+    console.debug(relayNames[relayNum]+" ON");
+    relayMetricValues[relayNum] = relayMetricON+(relayNum*2);
   } else {
     // If value is 0 or false, set the relay to turn OFF and stop the flow of electricity
     relays[relayNum].close();
-    logMetric(relayNames[relayNum]+":"+OFF_VALUE);
+    console.debug(relayNames[relayNum]+" OFF");
+    relayMetricValues[relayNum] = relayMetricOFF;
   }
+  setTimeout(logMetric);
 }
 
 function letMeTakeASelfie() {
-  log("letMeTakeASelfie","Starting the function");
   // Turn on the light plugged into the HEAT relay
   //setRelay(HEAT,ON);
   // Wait for the light to come on
   setTimeout(() => {
-    //log("Taking a selfie","fswebcam capture");
+    console.log("Taking a selfie with fswebcam capture");
     nodeWebcam.capture(process.env.IMAGES_DIR+"genvImage", nodewebcamOptions, function( err, data ) {
       //var image = "<img src='" + data + "'>";
       //setRelay(HEAT,OFF);
@@ -418,7 +426,7 @@ function letMeTakeASelfie() {
 }
 
 function waterThePlants() {
-  log("waterThePlants","Starting the function");
+  console.log("Watering the plants");
   setRelay(WATER,ON);
   setTimeout(() => {
     setRelay(WATER,OFF);
