@@ -66,6 +66,7 @@ const development = process.env.NODE_ENV !== 'production';
 const debug = process.env.DEBUG;
 const EMONCMS_INPUT_URL = process.env.EMONCMS_INPUT_URL;
 var emoncmsUrl = "";
+var metricJSON = "";
 
 var intervalSeconds = 30;
 var intVal = intervalSeconds * 1000;
@@ -142,7 +143,7 @@ board.on("message", function(event) {
   console.log("Received a %s message, from %s, reporting: %s", event.type, event.class, event.message);
 });
 
-console.log("Starting board initialization");
+console.log("============ Starting board initialization ================");
 //-------------------------------------------------------------------------------------------------------
 // When the board is ready, create and intialize global component objects (to be used by functions)
 //-------------------------------------------------------------------------------------------------------
@@ -157,7 +158,6 @@ board.on("ready", function() {
       pin: 2
     });
 
-    console.log("Declare on Thermometer change");
     thermometer.on("change", function() {
       // subtract the last reading:
       totalA0 = totalA0 - readingsA0[indexA0];        
@@ -178,7 +178,7 @@ board.on("ready", function() {
       }
   
       currMs = Date.now();
-      //console.debug("Tempature = "+this.fahrenheit + "°F");
+      //console.log("Tempature = "+this.fahrenheit + "°F");
       if (currMs > nextSendMsTempature && averageA0 > 60.0 && averageA0 < 135.0 && arrayFull) {
         currTemperature = averageA0;
         setTimeout(logMetric);
@@ -322,12 +322,13 @@ function toggleAir() {
 
 
 function logMetric() {
-  emoncmsUrl = EMONCMS_INPUT_URL + "&json={" + "tempature:"+currTemperature 
+  metricJSON = "{" + "tempature:"+currTemperature 
       +","+relayNames[0]+":"+relayMetricValues[0]
       +","+relayNames[1]+":"+relayMetricValues[1]
       +","+relayNames[2]+":"+relayMetricValues[2]
       +","+relayNames[3]+":"+relayMetricValues[3]
       +"}";
+  emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON;
 
   get.concat(emoncmsUrl, function (err, res, data) {
     if (err) {
@@ -401,12 +402,12 @@ function setRelay(relayNum,relayVal) {
   if (relayVal) {
     // If value is 1 or true, set the relay to turn ON and let the electricity flow
     relays[relayNum].open();
-    console.debug(relayNames[relayNum]+" ON");
+    console.log(relayNames[relayNum]+" ON");
     relayMetricValues[relayNum] = relayMetricON+(relayNum*2);
   } else {
     // If value is 0 or false, set the relay to turn OFF and stop the flow of electricity
     relays[relayNum].close();
-    console.debug(relayNames[relayNum]+" OFF");
+    console.log(relayNames[relayNum]+" OFF");
     relayMetricValues[relayNum] = relayMetricOFF;
   }
   setTimeout(logMetric);
