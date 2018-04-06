@@ -402,12 +402,12 @@ function setRelay(relayNum,relayVal) {
   if (relayVal) {
     // If value is 1 or true, set the relay to turn ON and let the electricity flow
     relays[relayNum].open();
-    console.log(relayNames[relayNum]+" ON");
+    //console.log(relayNames[relayNum]+" ON");
     relayMetricValues[relayNum] = relayMetricON+(relayNum*2);
   } else {
     // If value is 0 or false, set the relay to turn OFF and stop the flow of electricity
     relays[relayNum].close();
-    console.log(relayNames[relayNum]+" OFF");
+    //console.log(relayNames[relayNum]+" OFF");
     relayMetricValues[relayNum] = relayMetricOFF;
   }
   setTimeout(logMetric);
