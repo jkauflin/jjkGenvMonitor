@@ -27,6 +27,8 @@ Modification History
                 Removed moisture sensor (wasn't really giving good info)
 2018-04-06 JJK  Re-working metrics logging to give consistent values to
                 web ecomcms.
+2018-04-07 JJK  Added adjustment to airDuration based on tempature (if it
+                drops below 70 increase to 1.5)
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -77,11 +79,13 @@ var moistureSensor = null;
 var thermometer = null;
 var currMoisture = 600;
 var currTemperature = 72.0;
+const TEMPATURE_MAX = 74.0;
+const TEMPATURE_MIN = 70.0;
 
 var relays = null;
 const relayNames = ["lights","air","heat","water"];
-const relayMetricON = 60;
-const relayMetricOFF = 50;
+const relayMetricON = 65;
+const relayMetricOFF = 60;
 const relayMetricValues = [relayMetricOFF,relayMetricOFF,relayMetricOFF,relayMetricOFF];
 const LIGHTS = 0;
 const AIR = 1;
@@ -105,7 +109,6 @@ var numReadings = 10;   // Total number of readings to average
 var readingsA0 = [];    // Array of readings
 var indexA0 = 0;        // the index of the current reading
 var totalA0 = 0;        // the running total
-var averageA0 = 0;      // the average
 
 // initialize all the readings to 0:
 for (var i = 0; i < numReadings; i++) {
@@ -174,13 +177,20 @@ board.on("ready", function() {
       }
       // calculate the average:
       if (arrayFull) {
-        averageA0 = totalA0 / numReadings;        
+        currTemperature = totalA0 / numReadings;        
       }
-  
+
+      // Check to adjust the duration of ventilation and heating according to tempature
+      if (currTemperature < TEMPATURE_MIN) {
+        airDuration = 1.5 * 60 * 1000;
+      }
+      if (currTemperature > TEMPATURE_MAX) {
+        airDuration = 1 * 60 * 1000;
+      }
+
       currMs = Date.now();
       //console.log("Tempature = "+this.fahrenheit + "°F");
-      if (currMs > nextSendMsTempature && averageA0 > 60.0 && averageA0 < 135.0 && arrayFull) {
-        currTemperature = averageA0;
+      if (currMs > nextSendMsTempature && currTemperature > 60.0 && currTemperature < 135.0 && arrayFull) {
         setTimeout(logMetric);
         nextSendMsTempature = currMs + intVal;
       }
@@ -322,7 +332,8 @@ function toggleAir() {
 
 
 function logMetric() {
-  metricJSON = "{" + "tempature:"+currTemperature 
+  metricJSON = "{" + "tempature:"+currTemperature
+      +",airDuration:"+airDuration 
       +","+relayNames[0]+":"+relayMetricValues[0]
       +","+relayNames[1]+":"+relayMetricValues[1]
       +","+relayNames[2]+":"+relayMetricValues[2]
