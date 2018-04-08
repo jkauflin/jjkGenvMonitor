@@ -182,7 +182,7 @@ board.on("ready", function() {
 
       // Check to adjust the duration of ventilation and heating according to tempature
       if (currTemperature < TEMPATURE_MIN) {
-        airDuration = 1.5 * 60 * 1000;
+        airDuration = 2 * 60 * 1000;
       }
       if (currTemperature > TEMPATURE_MAX) {
         airDuration = 1 * 60 * 1000;
