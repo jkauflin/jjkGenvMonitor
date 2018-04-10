@@ -28,7 +28,7 @@ Modification History
 2018-04-06 JJK  Re-working metrics logging to give consistent values to
                 web ecomcms.
 2018-04-07 JJK  Added adjustment to airDuration based on tempature (if it
-                drops below 70 increase to 1.5)
+                drops below 70 increase duration)
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -102,7 +102,7 @@ var hours = 0;
 // Value for air ventilation interval (check every 2 minutes - 2 minutes on, 2 minutes off) 
 var airInterval = 2 * 60 * 1000;
 var airDuration = 1 * 60 * 1000;
-var msToWater = 3 * 1000;
+var msToWater = 3.5 * 1000;
 var timeoutMs = airDuration;
 
 var numReadings = 10;   // Total number of readings to average
@@ -153,7 +153,50 @@ console.log("============ Starting board initialization ================");
 board.on("ready", function() {
   console.log("board is ready");
 
+  //type: "NO"  // Normally open - electricity not flowing - normally OFF
+  console.log("Initialize relays");
+  relays = new five.Relays([{
+    pin: 10, 
+    type: "NO",
+  }, {
+    pin: 11, 
+    type: "NO",
+  }, {
+    pin: 12, 
+    type: "NO",
+  }, {
+    pin: 13, 
+    type: "NO",
+  }]);
+
+  //relays.close();  // turn all the power OFF
+  // for the Sunfounder relay, normal open, use OPEN to electrify the coil and allow electricity
+  // use CLOSE to de-electrify the coil, and stop electricity
+  // (a little backward according to Johnny-Five documentation)
+
+  // Turn all the relays off when the borard start (after a few seconds)
   this.wait(1000, function() {
+    console.log("Setting relays OFF");
+    setRelay(LIGHTS,OFF);
+    setRelay(AIR,OFF);
+    setRelay(HEAT,OFF);
+    setRelay(WATER,OFF);
+
+    // Start the function to toggle air ventilation ON and OFF
+    console.log("Starting Air toggle interval");
+    setTimeout(toggleAir,airInterval);
+  });
+  // If the board is exiting, turn all the relays off
+  this.on("exit", function() {
+    console.log("EXIT - Setting relays OFF");
+    setRelay(LIGHTS,OFF);
+    setRelay(AIR,OFF);
+    setRelay(HEAT,OFF);
+    setRelay(WATER,OFF);
+  });
+
+
+  this.wait(500, function() {
     // This requires OneWire support using the ConfigurableFirmata
     console.log("Initialize tempature sensor");
     thermometer = new five.Thermometer({
@@ -243,48 +286,6 @@ board.on("ready", function() {
   });
   */
 
-  //type: "NO"  // Normally open - electricity not flowing - normally OFF
-  console.log("Initialize relays");
-  relays = new five.Relays([{
-    pin: 10, 
-    type: "NO",
-  }, {
-    pin: 11, 
-    type: "NO",
-  }, {
-    pin: 12, 
-    type: "NO",
-  }, {
-    pin: 13, 
-    type: "NO",
-  }]);
-
-  //relays.close();  // turn all the power OFF
-  // for the Sunfounder relay, normal open, use OPEN to electrify the coil and allow electricity
-  // use CLOSE to de-electrify the coil, and stop electricity
-  // (a little backward according to Johnny-Five documentation)
-
-  // Turn all the relays off when the borard start (after a few seconds)
-  this.wait(3000, function() {
-    console.log("Setting relays OFF");
-    setRelay(LIGHTS,OFF);
-    setRelay(AIR,OFF);
-    setRelay(HEAT,OFF);
-    setRelay(WATER,OFF);
-
-    // Start the function to toggle air ventilation ON and OFF
-    console.log("Starting Air toggle interval");
-    setTimeout(toggleAir,airInterval);
-  });
-
-  // If the board is exiting, turn all the relays off
-  this.on("exit", function() {
-    console.log("EXIT - Setting relays OFF");
-    setRelay(LIGHTS,OFF);
-    setRelay(AIR,OFF);
-    setRelay(HEAT,OFF);
-    setRelay(WATER,OFF);
-  });
 
   console.log("End of board.on");
   console.log(" ");
@@ -297,12 +298,12 @@ function toggleAir() {
   
   if (currAirVal == OFF) {
     setRelay(AIR,ON);
-    setRelay(HEAT,ON);
+    //setRelay(HEAT,ON);
     currAirVal = ON;
     timeoutMs = airDuration;
   } else {
     setRelay(AIR,OFF);
-    setRelay(HEAT,OFF);
+    //setRelay(HEAT,OFF);
     currAirVal = OFF;
     timeoutMs = airInterval;
   }
