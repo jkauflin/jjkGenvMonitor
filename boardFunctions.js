@@ -29,6 +29,8 @@ Modification History
                 web ecomcms.
 2018-04-07 JJK  Added adjustment to airDuration based on tempature (if it
                 drops below 70 increase duration)
+2018-04-14 JJK  Added toggleHeat and separate from air ventilation
+2018-04-15 JJK  Modified to turn heat on when air goes off
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -95,15 +97,19 @@ const OFF = 0;
 const ON = 1;
 const MOISTURE_WARNING = 999;
 var currAirVal = OFF;
+var currHeatVal = OFF;
 var currLightsVal = OFF;
 var date;
 var hours = 0;
 
 // Value for air ventilation interval (check every 2 minutes - 2 minutes on, 2 minutes off) 
 var airInterval = 2 * 60 * 1000;
-var airDuration = 1 * 60 * 1000;
-var msToWater = 3.5 * 1000;
-var timeoutMs = airDuration;
+var airDuration = 2 * 60 * 1000;
+var heatInterval = 1.5 * 60 * 1000;
+var heatDuration = 1 * 60 * 1000;
+var msToWater = 3 * 1000;
+var airTimeoutMs = airDuration;
+var heatTimeoutMs = heatDuration;
 
 var numReadings = 10;   // Total number of readings to average
 var readingsA0 = [];    // Array of readings
@@ -174,8 +180,8 @@ board.on("ready", function() {
   // use CLOSE to de-electrify the coil, and stop electricity
   // (a little backward according to Johnny-Five documentation)
 
-  // Turn all the relays off when the borard start (after a few seconds)
-  this.wait(1000, function() {
+  // Turn all the relays off when the borard starts
+  this.wait(300, function() {
     console.log("Setting relays OFF");
     setRelay(LIGHTS,OFF);
     setRelay(AIR,OFF);
@@ -184,7 +190,7 @@ board.on("ready", function() {
 
     // Start the function to toggle air ventilation ON and OFF
     console.log("Starting Air toggle interval");
-    setTimeout(toggleAir,airInterval);
+    setTimeout(toggleAir,500);
   });
   // If the board is exiting, turn all the relays off
   this.on("exit", function() {
@@ -195,7 +201,7 @@ board.on("ready", function() {
     setRelay(WATER,OFF);
   });
 
-
+  // Define the thermometer
   this.wait(500, function() {
     // This requires OneWire support using the ConfigurableFirmata
     console.log("Initialize tempature sensor");
@@ -225,10 +231,10 @@ board.on("ready", function() {
 
       // Check to adjust the duration of ventilation and heating according to tempature
       if (currTemperature < TEMPATURE_MIN) {
-        airDuration = 2 * 60 * 1000;
+        heatDuration = 1.5 * 60 * 1000;
       }
       if (currTemperature > TEMPATURE_MAX) {
-        airDuration = 1 * 60 * 1000;
+        heatDuration = 1 * 60 * 1000;
       }
 
       currMs = Date.now();
@@ -286,7 +292,6 @@ board.on("ready", function() {
   });
   */
 
-
   console.log("End of board.on");
   console.log(" ");
 }); // board.on("ready", function() {
@@ -294,18 +299,22 @@ board.on("ready", function() {
 
 // Function to toggle air ventilation ON and OFF
 function toggleAir() {
-  timeoutMs = airInterval;
+  airTimeoutMs = airInterval;
   
   if (currAirVal == OFF) {
+    //console.log("Turning Air ON");
     setRelay(AIR,ON);
-    //setRelay(HEAT,ON);
     currAirVal = ON;
-    timeoutMs = airDuration;
+    airTimeoutMs = airDuration;
   } else {
+    //console.log("Turning Air OFF");
     setRelay(AIR,OFF);
-    //setRelay(HEAT,OFF);
     currAirVal = OFF;
-    timeoutMs = airInterval;
+    airTimeoutMs = airInterval;
+    // When the air goes off, turn the heat on
+    if (currHeatVal == OFF) {
+      setTimeout(turnHeatOn,0);
+    }
   }
 
   date = new Date();
@@ -327,14 +336,29 @@ function toggleAir() {
   }
 
   // Recursively call the function with the current timeout value  
-  setTimeout(toggleAir,timeoutMs);
+  setTimeout(toggleAir,airTimeoutMs);
 
 } // function toggleAir() {
+
+// Function to turn air ventilation in/heat ON
+function turnHeatOn() {
+  //console.log("Turning Heat ON");
+  setRelay(HEAT,ON);
+  currHeatVal = ON;
+  // Queue up function to turn the heat back off after the duration time
+  setTimeout(turnHeatOff,heatDuration);
+}
+// Function to turn air ventilation in/heat OFF
+function turnHeatOff() {
+  //console.log("Turning Heat OFF");
+  setRelay(HEAT,OFF);
+  currHeatVal = OFF;
+}
 
 
 function logMetric() {
   metricJSON = "{" + "tempature:"+currTemperature
-      +",airDuration:"+airDuration 
+      +",airDuration:"+heatDuration
       +","+relayNames[0]+":"+relayMetricValues[0]
       +","+relayNames[1]+":"+relayMetricValues[1]
       +","+relayNames[2]+":"+relayMetricValues[2]
