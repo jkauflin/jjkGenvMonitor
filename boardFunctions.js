@@ -181,7 +181,7 @@ board.on("ready", function() {
   // (a little backward according to Johnny-Five documentation)
 
   // Turn all the relays off when the borard starts
-  this.wait(2000, function() {
+  this.wait(3000, function() {
     console.log("Setting relays OFF");
     setRelay(LIGHTS,OFF);
     setRelay(AIR,OFF);
@@ -190,7 +190,7 @@ board.on("ready", function() {
 
     // Start the function to toggle air ventilation ON and OFF
     console.log("Starting Air toggle interval");
-    setTimeout(toggleAir,500);
+    setTimeout(toggleAir,1000);
   });
   // If the board is exiting, turn all the relays off
   this.on("exit", function() {
@@ -202,7 +202,7 @@ board.on("ready", function() {
   });
 
   // Define the thermometer
-  this.wait(3000, function() {
+  this.wait(5000, function() {
     // This requires OneWire support using the ConfigurableFirmata
     console.log("Initialize tempature sensor");
     thermometer = new five.Thermometer({
