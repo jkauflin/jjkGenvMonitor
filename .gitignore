@@ -13,4 +13,4 @@ yarn-error.log*
 /.changelog
 .env
 package-lock.json
-public/images
+public/images/*.jpg
