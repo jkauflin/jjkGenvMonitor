@@ -31,6 +31,7 @@ Modification History
                 drops below 70 increase duration)
 2018-04-14 JJK  Added toggleHeat and separate from air ventilation
 2018-04-15 JJK  Modified to turn heat on when air goes off
+2018-04-22 JJK  Working well with the Pi - check selfie and water timing
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -107,7 +108,7 @@ var airInterval = 2 * 60 * 1000;
 var airDuration = 2 * 60 * 1000;
 var heatInterval = 1.5 * 60 * 1000;
 var heatDuration = 1 * 60 * 1000;
-var msToWater = 3 * 1000;
+var msToWater = 2 * 1000;
 var airTimeoutMs = airDuration;
 var heatTimeoutMs = heatDuration;
 
@@ -455,6 +456,7 @@ function letMeTakeASelfie() {
   // Wait for the light to come on
   setTimeout(() => {
     console.log("Taking a selfie with fswebcam capture");
+    console.log("process.env.IMAGES_DIR = "+process.env.IMAGES_DIR);
     nodeWebcam.capture(process.env.IMAGES_DIR+"genvImage", nodewebcamOptions, function( err, data ) {
       //var image = "<img src='" + data + "'>";
       //setRelay(HEAT,OFF);
