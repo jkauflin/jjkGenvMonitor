@@ -40,6 +40,7 @@ const EventEmitter = require('events');
 // be sure to shut the REPL off!
 var five = require("johnny-five");
 
+// Requires webcam utility - sudo apt-get install fswebcam
 var nodeWebcam = require( "node-webcam" );
 //Default options 
 var nodewebcamOptions = {
@@ -108,7 +109,7 @@ var airInterval = 2 * 60 * 1000;
 var airDuration = 2 * 60 * 1000;
 var heatInterval = 1.5 * 60 * 1000;
 var heatDuration = 1 * 60 * 1000;
-var msToWater = 2 * 1000;
+var msToWater = 3 * 1000;
 var airTimeoutMs = airDuration;
 var heatTimeoutMs = heatDuration;
 
@@ -456,8 +457,10 @@ function letMeTakeASelfie() {
   // Wait for the light to come on
   setTimeout(() => {
     console.log("Taking a selfie with fswebcam capture");
-    console.log("process.env.IMAGES_DIR = "+process.env.IMAGES_DIR);
     nodeWebcam.capture(process.env.IMAGES_DIR+"genvImage", nodewebcamOptions, function( err, data ) {
+      if (err != null) {
+        console.log("Error with webcam capture, err = "+err);
+      }
       //var image = "<img src='" + data + "'>";
       //setRelay(HEAT,OFF);
     });
