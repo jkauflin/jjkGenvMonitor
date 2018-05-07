@@ -109,7 +109,10 @@ var airInterval = 2 * 60 * 1000;
 var airDuration = 2 * 60 * 1000;
 var heatInterval = 1.5 * 60 * 1000;
 var heatDuration = 1 * 60 * 1000;
-var msToWater = 3 * 1000;
+//var msToWater = 3 * 1000;
+//var msToWater = 6 * 1000;
+// 5/7/2018 Tomato plant - about 2 months, now needs 30 seconds to fill up the self-watering bottom area
+var msToWater = 30 * 1000;
 var airTimeoutMs = airDuration;
 var heatTimeoutMs = heatDuration;
 

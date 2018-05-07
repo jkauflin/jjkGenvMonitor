@@ -225,10 +225,10 @@ function relay3Released() {
 }
 
 function relay4Pushed() {
-	//wsSend('{"relay4" : 1}');
+	wsSend('{"relay4" : 1}');
 }
 function relay4Released() {
-	//wsSend('{"relay4" : 0}');
+	wsSend('{"relay4" : 0}');
 }
 
 function selfiePushed() {
