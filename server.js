@@ -10,14 +10,19 @@ Modification History
                 to BBB Debian 9.3 and NodeJS 6.12
 2018-03-07 JJK  Moved board functions to boardFunctions
 2018-03-21 JJK  Working on moisture and water control
+2018-05-14 JJK  Added store to save application configuration values
 =============================================================================*/
 
 // Read environment variables from the .env file
 require('dotenv').config();
+//NODE_ENV=
+//DEBUG=
 //HOST=
-//WEB_PORT=3000
-//WS_PORT=3035
+//WEB_PORT=
+//WS_PORT=
 //EMONCMS_INPUT_URL=
+//STORE_DIR=
+//IMAGES_DIR=
 
 // General handler for any uncaught exceptions
 process.on('uncaughtException', function (e) {
@@ -37,6 +42,7 @@ var boardFunctions = require('./boardFunctions.js');
 var app = express();
 //var path = __dirname + '/';
 var httpServer = http.createServer(app);
+
 
 //=================================================================================================
 // Create a WebSocket server and implement a heartbeat check

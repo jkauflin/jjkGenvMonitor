@@ -40,6 +40,31 @@ const EventEmitter = require('events');
 // be sure to shut the REPL off!
 var five = require("johnny-five");
 
+// Get values from the application storage record
+var store = require('json-fs-store')(process.env.STORE_DIR);
+var storeId = 'store';
+var initStoreRec = {
+  id: storeId,
+  airInterval: 2,
+  airDuration: 2,
+  heatInterval: 1.5,
+  heatDuration: 1,
+  msToWater: 7
+};
+var storeRec = initStoreRec;
+
+store.load(storeId, function(err, inStoreRec){
+  if (err) {
+    store.add(initStoreRec, function(err) {
+      if (err) {
+        throw err;
+      }
+    });
+  } else {
+    storeRec = inStoreRec;
+  }
+});
+
 // Requires webcam utility - sudo apt-get install fswebcam
 var nodeWebcam = require( "node-webcam" );
 //Default options 
@@ -112,7 +137,8 @@ var heatDuration = 1 * 60 * 1000;
 //var msToWater = 3 * 1000;
 //var msToWater = 6 * 1000;
 // 5/7/2018 Tomato plant - about 2 months, now needs 30 seconds to fill up the self-watering bottom area
-var msToWater = 30 * 1000;
+//var msToWater = 30 * 1000;
+var msToWater = 25 * 1000;
 var airTimeoutMs = airDuration;
 var heatTimeoutMs = heatDuration;
 
@@ -163,7 +189,16 @@ console.log("============ Starting board initialization ================");
 //-------------------------------------------------------------------------------------------------------
 board.on("ready", function() {
   console.log("board is ready");
-
+  
+  // Set variables from the storage record values
+  airInterval = storeRec.airInterval * 60 * 1000;
+  airDuration = storeRec.airDuration * 60 * 1000;
+  heatInterval = storeRec.heatInterval * 60 * 1000;
+  heatDuration = storeRec.heatDuration * 60 * 1000;
+  msToWater = storeRec.msToWater * 1000;
+  airTimeoutMs = airDuration;
+  heatTimeoutMs = heatDuration;
+  
   //type: "NO"  // Normally open - electricity not flowing - normally OFF
   console.log("Initialize relays");
   relays = new five.Relays([{
@@ -235,12 +270,14 @@ board.on("ready", function() {
       }
 
       // Check to adjust the duration of ventilation and heating according to tempature
+      /*
       if (currTemperature < TEMPATURE_MIN) {
         heatDuration = 1.5 * 60 * 1000;
       }
       if (currTemperature > TEMPATURE_MAX) {
         heatDuration = 1 * 60 * 1000;
       }
+      */
 
       currMs = Date.now();
       //console.log("Tempature = "+this.fahrenheit + "°F");
