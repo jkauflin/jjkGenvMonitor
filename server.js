@@ -10,7 +10,8 @@ Modification History
                 to BBB Debian 9.3 and NodeJS 6.12
 2018-03-07 JJK  Moved board functions to boardFunctions
 2018-03-21 JJK  Working on moisture and water control
-2018-05-14 JJK  Added store to save application configuration values
+2018-05-18 JJK  Modified to present and allow configuration updates from
+                the web page
 =============================================================================*/
 
 // Read environment variables from the .env file
@@ -33,16 +34,16 @@ process.on('uncaughtException', function (e) {
 	//process.exit(1);
 });
 
-const express = require('express');
+// Create a web server
 const http = require('http');
 const url = require('url');
 var dateTime = require('node-datetime');
-var boardFunctions = require('./boardFunctions.js');
-
+const express = require('express');
 var app = express();
-//var path = __dirname + '/';
 var httpServer = http.createServer(app);
 
+// Include the Arduino board functions
+var boardFunctions = require('./boardFunctions.js');
 
 //=================================================================================================
 // Create a WebSocket server and implement a heartbeat check
@@ -88,6 +89,10 @@ wss.on('connection', function (ws) {
   //  }
  // });
 
+  // Upon connection, send configuration values to the client
+  var serverMessage = {"storeRec" : boardFunctions.sr};
+  ws.send(JSON.stringify(serverMessage));
+
   // Handle messages from the client browser
   ws.on('message', function (boardMessage) {
     //console.log("boardMessage = "+boardMessage);
@@ -108,34 +113,8 @@ wss.on('connection', function (ws) {
     var serverMessage = {"lightsVal" : lightsVal};
     ws.send(JSON.stringify(serverMessage));
   });
-
 });
 
-
-// test send data to client
-function sendDate(ws) {
-  try { 
-
-    ws.send(dateTime.create().format('Y-m-d H:M:S'),
-    
-      function ack(error) {
-        // If error is not defined, the send has been completed, otherwise the error
-        // object will indicate what failed.
-        if (error == null) {
-          // send successful
-          //console.log("Successful send in sendDate ");
-        } else {
-          console.log("error object indicates ERROR in ws.send  - sendDate");
-        }
-      }
-
-    );
-
-  } catch (e) {
-    console.log("ERROR in try/catch for WebSocket - sendDate, e = "+e);
-  }
-
-}
 
 // When the web browser client requests a "/start" URL, send back the url to use to establish
 // the Websocket connection
@@ -154,6 +133,7 @@ app.use(function (err, req, res, next) {
   res.status(500).send('Something broke!')
 })
 
+// Have the web server listen for requests
 httpServer.listen(process.env.WEB_PORT,function() {
   console.log("Live at Port "+process.env.WEB_PORT+" - Let's rock!");
 });

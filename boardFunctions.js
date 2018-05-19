@@ -32,6 +32,8 @@ Modification History
 2018-04-14 JJK  Added toggleHeat and separate from air ventilation
 2018-04-15 JJK  Modified to turn heat on when air goes off
 2018-04-22 JJK  Working well with the Pi - check selfie and water timing
+2018-05-14 JJK  Added store to save application configuration values
+2018-05-18 JJK  Modified to accept configuration updates from web client
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -40,28 +42,35 @@ const EventEmitter = require('events');
 // be sure to shut the REPL off!
 var five = require("johnny-five");
 
-// Get values from the application storage record
+// Set up the configuration store and initial values
 var store = require('json-fs-store')(process.env.STORE_DIR);
 var storeId = 'store';
 var initStoreRec = {
-  id: storeId,
-  airInterval: 2,
-  airDuration: 2,
-  heatInterval: 1.5,
-  heatDuration: 1,
-  msToWater: 7
+  id: storeId,              // unique identifier
+  targetTemperature: 72.0,  // degrees fahrenheit
+  airInterval: 2,           // minutes
+  airDuration: 2,           // minutes
+  heatInterval: 1.5,        // minutes
+  heatDuration: 1,          // minutes
+  heatDurationMin: 1,       // minutes
+  heatDurationMax: 1.5,     // minutes
+  waterDuration: 7          // seconds
 };
-var storeRec = initStoreRec;
+// Structure to hold current configuration values
+var sr = initStoreRec;
 
+// Get values from the application storage record
 store.load(storeId, function(err, inStoreRec){
   if (err) {
+    // Create one if it does not exist (with initial values)
     store.add(initStoreRec, function(err) {
       if (err) {
         throw err;
       }
     });
   } else {
-    storeRec = inStoreRec;
+    // Get current values from the store record
+    sr = inStoreRec;
   }
 });
 
@@ -103,13 +112,10 @@ var intervalSeconds = 30;
 var intVal = intervalSeconds * 1000;
 var currMs;
 var nextSendMsTempature = 0;
-var nextSendMsMoisture = 0;
-var moistureSensor = null;
 var thermometer = null;
-var currMoisture = 600;
-var currTemperature = 72.0;
-const TEMPATURE_MAX = 74.0;
-const TEMPATURE_MIN = 70.0;
+var currTemperature = sr.targetTemperature;
+const TEMPATURE_MAX = sr.targetTemperature + 2.0;
+const TEMPATURE_MIN = sr.targetTemperature - 2.0;
 
 var relays = null;
 const relayNames = ["lights","air","heat","water"];
@@ -122,53 +128,31 @@ const HEAT = 2;
 const WATER = 3;
 const OFF = 0;
 const ON = 1;
-const MOISTURE_WARNING = 999;
+
+const minutesToMilliseconds = 60 * 1000;
+const secondsToMilliseconds = 1000;
 var currAirVal = OFF;
 var currHeatVal = OFF;
 var currLightsVal = OFF;
 var date;
 var hours = 0;
+var airTimeout = 1.0;
 
-// Value for air ventilation interval (check every 2 minutes - 2 minutes on, 2 minutes off) 
-var airInterval = 2 * 60 * 1000;
-var airDuration = 2 * 60 * 1000;
-var heatInterval = 1.5 * 60 * 1000;
-var heatDuration = 1 * 60 * 1000;
-//var msToWater = 3 * 1000;
-//var msToWater = 6 * 1000;
-// 5/7/2018 Tomato plant - about 2 months, now needs 30 seconds to fill up the self-watering bottom area
-//var msToWater = 30 * 1000;
-var msToWater = 25 * 1000;
-var airTimeoutMs = airDuration;
-var heatTimeoutMs = heatDuration;
-
+// Variables to hold sensor values
 var numReadings = 10;   // Total number of readings to average
 var readingsA0 = [];    // Array of readings
 var indexA0 = 0;        // the index of the current reading
 var totalA0 = 0;        // the running total
-
 // initialize all the readings to 0:
 for (var i = 0; i < numReadings; i++) {
     readingsA0[i] = 0;     
 }
-
 var arrayFull = false;
 
-var readingsA1 = [];    // Array of readings
-var indexA1 = 0;        // the index of the current reading
-var totalA1 = 0;        // the running total
-var averageA1 = 0;      // the average
-
-// initialize all the readings to 0:
-for (var i = 0; i < numReadings; i++) {
-    readingsA1[i] = 0;     
-}
-
-var arrayFull2 = false;
-
-// create EventEmitter object
+// Create EventEmitter object
 var boardEvent = new EventEmitter();
 
+// Create Johnny-Five board object
 var board = new five.Board({
   repl: false,
   debug: true,
@@ -189,15 +173,6 @@ console.log("============ Starting board initialization ================");
 //-------------------------------------------------------------------------------------------------------
 board.on("ready", function() {
   console.log("board is ready");
-  
-  // Set variables from the storage record values
-  airInterval = storeRec.airInterval * 60 * 1000;
-  airDuration = storeRec.airDuration * 60 * 1000;
-  heatInterval = storeRec.heatInterval * 60 * 1000;
-  heatDuration = storeRec.heatDuration * 60 * 1000;
-  msToWater = storeRec.msToWater * 1000;
-  airTimeoutMs = airDuration;
-  heatTimeoutMs = heatDuration;
   
   //type: "NO"  // Normally open - electricity not flowing - normally OFF
   console.log("Initialize relays");
@@ -241,7 +216,7 @@ board.on("ready", function() {
     setRelay(WATER,OFF);
   });
 
-  // Define the thermometer
+  // Define the thermometer sensor
   this.wait(5000, function() {
     // This requires OneWire support using the ConfigurableFirmata
     console.log("Initialize tempature sensor");
@@ -270,15 +245,13 @@ board.on("ready", function() {
       }
 
       // Check to adjust the duration of ventilation and heating according to tempature
-      /*
       if (currTemperature < TEMPATURE_MIN) {
-        heatDuration = 1.5 * 60 * 1000;
+        sr.heatDuration = sr.heatDurationMax;
       }
       if (currTemperature > TEMPATURE_MAX) {
-        heatDuration = 1 * 60 * 1000;
+        sr.heatDuration = sr.heatDurationMin;
       }
-      */
-
+  
       currMs = Date.now();
       //console.log("Tempature = "+this.fahrenheit + "°F");
       if (currMs > nextSendMsTempature && currTemperature > 60.0 && currTemperature < 135.0 && arrayFull) {
@@ -288,71 +261,25 @@ board.on("ready", function() {
     }); // on termometer change
   });
 
-/*
-  console.log("Initialize moisture sensor");
-  moistureSensor = new five.Sensor({
-    pin: 'A0',
-    freq: 1000
-  })
-
-  // Scale the sensor's data from 0-1023 to 0-10 and log changes
-  moistureSensor.on("change", function() {
-    // max seems to be 660  (maybe because the sensor's maximum output is 2.3V )
-    // and the board sensor measure from 0 to 5V (for 0 to 1024 values)
-    //console.log(dateTime.create().format('Y-m-d H:M:S')+", moisture = "+this.value);
-
-    // subtract the last reading:
-    totalA1 = totalA1 - readingsA1[indexA1];        
-    readingsA1[indexA1] = this.value;
-    // add the reading to the total:
-    totalA1 = totalA1 + readingsA1[indexA1];      
-    // advance to the next position in the array: 
-    indexA1 = indexA1 + 1;                   
-    // if we're at the end of the array...
-    if (indexA1 >= numReadings) {             
-      // ...wrap around to the beginning:
-      indexA1 = 0;                       
-      arrayFull2 = true;  
-    }
-
-    // calculate the average:
-    if (arrayFull2) {
-      averageA1 = totalA1 / numReadings;        
-    }
-
-    var currMs = Date.now();
-    if (currMs > nextSendMsMoisture && arrayFull2) {
-      // this shows "6" when in water 100% (660 because 2.3v of the 5.0v max - 1024)
-      currMoisture = averageA1;
-      logMetric("moisture:"+currMoisture);
-      nextSendMsMoisture = currMs + intVal;
-
-      if (currMoisture < MOISTURE_WARNING) {
-        //log("Warning: LOW MOISTURE, curr = ",currMoisture);
-      }
-    }
-  });
-  */
-
-  console.log("End of board.on");
+  console.log("End of board.on (initialize) event");
   console.log(" ");
 }); // board.on("ready", function() {
 
 
 // Function to toggle air ventilation ON and OFF
 function toggleAir() {
-  airTimeoutMs = airInterval;
-  
+  airTimeout = sr.airInterval;
+
   if (currAirVal == OFF) {
     //console.log("Turning Air ON");
     setRelay(AIR,ON);
     currAirVal = ON;
-    airTimeoutMs = airDuration;
+    airTimeout = sr.airDuration;
   } else {
     //console.log("Turning Air OFF");
     setRelay(AIR,OFF);
     currAirVal = OFF;
-    airTimeoutMs = airInterval;
+    airTimeout = sr.airInterval;
     // When the air goes off, turn the heat on
     if (currHeatVal == OFF) {
       setTimeout(turnHeatOn,0);
@@ -378,7 +305,7 @@ function toggleAir() {
   }
 
   // Recursively call the function with the current timeout value  
-  setTimeout(toggleAir,airTimeoutMs);
+  setTimeout(toggleAir,airTimeout * minutesToMilliseconds);
 
 } // function toggleAir() {
 
@@ -388,7 +315,7 @@ function turnHeatOn() {
   setRelay(HEAT,ON);
   currHeatVal = ON;
   // Queue up function to turn the heat back off after the duration time
-  setTimeout(turnHeatOff,heatDuration);
+  setTimeout(turnHeatOff,sr.heatDuration * minutesToMilliseconds);
 }
 // Function to turn air ventilation in/heat OFF
 function turnHeatOff() {
@@ -400,7 +327,7 @@ function turnHeatOff() {
 
 function logMetric() {
   metricJSON = "{" + "tempature:"+currTemperature
-      +",airDuration:"+heatDuration
+      +",airDuration:"+sr.heatDuration
       +","+relayNames[0]+":"+relayMetricValues[0]
       +","+relayNames[1]+":"+relayMetricValues[1]
       +","+relayNames[2]+":"+relayMetricValues[2]
@@ -410,8 +337,8 @@ function logMetric() {
 
   get.concat(emoncmsUrl, function (err, res, data) {
     if (err) {
-      console.error("Error in logMetric send, metricJSON = "+metricJSON);
-      console.error("err = "+err);
+      //console.error("Error in logMetric send, metricJSON = "+metricJSON);
+      //console.error("err = "+err);
     } else {
       //console.log(res.statusCode) // 200 
       //console.log(data) // Buffer('this is the server response') 
@@ -428,38 +355,6 @@ function log(logId,logStr) {
 */
 
 function webControl(boardMessage) {
-  /*
-  if (boardMessage.motorSpeed != null) {
-    motorSpeed = boardMessage.motorSpeed;
-  }
-  if (boardMessage.armPosition != null) {
-    armAnimation.enqueue({
-      duration: 500,
-      cuePoints: [0, 1.0],
-      keyFrames: [ {degrees: currArmPos}, {degrees: boardMessage.armPosition}]
-    });
-  }
-
-  if (boardMessage.move != null) {
-    if (boardMessage.moveDirection != null) {
-      moveDirection = boardMessage.moveDirection;
-    }
-  */
-
-  //if (boardMessage.lights != null) {
-    //console.log("lights = "+boardMessage.lights);
-    //boardEvent.emit("lightsVal",boardMessage.lights);
-  //}
-
-  /*
-  if (boardMessage.relay1 != null) {
-    setRelay(LIGHTS,boardMessage.relay1);
-  }
-  if (boardMessage.relay2 != null) {
-    setRelay(AIR,boardMessage.relay2);
-  }
-  */
- 
   if (boardMessage.relay3 != null) {
     setRelay(HEAT,boardMessage.relay3);
   }
@@ -472,6 +367,17 @@ function webControl(boardMessage) {
 
   if (boardMessage.selfie != null) {
     setTimeout(letMeTakeASelfie);
+  }
+
+  // If send a new store rec, replace the existing and store it to disk
+  if (boardMessage.storeRec != null) {
+    sr = boardMessage.storeRec;
+    store.add(sr, function(err) {
+      if (err) {
+        //throw err;
+        console.log("Error updating store rec, err = "+err);
+      }
+    });
   }
 
 } // function webControl(boardMessage) {
@@ -492,11 +398,9 @@ function setRelay(relayNum,relayVal) {
 }
 
 function letMeTakeASelfie() {
-  // Turn on the light plugged into the HEAT relay
-  //setRelay(HEAT,ON);
-  // Wait for the light to come on
   setTimeout(() => {
-    console.log("Taking a selfie with fswebcam capture");
+    //console.log("Taking a selfie with fswebcam capture");
+    // figure out how to save a weekly picture
     nodeWebcam.capture(process.env.IMAGES_DIR+"genvImage", nodewebcamOptions, function( err, data ) {
       if (err != null) {
         console.log("Error with webcam capture, err = "+err);
@@ -508,15 +412,17 @@ function letMeTakeASelfie() {
 }
 
 function waterThePlants() {
-  console.log("Watering the plants");
+  console.log("Watering the plants, waterDuration = "+sr.waterDuration);
   setRelay(WATER,ON);
   setTimeout(() => {
+    //console.log("Watering the plants OFF");
     setRelay(WATER,OFF);
-  }, msToWater);
+  }, sr.waterDuration * secondsToMilliseconds);
 }
 
 module.exports = {
     boardEvent,
-    webControl
+    webControl,
+    sr
 };
 

@@ -7,6 +7,7 @@
  * 2017-09-08 JJK 	Initial version 
  * 2017-12-29 JJK	Initial controls and WebSocket communication
  * 2018-04-02 JJK   Added control to manually trigger watering
+ * 2018-05-19 JJK  Added update of configuration store record values
  *============================================================================*/
 
 // Global variables
@@ -14,6 +15,7 @@ var ws = null;
 var wsConnected = false;
 var isTouchDevice = false;
 var date;
+var storeRec = null;
 
 //Non-Printable characters - Hex 01 to 1F, and 7F
 var nonPrintableCharsStr = "[\x01-\x1F\x7F]";
@@ -82,24 +84,36 @@ $(document).ready(function(){
 					$("#LightsDisplay").html("lightsVal = "+serverMessage.lightsVal);
 					//$("#LightsDisplay").html("lightsVal = "+messageEvent.data);
 				}
+
+				if (serverMessage.storeRec != null) {
+					storeRec = serverMessage.storeRec;
+					//console.log("serverMessage.storeRec = "+serverMessage.storeRec.targetTemperature);
+					$("#targetTemperature").val(storeRec.targetTemperature);
+					$("#airInterval").val(storeRec.airInterval);
+					$("#airDuration").val(storeRec.airDuration);
+					$("#heatInterval").val(storeRec.heatInterval);
+					$("#heatDuration").val(storeRec.heatDuration);
+					$("#heatDurationMin").val(storeRec.heatDurationMin);
+					$("#heatDurationMax").val(storeRec.heatDurationMax);
+					$("#waterDuration").val(storeRec.waterDuration);
+				}
+				
 			} // on message (from server)
 
 		} // Websocket open
 	}); // start
 
-	// Respond to the Search button click (because I can't figure out how to combine it with input change)
-	$(document).on("click","#SearchButton",function(){
-        //$("#PropertyListDisplay tbody").html("");
-		console.log("searchStr = "+$("#searchStr").val());
-    	//$.getJSON("testcall","searchStr="+cleanStr($("#searchStr").val()),function(response){
-		/*
-		$.get("testcall","searchStr="+cleanStr($("#searchStr").val()),function(response){
-				console.log("response from SERVER in client = "+response);
-    		//displayPropertyList(hoaPropertyRecList);
-		});
-		*/
-		//ws.send($("#searchStr").val());
-      event.stopPropagation();
+	// Send updated values to the server (through web socket)
+	$(document).on("click","#UpdateButton",function(){
+		storeRec.targetTemperature = $("#targetTemperature").val();
+		storeRec.airInterval = 		$("#airInterval").val();
+		storeRec.airDuration = 		$("#airDuration").val();
+		storeRec.heatInterval =		$("#heatInterval").val();
+		storeRec.heatDuration = 	$("#heatDuration").val();
+		storeRec.heatDurationMin = 	$("#heatDurationMin").val();
+		storeRec.heatDurationMax = 	$("#heatDurationMax").val();
+		storeRec.waterDuration =	$("#waterDuration").val();
+		wsSend('{"storeRec" : '+JSON.stringify(storeRec)+'}');
   	});
 
 	$("#LightsButton")
