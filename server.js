@@ -90,7 +90,8 @@ wss.on('connection', function (ws) {
  // });
 
   // Upon connection, send configuration values to the client
-  var serverMessage = {"storeRec" : boardFunctions.sr};
+  //console.log("boardFunctions.sr.targetTemperature = "+boardFunctions.sr.targetTemperature);
+  var serverMessage = {"storeRec" : boardFunctions.getStoreRec()};
   ws.send(JSON.stringify(serverMessage));
 
   // Handle messages from the client browser

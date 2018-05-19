@@ -420,9 +420,13 @@ function waterThePlants() {
   }, sr.waterDuration * secondsToMilliseconds);
 }
 
+function getStoreRec () {
+  return sr;
+}
+
 module.exports = {
     boardEvent,
     webControl,
-    sr
+    getStoreRec
 };
 
