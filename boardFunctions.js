@@ -150,6 +150,7 @@ for (var i = 0; i < numReadings; i++) {
 var arrayFull = false;
 
 // Create EventEmitter object
+EventEmitter.defaultMaxListeners = 15;
 var boardEvent = new EventEmitter();
 
 // Create Johnny-Five board object
