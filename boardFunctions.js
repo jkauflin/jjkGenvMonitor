@@ -34,6 +34,7 @@ Modification History
 2018-04-22 JJK  Working well with the Pi - check selfie and water timing
 2018-05-14 JJK  Added store to save application configuration values
 2018-05-18 JJK  Modified to accept configuration updates from web client
+2018-06-18 JJK  Added lightDuration to store rec
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -54,6 +55,7 @@ var initStoreRec = {
   heatDuration: 1,          // minutes
   heatDurationMin: 1,       // minutes
   heatDurationMax: 1.5,     // minutes
+  lightDuration: 18,        // hours
   waterDuration: 7          // seconds
 };
 // Structure to hold current configuration values
@@ -289,7 +291,9 @@ function toggleAir() {
 
   date = new Date();
   hours = date.getHours();
-  if (hours > 17) {
+  //if (hours > 17) {
+  console.log("lightDuration = "+sr.lightDuration+", hours = "+hours);
+  if (hours > (sr.lightDuration-1)) {
     if (currLightsVal == ON) {
       setRelay(LIGHTS,OFF);
       currLightsVal = OFF;

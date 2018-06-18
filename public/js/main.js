@@ -8,6 +8,7 @@
  * 2017-12-29 JJK	Initial controls and WebSocket communication
  * 2018-04-02 JJK   Added control to manually trigger watering
  * 2018-05-19 JJK  Added update of configuration store record values
+ * 2018-06-18 JJK  Added lightDuration
  *============================================================================*/
 
 // Global variables
@@ -95,6 +96,7 @@ $(document).ready(function(){
 					$("#heatDuration").val(storeRec.heatDuration);
 					$("#heatDurationMin").val(storeRec.heatDurationMin);
 					$("#heatDurationMax").val(storeRec.heatDurationMax);
+					$("#lightDuration").val(storeRec.lightDuration);
 					$("#waterDuration").val(storeRec.waterDuration);
 				}
 				
@@ -112,6 +114,7 @@ $(document).ready(function(){
 		storeRec.heatDuration = 	$("#heatDuration").val();
 		storeRec.heatDurationMin = 	$("#heatDurationMin").val();
 		storeRec.heatDurationMax = 	$("#heatDurationMax").val();
+		storeRec.lightDuration =	$("#lightDuration").val();
 		storeRec.waterDuration =	$("#waterDuration").val();
 		wsSend('{"storeRec" : '+JSON.stringify(storeRec)+'}');
   	});
