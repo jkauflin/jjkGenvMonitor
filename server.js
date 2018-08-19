@@ -139,3 +139,20 @@ httpServer.listen(process.env.WEB_PORT,function() {
   console.log("Live at Port "+process.env.WEB_PORT+" - Let's rock!");
 });
 
+/*
+var bodyParser = require("body-parser");
+
+// Turn off URL encoded and just use JSON
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+ 
+app.post('/postTest', function (req, res, next) {
+  //console.log("in the postTest, req.body = "+JSON.stringify(req.body));
+  var array = req.body;
+  console.log(array[0]["name"].toString());
+  console.log(array[0]["value"].toString());
+  console.log(array[1]["name"].toString());
+  console.log(array[1]["value"].toString());
+  res.send(JSON.stringify(req.body));
+});
+*/

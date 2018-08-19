@@ -9,6 +9,7 @@
  * 2018-04-02 JJK   Added control to manually trigger watering
  * 2018-05-19 JJK  Added update of configuration store record values
  * 2018-06-18 JJK  Added lightDuration
+ * 2018-08-19 JJK  Added description and dates
  *============================================================================*/
 
 // Global variables
@@ -89,6 +90,11 @@ $(document).ready(function(){
 				if (serverMessage.storeRec != null) {
 					storeRec = serverMessage.storeRec;
 					//console.log("serverMessage.storeRec = "+serverMessage.storeRec.targetTemperature);
+					$("#desc").val(storeRec.desc);
+					$("#germinationDate").val(storeRec.germinationDate);
+					$("#harvestDate").val(storeRec.harvestDate);
+					$("#cureDate").val(storeRec.cureDate);
+					$("#productionDate").val(storeRec.productionDate);
 					$("#targetTemperature").val(storeRec.targetTemperature);
 					$("#airInterval").val(storeRec.airInterval);
 					$("#airDuration").val(storeRec.airDuration);
@@ -107,6 +113,11 @@ $(document).ready(function(){
 
 	// Send updated values to the server (through web socket)
 	$(document).on("click","#UpdateButton",function(){
+		storeRec.desc = $("#desc").val();
+		storeRec.germinationDate = $("#germinationDate").val();
+		storeRec.harvestDate = $("#harvestDate").val();
+		storeRec.cureDate = $("#cureDate").val();
+		storeRec.productionDate = $("#productionDate").val();
 		storeRec.targetTemperature = $("#targetTemperature").val();
 		storeRec.airInterval = 		$("#airInterval").val();
 		storeRec.airDuration = 		$("#airDuration").val();

@@ -31,13 +31,16 @@
 </nav><!-- <nav class="navbar navbar-default navbar-fixed-top"> -->
 
 <div class="container">
-
+    <!--
     <h3>Home</h3>
-    <div id="logMessage"></div> 
+    -->
 
   <div class="row">
     <!-- Column 1 -->
-    <div class="col-xs-11 col-sm-7">
+    <!--
+    <div class="col-xs-6 col-sm-6">
+    -->
+    <div class="col-sm-5">
       <div class="center-block">
 
 				<table id="ConfigTable" >
@@ -58,7 +61,6 @@
         <p>
         <button id="UpdateButton" type="button" class="btn btn-primary">Update</button>
         </p>
-        
         <!--
         <p>Lights</p>
         <p style="padding-left:0px;">Eyes</p>
@@ -72,26 +74,36 @@
         <p>
           <button id="Relay3Button" type="button" class="btn btn-success ">Relay3</button>
         </p>
+        <p>
+          <button id="SelfieButton" type="button" class="btn btn-success ">Take a selfie</button>
+        </p>
         -->
         <p>
           <button id="Relay4Button" type="button" class="btn btn-success ">Water the plants</button>
-        </p>
-        <p>
-          <button id="SelfieButton" type="button" class="btn btn-success ">Take a selfie</button>
         </p>
 
       </div>
 
     </div>
     <!-- Column 2 -->
-    <div class="col-xs-1 col-sm-5">
-      <!--
-      Lights: <div id="LightsDisplay" class="pull-right"></div>
-      -->
-
+    <div class="col-sm-7">
+        <div id="logMessage"></div> 
+				<table id="ConfigTable2" >
+					<tbody>
+            <div class="form-group">
+              <tr><th>Desc:</th><td><input type="text" class="form-control input-sm resetval" name="desc" id="desc"  size="35" maxlength="35"></td></tr>
+              <tr><th>Germination start:</th><td><input type="text" class="form-control input-sm resetval" name="germinationDate"  	    id="germinationDate" 	      size="15" maxlength="15"></td></tr>
+              <tr><th>Harvest start:</th><td><input type="text" class="form-control input-sm resetval" name="harvestDate"  	  id="harvestDate" 	    size="15" maxlength="15"></td></tr>
+              <tr><th>Curing start:</th><td><input type="text" class="form-control input-sm resetval" name="cureDate"  	  id="cureDate" 	    size="15" maxlength="15"></td></tr>
+              <tr><th>Production date:</th><td><input type="text" class="form-control input-sm resetval" name="productionDate"  	  id="productionDate" 	    size="15" maxlength="15"></td></tr>
+            </div>
+					</tbody>
+				</table>
     </div>
     
+    <!--
     <img class="img-responsive" src="images/genvImage.jpg">
+    -->
   </div>
 
 </div><!-- end of main container -->

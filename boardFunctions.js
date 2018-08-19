@@ -35,6 +35,7 @@ Modification History
 2018-05-14 JJK  Added store to save application configuration values
 2018-05-18 JJK  Modified to accept configuration updates from web client
 2018-06-18 JJK  Added lightDuration to store rec
+2018-08-19 JJK  Turned off camera, added important dates and description
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -45,9 +46,14 @@ var five = require("johnny-five");
 
 // Set up the configuration store and initial values
 var store = require('json-fs-store')(process.env.STORE_DIR);
-var storeId = 'store';
+var storeId = 'storeid';
 var initStoreRec = {
   id: storeId,              // unique identifier
+  desc: 'tempDesc',         // description
+  germinationDate: '',      // genermination start date
+  harvestDate: '',          // harvest start date
+  cureDate: '',             // curing start date
+  productionDate: '',       // production complete date
   targetTemperature: 72.0,  // degrees fahrenheit
   airInterval: 2,           // minutes
   airDuration: 2,           // minutes
@@ -56,8 +62,9 @@ var initStoreRec = {
   heatDurationMin: 1,       // minutes
   heatDurationMax: 1.5,     // minutes
   lightDuration: 18,        // hours
-  waterDuration: 7          // seconds
+  waterDuration: 20         // seconds
 };
+
 // Structure to hold current configuration values
 var sr = initStoreRec;
 
@@ -77,6 +84,7 @@ store.load(storeId, function(err, inStoreRec){
 });
 
 // Requires webcam utility - sudo apt-get install fswebcam
+/*
 var nodeWebcam = require( "node-webcam" );
 //Default options 
 var nodewebcamOptions = {
@@ -102,6 +110,7 @@ var nodewebcamOptions = {
   //Logging 
   verbose: false
 };
+*/
 
 // Global variables
 const development = process.env.NODE_ENV !== 'production';
@@ -292,7 +301,7 @@ function toggleAir() {
   date = new Date();
   hours = date.getHours();
   //if (hours > 17) {
-  console.log("lightDuration = "+sr.lightDuration+", hours = "+hours);
+  //console.log("lightDuration = "+sr.lightDuration+", hours = "+hours);
   if (hours > (sr.lightDuration-1)) {
     if (currLightsVal == ON) {
       setRelay(LIGHTS,OFF);
@@ -340,6 +349,7 @@ function logMetric() {
       +"}";
   emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON;
 
+  /*
   get.concat(emoncmsUrl, function (err, res, data) {
     if (err) {
       //console.error("Error in logMetric send, metricJSON = "+metricJSON);
@@ -349,6 +359,7 @@ function logMetric() {
       //console.log(data) // Buffer('this is the server response') 
     }
   });
+  */
 }
 
 /*
@@ -403,6 +414,7 @@ function setRelay(relayNum,relayVal) {
 }
 
 function letMeTakeASelfie() {
+  /*
   setTimeout(() => {
     //console.log("Taking a selfie with fswebcam capture");
     // figure out how to save a weekly picture
@@ -414,10 +426,11 @@ function letMeTakeASelfie() {
       //setRelay(HEAT,OFF);
     });
   }, 100);
+  */
 }
 
 function waterThePlants() {
-  console.log("Watering the plants, waterDuration = "+sr.waterDuration);
+  //console.log("Watering the plants, waterDuration = "+sr.waterDuration);
   setRelay(WATER,ON);
   setTimeout(() => {
     //console.log("Watering the plants OFF");

@@ -1,0 +1,17 @@
+{
+  "id": "storeid",
+  "desc": "JJK batch #2",
+  "germinationDate": "5/1/2018",
+  "harvestDate": "7/30/18 (#1)",
+  "cureDate": "8/19/18 (#1)",
+  "productionDate": "",
+  "targetTemperature": "72",
+  "airInterval": "2",
+  "airDuration": "2",
+  "heatInterval": "1.5",
+  "heatDuration": "1",
+  "heatDurationMin": "1",
+  "heatDurationMax": "1.5",
+  "lightDuration": "18",
+  "waterDuration": "20"
+}
