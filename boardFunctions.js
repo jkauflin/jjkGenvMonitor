@@ -36,6 +36,7 @@ Modification History
 2018-05-18 JJK  Modified to accept configuration updates from web client
 2018-06-18 JJK  Added lightDuration to store rec
 2018-08-19 JJK  Turned off camera, added important dates and description
+2018-09-30 JJK  Turned metrics back on to track tempature
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -349,7 +350,6 @@ function logMetric() {
       +"}";
   emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON;
 
-  /*
   get.concat(emoncmsUrl, function (err, res, data) {
     if (err) {
       //console.error("Error in logMetric send, metricJSON = "+metricJSON);
@@ -359,7 +359,6 @@ function logMetric() {
       //console.log(data) // Buffer('this is the server response') 
     }
   });
-  */
 }
 
 /*
