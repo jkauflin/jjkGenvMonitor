@@ -10,11 +10,10 @@
  * 2018-05-19 JJK  Added update of configuration store record values
  * 2018-06-18 JJK  Added lightDuration
  * 2018-08-19 JJK  Added description and dates
+ * 2019-09-22 JJK  Getting it going again
  *============================================================================*/
 
 // Global variables
-var ws = null;
-var wsConnected = false;
 var isTouchDevice = false;
 var date;
 var storeRec = null;
@@ -62,6 +61,7 @@ $(document).ready(function(){
 	$(".resetval").addClear();
 
 	// Establish the websocket connection
+	/*
 	$.getJSON("start","",function(response){
 		//console.log("response.wsUrl = "+response.wsUrl);
 		ws = new WebSocket(response.wsUrl);
@@ -110,6 +110,7 @@ $(document).ready(function(){
 
 		} // Websocket open
 	}); // start
+	*/
 
 	// Send updated values to the server (through web socket)
 	$(document).on("click","#UpdateButton",function(){
@@ -127,7 +128,7 @@ $(document).ready(function(){
 		storeRec.heatDurationMax = 	$("#heatDurationMax").val();
 		storeRec.lightDuration =	$("#lightDuration").val();
 		storeRec.waterDuration =	$("#waterDuration").val();
-		wsSend('{"storeRec" : '+JSON.stringify(storeRec)+'}');
+		//wsSend('{"storeRec" : '+JSON.stringify(storeRec)+'}');
   	});
 
 	$("#LightsButton")
@@ -215,9 +216,9 @@ $(document).ready(function(){
 
 // General function to send the boardMessage to the server if Websocket is connected
 function wsSend(boardMessage) {
-	if (wsConnected) {
-		ws.send(boardMessage);
-	}
+	//if (wsConnected) {
+	//	ws.send(boardMessage);
+	//}
 }
 	
 function lightsPushed() {

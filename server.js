@@ -1,5 +1,5 @@
 /*==============================================================================
-(C) Copyright 2018 John J Kauflin, All rights reserved. 
+(C) Copyright 2018,2019 John J Kauflin, All rights reserved. 
 -----------------------------------------------------------------------------
 DESCRIPTION: Main nodejs server to run the web and control functions for
                 the grow environment monitor
@@ -44,89 +44,8 @@ var app = express();
 var httpServer = http.createServer(app);
 
 // Include the Arduino board functions
-var boardFunctions = require('./boardFunctions.js');
+//var boardFunctions = require('./boardFunctions.js');
 
-//=================================================================================================
-// Create a WebSocket server and implement a heartbeat check
-//=================================================================================================
-const ws = require('ws');
-const wss = new ws.Server({ port: process.env.WS_PORT, perMessageDeflate: false });
-// WebSocket URL to give to the client browser to establish ws connection
-const wsUrl = "ws://"+process.env.HOST+":"+process.env.WS_PORT;
-
-// Initialize to false at the start
-ws.isAlive = false;
-function heartbeat() {
-  // If successful heartbeat call, set to true
-  this.isAlive = true;
-}
-
-const interval = setInterval(function ping() {
-  wss.clients.forEach(function each(ws) {
-    //console.log(dateTime.create().format('Y-m-d H:M:S')+" In the ping, ws.readyState = "+ws.readyState);
-    if (ws.isAlive === false) {
-      return ws.terminate();
-    }
-    // Reset to false and request a ping (the pong response will set isAlive to true again)
-    ws.isAlive = false;
-    ws.ping('', false, true);
-  });
-}, 30000);
-
-//=================================================================================================
-// Successful connection from a web client
-//=================================================================================================
-wss.on('connection', function (ws) {
-  // Set to true after getting a successfuly connection from a web client
-  ws.isAlive = true;
-  // If you get a pong response from a client call the heartbeat function to set a variable
-  // showing the connection is still alive
-  ws.on('pong', heartbeat);
-
-  //Broadcast example
-  //wss.clients.forEach(function each(client) {
-  //  if (client.readyState === ws.OPEN) {
-  //    client.send(data);
-  //  }
- // });
-
-  // Upon connection, send configuration values to the client
-  //console.log("boardFunctions.sr.targetTemperature = "+boardFunctions.sr.targetTemperature);
-  var serverMessage = {"storeRec" : boardFunctions.getStoreRec()};
-  ws.send(JSON.stringify(serverMessage));
-
-  // Handle messages from the client browser
-  ws.on('message', function (boardMessage) {
-    //console.log("boardMessage = "+boardMessage);
-    boardFunctions.webControl(JSON.parse(boardMessage));
-  })
-
-  // Register event listeners for the board events
-  boardFunctions.boardEvent.on("error", function(errorMessage) {
-    // JJK - you can either construct it as a string and send with no JSON.stringify
-    //       or construct a JSON object, with easier syntax, and then you have to stringify it
-    var serverMessage = {"errorMessage" : errorMessage};
-    ws.send(JSON.stringify(serverMessage));
-  });
-
-  boardFunctions.boardEvent.on("lightsVal", function(lightsVal) {
-    // JJK - you can either construct it as a string and send with no JSON.stringify
-    //       or construct a JSON object, with easier syntax, and then you have to stringify it
-    var serverMessage = {"lightsVal" : lightsVal};
-    ws.send(JSON.stringify(serverMessage));
-  });
-});
-
-
-// When the web browser client requests a "/start" URL, send back the url to use to establish
-// the Websocket connection
-app.get('/start', function (req, res, next) {
-  var startData = {
-    "wsUrl": wsUrl
-  };
-  res.send(JSON.stringify(startData));
-})
-   
 app.use('/',express.static('public'));
 
 // jjk new
