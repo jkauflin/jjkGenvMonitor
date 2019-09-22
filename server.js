@@ -12,6 +12,7 @@ Modification History
 2018-03-21 JJK  Working on moisture and water control
 2018-05-18 JJK  Modified to present and allow configuration updates from
                 the web page
+2019-09-22 JJK  Getting it going again
 =============================================================================*/
 
 // Read environment variables from the .env file
