@@ -43,9 +43,6 @@ const express = require('express');
 var app = express();
 var httpServer = http.createServer(app);
 
-// Include the Arduino board functions
-var boardFunctions = require('./boardFunctions.js');
-
 app.use('/',express.static('public'));
 
 // jjk new
@@ -58,6 +55,11 @@ app.use(function (err, req, res, next) {
 httpServer.listen(process.env.WEB_PORT,function() {
     console.log("Live at Port " + process.env.WEB_PORT + " - Let's rock!");
 });
+
+// Include the Arduino board functions
+console.log("Before the boardFunctions");
+var boardFunctions = require('./boardFunctions.js');
+
 
 /*
 var bodyParser = require("body-parser");
