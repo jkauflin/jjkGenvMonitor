@@ -28,8 +28,8 @@ require('dotenv').config();
 
 // General handler for any uncaught exceptions
 process.on('uncaughtException', function (e) {
-	console.log("UncaughtException, error = "+e);
-	console.error(e.stack);
+  console.log("UncaughtException, error = " + e);
+  console.error(e.stack);
   // Stop the process
   // 2017-12-29 JJK - Don't stop for now, just log the error
 	//process.exit(1);
@@ -44,19 +44,19 @@ var app = express();
 var httpServer = http.createServer(app);
 
 // Include the Arduino board functions
-//var boardFunctions = require('./boardFunctions.js');
+var boardFunctions = require('./boardFunctions.js');
 
 app.use('/',express.static('public'));
 
 // jjk new
 app.use(function (err, req, res, next) {
-  console.error(err.stack)
-  res.status(500).send('Something broke!')
+    console.error(err.stack)
+    res.status(500).send('Something broke!')
 })
 
 // Have the web server listen for requests
 httpServer.listen(process.env.WEB_PORT,function() {
-  console.log("Live at Port "+process.env.WEB_PORT+" - Let's rock!");
+    console.log("Live at Port " + process.env.WEB_PORT + " - Let's rock!");
 });
 
 /*

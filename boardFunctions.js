@@ -41,6 +41,7 @@ Modification History
 var dateTime = require('node-datetime');
 const get = require('simple-get')
 const EventEmitter = require('events');
+
 // When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
 // be sure to shut the REPL off!
 var five = require("johnny-five");
@@ -49,21 +50,21 @@ var five = require("johnny-five");
 var store = require('json-fs-store')(process.env.STORE_DIR);
 var storeId = 'storeid';
 var initStoreRec = {
-  id: storeId,              // unique identifier
-  desc: 'tempDesc',         // description
-  germinationDate: '',      // genermination start date
-  harvestDate: '',          // harvest start date
-  cureDate: '',             // curing start date
-  productionDate: '',       // production complete date
-  targetTemperature: 72.0,  // degrees fahrenheit
-  airInterval: 2,           // minutes
-  airDuration: 2,           // minutes
-  heatInterval: 1.5,        // minutes
-  heatDuration: 1,          // minutes
-  heatDurationMin: 1,       // minutes
-  heatDurationMax: 1.5,     // minutes
-  lightDuration: 18,        // hours
-  waterDuration: 20         // seconds
+    id: storeId,              // unique identifier
+    desc: 'tempDesc',         // description
+    germinationDate: '',      // genermination start date
+    harvestDate: '',          // harvest start date
+    cureDate: '',             // curing start date
+    productionDate: '',       // production complete date
+    targetTemperature: 72.0,  // degrees fahrenheit
+    airInterval: 2,           // minutes
+    airDuration: 2,           // minutes
+    heatInterval: 1.5,        // minutes
+    heatDuration: 1,          // minutes
+    heatDurationMin: 1,       // minutes
+    heatDurationMax: 1.5,     // minutes
+    lightDuration: 18,        // hours
+    waterDuration: 20         // seconds
 };
 
 // Structure to hold current configuration values
@@ -71,17 +72,17 @@ var sr = initStoreRec;
 
 // Get values from the application storage record
 store.load(storeId, function(err, inStoreRec){
-  if (err) {
-    // Create one if it does not exist (with initial values)
-    store.add(initStoreRec, function(err) {
-      if (err) {
-        throw err;
-      }
-    });
-  } else {
-    // Get current values from the store record
-    sr = inStoreRec;
-  }
+    if (err) {
+        // Create one if it does not exist (with initial values)
+        store.add(initStoreRec, function (err) {
+            if (err) {
+                throw err;
+            }
+        });
+    } else {
+        // Get current values from the store record
+        sr = inStoreRec;
+    }
 });
 
 // Requires webcam utility - sudo apt-get install fswebcam
@@ -167,115 +168,125 @@ var boardEvent = new EventEmitter();
 
 // Create Johnny-Five board object
 var board = new five.Board({
-  repl: false,
-  debug: true,
-  timeout: 12000
+    repl: false,
+    debug: false,
+    timeout: 12000
 });
 
-board.on("error", function() {
-  boardEvent.emit("error", "*** Error in Board ***");
+// State variables
+var boardReady = false;
+
+board.on("error", function () {
+    //console.log("*** Error in Board ***");
+    boardReady = false;
+    botEvent.emit("error", "*** Error in Board ***");
 }); // board.on("error", function() {
 
-board.on("message", function(event) {
-  console.log("Received a %s message, from %s, reporting: %s", event.type, event.class, event.message);
-});
+//board.on("message", function(event) {
+//  console.log("Received a %s message, from %s, reporting: %s", event.type, event.class, event.message);
+//});
 
 console.log("============ Starting board initialization ================");
 //-------------------------------------------------------------------------------------------------------
 // When the board is ready, create and intialize global component objects (to be used by functions)
 //-------------------------------------------------------------------------------------------------------
-board.on("ready", function() {
-  console.log("board is ready");
-  
-  //type: "NO"  // Normally open - electricity not flowing - normally OFF
-  console.log("Initialize relays");
-  relays = new five.Relays([{
-    pin: 10, 
-    type: "NO",
-  }, {
-    pin: 11, 
-    type: "NO",
-  }, {
-    pin: 12, 
-    type: "NO",
-  }, {
-    pin: 13, 
-    type: "NO",
-  }]);
+// When the board is ready, create and intialize global component objects (to be used by functions)
+board.on("ready", function () {
+    console.log("*** board ready ***");
+    boardReady = true;
 
-  //relays.close();  // turn all the power OFF
-  // for the Sunfounder relay, normal open, use OPEN to electrify the coil and allow electricity
-  // use CLOSE to de-electrify the coil, and stop electricity
-  // (a little backward according to Johnny-Five documentation)
+    /*
+    //type: "NO"  // Normally open - electricity not flowing - normally OFF
+    console.log("Initialize relays");
+    relays = new five.Relays([{
+        pin: 10,
+        type: "NO",
+    }, {
+        pin: 11,
+        type: "NO",
+    }, {
+        pin: 12,
+        type: "NO",
+    }, {
+        pin: 13,
+        type: "NO",
+    }]);
 
-  // Turn all the relays off when the borard starts
-  this.wait(3000, function() {
-    console.log("Setting relays OFF");
-    setRelay(LIGHTS,OFF);
-    setRelay(AIR,OFF);
-    setRelay(HEAT,OFF);
-    setRelay(WATER,OFF);
+    //relays.close();  // turn all the power OFF
+    // for the Sunfounder relay, normal open, use OPEN to electrify the coil and allow electricity
+    // use CLOSE to de-electrify the coil, and stop electricity
+    // (a little backward according to Johnny-Five documentation)
 
-    // Start the function to toggle air ventilation ON and OFF
-    console.log("Starting Air toggle interval");
-    setTimeout(toggleAir,1000);
-  });
-  // If the board is exiting, turn all the relays off
-  this.on("exit", function() {
-    console.log("EXIT - Setting relays OFF");
-    setRelay(LIGHTS,OFF);
-    setRelay(AIR,OFF);
-    setRelay(HEAT,OFF);
-    setRelay(WATER,OFF);
-  });
+    // Turn all the relays off when the borard starts
+    this.wait(3000, function () {
+        console.log("Setting relays OFF");
+        setRelay(LIGHTS, OFF);
+        setRelay(AIR, OFF);
+        setRelay(HEAT, OFF);
+        setRelay(WATER, OFF);
 
-  // Define the thermometer sensor
-  this.wait(5000, function() {
-    // This requires OneWire support using the ConfigurableFirmata
-    console.log("Initialize tempature sensor");
-    thermometer = new five.Thermometer({
-      controller: "DS18B20",
-      pin: 2
+        // Start the function to toggle air ventilation ON and OFF
+        console.log("Starting Air toggle interval");
+        setTimeout(toggleAir, 1000);
+    });
+    // If the board is exiting, turn all the relays off
+    this.on("exit", function () {
+        console.log("EXIT - Setting relays OFF");
+        setRelay(LIGHTS, OFF);
+        setRelay(AIR, OFF);
+        setRelay(HEAT, OFF);
+        setRelay(WATER, OFF);
     });
 
-    thermometer.on("change", function() {
-      // subtract the last reading:
-      totalA0 = totalA0 - readingsA0[indexA0];        
-      readingsA0[indexA0] = this.fahrenheit;
-      // add the reading to the total:
-      totalA0 = totalA0 + readingsA0[indexA0];      
-      // advance to the next position in the array: 
-      indexA0 = indexA0 + 1;                   
-      // if we're at the end of the array...
-      if (indexA0 >= numReadings) {             
-        // ...wrap around to the beginning:
-        indexA0 = 0;                       
-        arrayFull = true;  
-      }
-      // calculate the average:
-      if (arrayFull) {
-        currTemperature = totalA0 / numReadings;        
-      }
+    // Define the thermometer sensor
+    this.wait(5000, function () {
+        // This requires OneWire support using the ConfigurableFirmata
+        console.log("Initialize tempature sensor");
+        thermometer = new five.Thermometer({
+            controller: "DS18B20",
+            pin: 2
+        });
 
-      // Check to adjust the duration of ventilation and heating according to tempature
-      if (currTemperature < TEMPATURE_MIN) {
-        sr.heatDuration = sr.heatDurationMax;
-      }
-      if (currTemperature > TEMPATURE_MAX) {
-        sr.heatDuration = sr.heatDurationMin;
-      }
-  
-      currMs = Date.now();
-      //console.log("Tempature = "+this.fahrenheit + "°F");
-      if (currMs > nextSendMsTempature && currTemperature > 60.0 && currTemperature < 135.0 && arrayFull) {
-        setTimeout(logMetric);
-        nextSendMsTempature = currMs + intVal;
-      }
-    }); // on termometer change
-  });
+        thermometer.on("change", function () {
+            // subtract the last reading:
+            totalA0 = totalA0 - readingsA0[indexA0];
+            readingsA0[indexA0] = this.fahrenheit;
+            // add the reading to the total:
+            totalA0 = totalA0 + readingsA0[indexA0];
+            // advance to the next position in the array: 
+            indexA0 = indexA0 + 1;
+            // if we're at the end of the array...
+            if (indexA0 >= numReadings) {
+                // ...wrap around to the beginning:
+                indexA0 = 0;
+                arrayFull = true;
+            }
+            // calculate the average:
+            if (arrayFull) {
+                currTemperature = totalA0 / numReadings;
+            }
 
-  console.log("End of board.on (initialize) event");
-  console.log(" ");
+            // Check to adjust the duration of ventilation and heating according to tempature
+            if (currTemperature < TEMPATURE_MIN) {
+                sr.heatDuration = sr.heatDurationMax;
+            }
+            if (currTemperature > TEMPATURE_MAX) {
+                sr.heatDuration = sr.heatDurationMin;
+            }
+
+            currMs = Date.now();
+            //console.log("Tempature = "+this.fahrenheit + "°F");
+            if (currMs > nextSendMsTempature && currTemperature > 60.0 && currTemperature < 135.0 && arrayFull) {
+                setTimeout(logMetric);
+                nextSendMsTempature = currMs + intVal;
+            }
+        }); // on termometer change
+    });
+    */
+   
+    console.log("End of board.on (initialize) event");
+    console.log(" ");
+
 }); // board.on("ready", function() {
 
 
