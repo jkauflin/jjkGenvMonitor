@@ -195,6 +195,22 @@ board.on("ready", function () {
     console.log("*** board ready ***");
     boardReady = true;
 
+    var relay = new five.Relay(3);
+
+    this.wait(3000, function () {
+        console.log("Setting relay ON");
+        relay.on();
+    });
+
+
+  // Control the relay in real time
+  // from the REPL by typing commands, eg.
+  //
+  // relay.on();
+  //
+  // relay.off();
+  //
+
     /*
     //type: "NO"  // Normally open - electricity not flowing - normally OFF
     console.log("Initialize relays");
@@ -237,6 +253,7 @@ board.on("ready", function () {
         setRelay(HEAT, OFF);
         setRelay(WATER, OFF);
     });
+    */
 
     // Define the thermometer sensor
     this.wait(5000, function () {
@@ -276,13 +293,15 @@ board.on("ready", function () {
 
             currMs = Date.now();
             //console.log("Tempature = "+this.fahrenheit + "°F");
+            /*
             if (currMs > nextSendMsTempature && currTemperature > 60.0 && currTemperature < 135.0 && arrayFull) {
                 setTimeout(logMetric);
                 nextSendMsTempature = currMs + intVal;
             }
+            */
+           
         }); // on termometer change
     });
-    */
    
     console.log("End of board.on (initialize) event");
     console.log(" ");
