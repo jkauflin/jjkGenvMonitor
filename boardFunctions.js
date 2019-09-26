@@ -169,17 +169,17 @@ var boardEvent = new EventEmitter();
 // Create Johnny-Five board object
 var board = new five.Board({
     repl: false,
-    debug: false,
-    timeout: 12000
+    debug: false
+//    timeout: 12000
 });
 
 // State variables
 var boardReady = false;
 
 board.on("error", function () {
-    //console.log("*** Error in Board ***");
+    console.log("*** Error in Board ***");
     boardReady = false;
-    botEvent.emit("error", "*** Error in Board ***");
+    //botEvent.emit("error", "*** Error in Board ***");
 }); // board.on("error", function() {
 
 //board.on("message", function(event) {
