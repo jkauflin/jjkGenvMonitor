@@ -1,5 +1,5 @@
 /*==============================================================================
- * (C) Copyright 2017 John J Kauflin, All rights reserved. 
+ * (C) Copyright 2017,2019 John J Kauflin, All rights reserved. 
  *----------------------------------------------------------------------------
  * DESCRIPTION: Client-side JS functions and logic for web app
  *----------------------------------------------------------------------------
@@ -11,255 +11,325 @@
  * 2018-06-18 JJK  Added lightDuration
  * 2018-08-19 JJK  Added description and dates
  * 2019-09-22 JJK  Getting it going again
+ * 2019-09-28 JJK  Implemented modules concept and moved common methods to
+ *                 util.js
  *============================================================================*/
+var main = (function () {
+    'use strict';
 
-// Global variables
-var isTouchDevice = false;
-var date;
-var storeRec = null;
+    //=================================================================================================================
+    // Private variables for the Module
+    var isTouchDevice = 'ontouchstart' in document.documentElement;
 
-//Non-Printable characters - Hex 01 to 1F, and 7F
-var nonPrintableCharsStr = "[\x01-\x1F\x7F]";
-//"g" global so it does more than 1 substitution
-var regexNonPrintableChars = new RegExp(nonPrintableCharsStr,"g");
+    var getDataService = "getResponses.php";
+    var updateDataService = "updateResponses.php";
+    var displayFields = ["id", "deleted", "keywords", "verbalResponse", "robotCommand", "score"];
+    var editClass = "EditResponses";
+    var searchStrName = "keywords";
 
+    var storeRec = null;
 
-function cleanStr(inStr) {
-	return inStr.replace(regexNonPrintableChars,'');
-}
-function setCheckbox(checkVal){
-	var checkedStr = '';
-	if (checkVal == 1) {
-		checkedStr = 'checked=true';
-	}
-	return '<input type="checkbox" data-mini="true" '+checkedStr+' disabled="disabled">';
-}
-$(document).ajaxError(function(e, xhr, settings, exception) {
-	console.log("ajax exception = "+exception);
-	console.log("ajax exception xhr.responseText = "+xhr.responseText);
-	$(".ajaxError").html("An Error has occurred (see console log)");
-	$("#StatusDisplay").html("An Error has occurred (see console log)");
-});
+    //=================================================================================================================
+    // Variables cached from the DOM
+    var $document = $(document);
+    var $logMessage = $document.find("#logMessage");
+    var $StatusDisplay = $document.find("#StatusDisplay");
+    var $LookupButton = $document.find("#LookupButton");
 
-function logMessage(message) {
-	console.log(message);
-	$("#logMessage").html(message);
-}
+    var $Inputs = $document.find("#InputValues");
 
-$(document).ready(function(){
-	isTouchDevice = 'ontouchstart' in document.documentElement;
-	logMessage("isTouchDevice = "+isTouchDevice);
+    /*
+    var $ModuleDiv = $('#ResponsesPage');
+    var $SearchButton = $ModuleDiv.find("#SearchResponses");
+    var $SearchStr = $ModuleDiv.find("#" + searchStrName);
+    var $ClearButton = $ModuleDiv.find("#ClearResponses");
+    var $ListDisplay = $ModuleDiv.find("#ResponsesListDisplay tbody");
+    var $UpdateButton = $ModuleDiv.find("#UpdateResponses");
+    */
 
-	// Auto-close the collapse menu after clicking a non-dropdown menu item (in the bootstrap nav header)
-	$(document).on('click','.navbar-collapse.in',function(e) {
-		if( $(e.target).is('a') && $(e.target).attr('class') != 'dropdown-toggle' ) {
-				$(this).collapse('hide');
-		}
-	});
+    //=================================================================================================================
+    // Bind events
+    $LookupButton.click(_lookup);
 
-	// Using addClear plug-in function to add a clear button on input text fields
-	$(".resetval").addClear();
+    $SearchButton.click(_search);
+    $ClearButton.click(_clear);
+    $UpdateButton.click(_update);
+    $ModuleDiv.on("click", "." + editClass, _edit);
 
-	// Establish the websocket connection
-	/*
-	$.getJSON("start","",function(response){
-		//console.log("response.wsUrl = "+response.wsUrl);
-		ws = new WebSocket(response.wsUrl);
-		// event emmited when connected
-		ws.onopen = function () {
-			wsConnected = true;
-			//console.log('websocket is connected ...')
-			// sending a send event to websocket server
-			//ws.send('This is the message being sent from the client browser')
-			$("#StatusDisplay").html("Connected");
-
-			// event emmited when receiving message from the server
-			ws.onmessage = function (messageEvent) {
-				//console.log("on Message, messageEvent.data = "+messageEvent.data);
-				var serverMessage = JSON.parse(messageEvent.data);
-				if (serverMessage.errorMessage != null) {
-					logMessage(serverMessage.errorMessage);
-				}
-
-				// add other board event handling here
-				if (serverMessage.lightsVal != null) {
-					$("#LightsDisplay").html("lightsVal = "+serverMessage.lightsVal);
-					//$("#LightsDisplay").html("lightsVal = "+messageEvent.data);
-				}
-
-				if (serverMessage.storeRec != null) {
-					storeRec = serverMessage.storeRec;
-					//console.log("serverMessage.storeRec = "+serverMessage.storeRec.targetTemperature);
-					$("#desc").val(storeRec.desc);
-					$("#germinationDate").val(storeRec.germinationDate);
-					$("#harvestDate").val(storeRec.harvestDate);
-					$("#cureDate").val(storeRec.cureDate);
-					$("#productionDate").val(storeRec.productionDate);
-					$("#targetTemperature").val(storeRec.targetTemperature);
-					$("#airInterval").val(storeRec.airInterval);
-					$("#airDuration").val(storeRec.airDuration);
-					$("#heatInterval").val(storeRec.heatInterval);
-					$("#heatDuration").val(storeRec.heatDuration);
-					$("#heatDurationMin").val(storeRec.heatDurationMin);
-					$("#heatDurationMax").val(storeRec.heatDurationMax);
-					$("#lightDuration").val(storeRec.lightDuration);
-					$("#waterDuration").val(storeRec.waterDuration);
-				}
-				
-			} // on message (from server)
-
-		} // Websocket open
-	}); // start
-	*/
 
 	// Send updated values to the server (through web socket)
-	$(document).on("click","#UpdateButton",function(){
-		storeRec.desc = $("#desc").val();
-		storeRec.germinationDate = $("#germinationDate").val();
-		storeRec.harvestDate = $("#harvestDate").val();
-		storeRec.cureDate = $("#cureDate").val();
-		storeRec.productionDate = $("#productionDate").val();
-		storeRec.targetTemperature = $("#targetTemperature").val();
-		storeRec.airInterval = 		$("#airInterval").val();
-		storeRec.airDuration = 		$("#airDuration").val();
-		storeRec.heatInterval =		$("#heatInterval").val();
-		storeRec.heatDuration = 	$("#heatDuration").val();
-		storeRec.heatDurationMin = 	$("#heatDurationMin").val();
-		storeRec.heatDurationMax = 	$("#heatDurationMax").val();
-		storeRec.lightDuration =	$("#lightDuration").val();
-		storeRec.waterDuration =	$("#waterDuration").val();
-		//wsSend('{"storeRec" : '+JSON.stringify(storeRec)+'}');
-  	});
+	$(document).on("click", "#UpdateButton", function () {
+        
+        /*
+        storeRec.desc = $("#desc").val();
+	    storeRec.germinationDate = $("#germinationDate").val();
+	    storeRec.harvestDate = $("#harvestDate").val();
+	    storeRec.cureDate = $("#cureDate").val();
+	    storeRec.productionDate = $("#productionDate").val();
+	    storeRec.targetTemperature = $("#targetTemperature").val();
+	    storeRec.airInterval = $("#airInterval").val();
+	    storeRec.airDuration = $("#airDuration").val();
+	    storeRec.heatInterval = $("#heatInterval").val();
+	    storeRec.heatDuration = $("#heatDuration").val();
+	    storeRec.heatDurationMin = $("#heatDurationMin").val();
+	    storeRec.heatDurationMax = $("#heatDurationMax").val();
+	    storeRec.lightDuration = $("#lightDuration").val();
+        storeRec.waterDuration = $("#waterDuration").val();
+        */
+
+        // POST storeRec
+
+	    //wsSend('{"storeRec" : '+JSON.stringify(storeRec)+'}');
+	});
 
 	$("#LightsButton")
-		.mousedown(function() {
-			if (!isTouchDevice) { lightsPushed(); }
-		})
-		.mouseup(function() {
-			if (!isTouchDevice) { lightsReleased(); }
-		})
-		.on('touchstart', function(){
-			if (isTouchDevice) { lightsPushed(); }
-		})
-		.on('touchend', function(){
-			if (isTouchDevice)  { lightsReleased(); }
-	});
+	    .mousedown(function () {
+	        if (!isTouchDevice) {
+	            lightsPushed();
+	        }
+	    })
+	    .mouseup(function () {
+	        if (!isTouchDevice) {
+	            lightsReleased();
+	        }
+	    })
+	    .on('touchstart', function () {
+	        if (isTouchDevice) {
+	            lightsPushed();
+	        }
+	    })
+	    .on('touchend', function () {
+	        if (isTouchDevice) {
+	            lightsReleased();
+	        }
+	    });
 
 	$("#Relay1Button")
-		.mousedown(function() {
-			if (!isTouchDevice) { relay1Pushed(); }
-		})
-		.mouseup(function() {
-			if (!isTouchDevice) { relay1Released(); }
-		})
-		.on('touchstart', function(){
-			if (isTouchDevice) { relay1Pushed(); }
-		})
-		.on('touchend', function(){
-			if (isTouchDevice)  { relay1Released(); }
-	});
+	    .mousedown(function () {
+	        if (!isTouchDevice) {
+	            relay1Pushed();
+	        }
+	    })
+	    .mouseup(function () {
+	        if (!isTouchDevice) {
+	            relay1Released();
+	        }
+	    })
+	    .on('touchstart', function () {
+	        if (isTouchDevice) {
+	            relay1Pushed();
+	        }
+	    })
+	    .on('touchend', function () {
+	        if (isTouchDevice) {
+	            relay1Released();
+	        }
+	    });
 
 	$("#Relay2Button")
-	.mousedown(function() {
-		if (!isTouchDevice) { relay2Pushed(); }
-	})
-	.mouseup(function() {
-		if (!isTouchDevice) { relay2Released(); }
-	})
-	.on('touchstart', function(){
-		if (isTouchDevice) { relay2Pushed(); }
-	})
-	.on('touchend', function(){
-		if (isTouchDevice)  { relay2Released(); }
-	});
+	    .mousedown(function () {
+	        if (!isTouchDevice) {
+	            relay2Pushed();
+	        }
+	    })
+	    .mouseup(function () {
+	        if (!isTouchDevice) {
+	            relay2Released();
+	        }
+	    })
+	    .on('touchstart', function () {
+	        if (isTouchDevice) {
+	            relay2Pushed();
+	        }
+	    })
+	    .on('touchend', function () {
+	        if (isTouchDevice) {
+	            relay2Released();
+	        }
+	    });
 
 	$("#Relay3Button")
-		.mousedown(function() {
-			if (!isTouchDevice) { relay3Pushed(); }
-		})
-		.mouseup(function() {
-			if (!isTouchDevice) { relay3Released(); }
-		})
-		.on('touchstart', function(){
-			if (isTouchDevice) { relay3Pushed(); }
-		})
-		.on('touchend', function(){
-			if (isTouchDevice)  { relay3Released(); }
-	});
+	    .mousedown(function () {
+	        if (!isTouchDevice) {
+	            relay3Pushed();
+	        }
+	    })
+	    .mouseup(function () {
+	        if (!isTouchDevice) {
+	            relay3Released();
+	        }
+	    })
+	    .on('touchstart', function () {
+	        if (isTouchDevice) {
+	            relay3Pushed();
+	        }
+	    })
+	    .on('touchend', function () {
+	        if (isTouchDevice) {
+	            relay3Released();
+	        }
+	    });
 
 	$("#Relay4Button")
-		.mousedown(function() {
-			if (!isTouchDevice) { relay4Pushed(); }
-		})
-		.mouseup(function() {
-			if (!isTouchDevice) { relay4Released(); }
-		})
-		.on('touchstart', function(){
-			if (isTouchDevice) { relay4Pushed(); }
-		})
-		.on('touchend', function(){
-			if (isTouchDevice)  { relay4Released(); }
-	});
+	    .mousedown(function () {
+	        if (!isTouchDevice) {
+	            relay4Pushed();
+	        }
+	    })
+	    .mouseup(function () {
+	        if (!isTouchDevice) {
+	            relay4Released();
+	        }
+	    })
+	    .on('touchstart', function () {
+	        if (isTouchDevice) {
+	            relay4Pushed();
+	        }
+	    })
+	    .on('touchend', function () {
+	        if (isTouchDevice) {
+	            relay4Released();
+	        }
+	    });
 
 	$("#SelfieButton")
-	.mousedown(function() {
-		if (!isTouchDevice) { selfiePushed(); }
-	})
-	.on('touchstart', function(){
-		if (isTouchDevice) { selfiePushed(); }
-	});
+	    .mousedown(function () {
+	        if (!isTouchDevice) {
+	            selfiePushed();
+	        }
+	    })
+	    .on('touchstart', function () {
+	        if (isTouchDevice) {
+	            selfiePushed();
+	        }
+	    });
 
-	//$("#SelfieDisplay").html("");
-	//document.getElementById("myImg").src = "hackanm.gif";
 
-}); // $(document).ready(function(){
 
-// General function to send the boardMessage to the server if Websocket is connected
-function wsSend(boardMessage) {
-	//if (wsConnected) {
-	//	ws.send(boardMessage);
-	//}
-}
-	
-function lightsPushed() {
-	//console.log("Lights - Pushed");
-	//$("#logMessage").html("Button - Pushed");
-	wsSend('{"lights" : 1}');
-}
-function lightsReleased() {
-	//console.log("Lights - Released");
-	//$("#logMessage").html("Button - Released");
-	wsSend('{"lights" : 0}');
-}
+    //=================================================================================================================
+    // Module methods
+    function _lookup(event) {
+        var jqxhr = $.getJSON("GetValues", "", function (storeRec) {
+            $("#desc").val(storeRec.desc);
+            $("#germinationDate").val(storeRec.germinationDate);
+            $("#harvestDate").val(storeRec.harvestDate);
+            $("#cureDate").val(storeRec.cureDate);
+            $("#productionDate").val(storeRec.productionDate);
+            $("#targetTemperature").val(storeRec.targetTemperature);
+            $("#airInterval").val(storeRec.airInterval);
+            $("#airDuration").val(storeRec.airDuration);
+            $("#heatInterval").val(storeRec.heatInterval);
+            $("#heatDuration").val(storeRec.heatDuration);
+            $("#heatDurationMin").val(storeRec.heatDurationMin);
+            $("#heatDurationMax").val(storeRec.heatDurationMax);
+            $("#lightDuration").val(storeRec.lightDuration);
+            $("#waterDuration").val(storeRec.waterDuration);
+        }).fail(function (e) {
+            console.log("Error getting environment variables");
+        });
+    }
 
-function relay1Pushed() {
-	wsSend('{"relay1" : 1}');
-}
-function relay1Released() {
-	wsSend('{"relay1" : 0}');
-}
+    function _update(event) {
+        var paramMap = null;
+        //var paramMap = new Map();
+        //paramMap.set('parcelId', event.target.getAttribute("data-Id"));
+        //util.updateDataRecord(updateDataService, $Inputs, paramMap, displayFields, $ListDisplay, editClass);
 
-function relay2Pushed() {
-	wsSend('{"relay2" : 1}');
-}
-function relay2Released() {
-	wsSend('{"relay2" : 0}');
-}
+        $.ajax("UpdateConfig", {
+            type: "POST",
+            contentType: "application/json",
+            data: getJSONfromInputs($Inputs, paramMap),
+            dataType: "json"
+            //dataType: "html"
+        })
+        .done(function (response) {
+            //Ajax request was successful.
+            //$("#" + outDiv).html(response);
 
-function relay3Pushed() {
-	wsSend('{"relay3" : 1}');
-}
-function relay3Released() {
-	wsSend('{"relay3" : 0}');
-}
+            // Render the list 
+            displayList(displayFields, response, $ListDisplay, editClass);
+            defaultCursor();
+            clearInputs($Inputs);
+        })
+        .fail(function (xhr, status, error) {
+            //Ajax request failed.
+            console.log('Error in AJAX request to ' + url + ', xhr = ' + xhr.status + ': ' + xhr.statusText +
+                ', status = ' + status + ', error = ' + error);
+            alert('Error in AJAX request to ' + url + ', xhr = ' + xhr.status + ': ' + xhr.statusText +
+                ', status = ' + status + ', error = ' + error);
+        });
+    }
 
-function relay4Pushed() {
-	wsSend('{"relay4" : 1}');
-}
-function relay4Released() {
-	wsSend('{"relay4" : 0}');
-}
+    function _search(event) {
+        util.searchDataDisplay(getDataService, searchStrName + "=" + $SearchStr.val(), displayFields, $ListDisplay, editClass);
+    }
 
-function selfiePushed() {
-	wsSend('{"selfie" : 1}');
-}
+    function _clear(event) {
+        util.clearInputs($Inputs);
+    }
+
+    function _edit(event) {
+        util.editDataRecord(getDataService, "id=" + event.target.getAttribute("data-id"), $Inputs);
+    }
+
+
+    // General function to send the boardMessage to the server if Websocket is connected
+    function wsSend(boardMessage) {
+        //if (wsConnected) {
+        //	ws.send(boardMessage);
+        //}
+    }
+
+    function lightsPushed() {
+        //console.log("Lights - Pushed");
+        //$("#logMessage").html("Button - Pushed");
+        wsSend('{"lights" : 1}');
+    }
+
+    function lightsReleased() {
+        //console.log("Lights - Released");
+        //$("#logMessage").html("Button - Released");
+        wsSend('{"lights" : 0}');
+    }
+
+    function relay1Pushed() {
+        wsSend('{"relay1" : 1}');
+    }
+
+    function relay1Released() {
+        wsSend('{"relay1" : 0}');
+    }
+
+    function relay2Pushed() {
+        wsSend('{"relay2" : 1}');
+    }
+
+    function relay2Released() {
+        wsSend('{"relay2" : 0}');
+    }
+
+    function relay3Pushed() {
+        wsSend('{"relay3" : 1}');
+    }
+
+    function relay3Released() {
+        wsSend('{"relay3" : 0}');
+    }
+
+    function relay4Pushed() {
+        wsSend('{"relay4" : 1}');
+    }
+
+    function relay4Released() {
+        wsSend('{"relay4" : 0}');
+    }
+
+    function selfiePushed() {
+        wsSend('{"selfie" : 1}');
+    }
+
+    //=================================================================================================================
+    // This is what is exposed from this Module
+    return {};
+
+})(); // var main = (function(){

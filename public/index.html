@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    
     <title>GenvMonitor</title>
     <meta name="keywords" 	content="kauflin, jkauflin, jkauflin.com, johnkauflin.com, john kauflin, john j kauflin, jjk" />
     <meta name="description" content="Environment Monitor" />
@@ -12,19 +11,11 @@
 
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
-
     <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" 
-      rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" 
-      crossorigin="anonymous">
-
-    <!--
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="css/font-awesome.min.css">
-    <link rel="stylesheet" href="css/normalize.css">
-    -->
-    <link rel="stylesheet" href="css/main.css?ver=1.007">
-  </head>
+        rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" 
+        crossorigin="anonymous" />
+    <link rel="stylesheet" href="css/main.css?ver=1.011" />
+</head>
 
 <body>
 
@@ -36,106 +27,145 @@
   </div> <!-- container -->
 </nav><!-- <nav class="navbar navbar-default navbar-fixed-top"> -->
 
-<div class="container">
-    <!--
-    <h3>Home</h3>
-    -->
+<div class="container-fluid body-content" style="margin: 10px;">
+    <div class="row">
+      <div id="InputValues">
 
-  <div class="row">
-    <!-- Column 1 -->
-    <!--
-    <div class="col-xs-6 col-sm-6">
-    -->
-    <div class="col-sm-5">
-      <div class="center-block">
+        <!-- Column 1 -->
+        <div class="col-sm-4">
+            <form>
+                <div class="form-group row">
+                    <label for="targetTemperature" class="col-sm-6 col-form-label text-right">Target Temperature</label>
+                    <div class="col-sm-3">
+                        <input id="targetTemperature" class="form-control">
+                    </div>
+                    <div class="col-sm-3">
+                        <input id="targetTemperatureCurr" class="form-control" placeholder="curr" readonly>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="airInterval" class="col-sm-6 col-form-label text-right">Air Interval</label>
+                    <div class="col-sm-3">
+                        <input id="airInterval" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="airDuration" class="col-sm-6 col-form-label text-right">Air Duration</label>
+                    <div class="col-sm-3">
+                        <input id="airDuration" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="heatInterval" class="col-sm-6 col-form-label text-right">Heat Interval</label>
+                    <div class="col-sm-3">
+                        <input id="heatInterval" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="heatDuration" class="col-sm-6 col-form-label text-right">Heat Duration</label>
+                    <div class="col-sm-3">
+                        <input id="heatDuration" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="heatDurationMin" class="col-sm-6 col-form-label text-right">Heat Duration Min</label>
+                    <div class="col-sm-3">
+                        <input id="heatDurationMin" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="heatDurationMax" class="col-sm-6 col-form-label text-right">Heat Duration Max</label>
+                    <div class="col-sm-3">
+                        <input id="heatDurationMax" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="lightDuration" class="col-sm-6 col-form-label text-right">Light Duration</label>
+                    <div class="col-sm-3">
+                        <input id="lightDuration" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="waterDuration" class="col-sm-6 col-form-label text-right">Water Duration</label>
+                    <div class="col-sm-3">
+                        <input id="waterDuration" class="form-control">
+                    </div>
+                </div>
 
-				<table id="ConfigTable" >
-					<tbody>
-            <div class="form-group">
-              <tr><th>Target temperature:</th><td><input type="text" class="form-control input-sm resetval" name="targetTemperature" id="targetTemperature"  size="5" maxlength="5"></td></tr>
-              <tr><th>Air interval:</th><td><input type="text" class="form-control input-sm resetval" name="airInterval"  	    id="airInterval" 	      size="5" maxlength="5"></td></tr>
-              <tr><th>Air duration:</th><td><input type="text" class="form-control input-sm resetval" name="airDuration"  	    id="airDuration" 	      size="5" maxlength="5"></td></tr>
-              <tr><th>Heat interval:</th><td><input type="text" class="form-control input-sm resetval" name="heatInterval"  	  id="heatInterval" 	    size="5" maxlength="5"></td></tr>
-              <tr><th>Heat duration:</th><td><input type="text" class="form-control input-sm resetval" name="heatDuration"  	  id="heatDuration" 	    size="5" maxlength="5"></td></tr>
-              <tr><th>Heat duration Min:</th><td><input type="text" class="form-control input-sm resetval" name="heatDurationMin"  	id="heatDurationMin" 	  size="5" maxlength="5"></td></tr>
-              <tr><th>Heat duration Max:</th><td><input type="text" class="form-control input-sm resetval" name="heatDurationMax"  	id="heatDurationMax" 	  size="5" maxlength="5"></td></tr>
-              <tr><th>Light duration:</th><td><input type="text" class="form-control input-sm resetval" name="lightDuration"  	  id="lightDuration" 	    size="5" maxlength="5"></td></tr>
-              <tr><th>Water duration:</th><td><input type="text" class="form-control input-sm resetval" name="waterDuration"  	  id="waterDuration" 	    size="5" maxlength="5"></td></tr>
-            </div>
-					</tbody>
-				</table>
-        <p>
-        <button id="UpdateButton" type="button" class="btn btn-primary">Update</button>
-        </p>
+                <div class="form-group row">
+                    <div class="col-sm-9">
+			            <button id="UpdateResponses" type="button" class="btn btn-primary">Update</button>
+			            <button id="LookupButton" type="button" class="btn btn-primary">Lookup</button>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+
+
+        <!-- Column 2 -->
+        <div class="col-sm-4">
+            <form>
+                    <div class="form-group row">
+                        <label for="desc" class="col-sm-5 col-form-label text-right">Description</label>
+                        <div class="col-sm-7">
+                            <input id="desc" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="germinationDate" class="col-sm-5 col-form-label text-right">Germination Start</label>
+                        <div class="col-sm-7">
+                            <input id="germinationDate" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="harvestDate" class="col-sm-5 col-form-label text-right">Harvest Start</label>
+                        <div class="col-sm-7">
+                            <input id="harvestDate" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="cureDate" class="col-sm-5 col-form-label text-right">Cure Start</label>
+                        <div class="col-sm-7">
+                            <input id="cureDate" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="productionDate" class="col-sm-5 col-form-label text-right">Production Date</label>
+                        <div class="col-sm-7">
+                            <input id="productionDate" class="form-control">
+                        </div>
+                    </div>
+
+            </form>
+            
+        </div>
+
+        <!-- Column 3 -->
+        <div class="col-sm-4">
+            <h5>Column 3</h5>
+            <div id="logMessage"></div>
+        </div>
+
         <!--
-        <p>Lights</p>
-        <p style="padding-left:0px;">Eyes</p>
-        <button id="LightsButton" type="button" class="btn btn-warning "><i class="fa fa-eye fa-3x"></i></button>
-        <p>
-          <button id="Relay1Button" type="button" class="btn btn-success ">Relay1</button>
-        </p>
-        <p>
-          <button id="Relay2Button" type="button" class="btn btn-success ">Relay2</button>
-        </p>
-        <p>
-          <button id="Relay3Button" type="button" class="btn btn-success ">Relay3</button>
-        </p>
-        <p>
-          <button id="SelfieButton" type="button" class="btn btn-success ">Take a selfie</button>
-        </p>
+        <img class="img-responsive" src="images/genvImage.jpg">
         -->
-        <p>
-          <button id="Relay4Button" type="button" class="btn btn-success ">Water the plants</button>
-        </p>
-
-      </div>
-
-    </div>
-    <!-- Column 2 -->
-    <div class="col-sm-7">
-        <div id="logMessage"></div> 
-				<table id="ConfigTable2" >
-					<tbody>
-            <div class="form-group">
-              <tr><th>Desc:</th><td><input type="text" class="form-control input-sm resetval" name="desc" id="desc"  size="35" maxlength="35"></td></tr>
-              <tr><th>Germination start:</th><td><input type="text" class="form-control input-sm resetval" name="germinationDate"  	    id="germinationDate" 	      size="15" maxlength="15"></td></tr>
-              <tr><th>Harvest start:</th><td><input type="text" class="form-control input-sm resetval" name="harvestDate"  	  id="harvestDate" 	    size="15" maxlength="15"></td></tr>
-              <tr><th>Curing start:</th><td><input type="text" class="form-control input-sm resetval" name="cureDate"  	  id="cureDate" 	    size="15" maxlength="15"></td></tr>
-              <tr><th>Production date:</th><td><input type="text" class="form-control input-sm resetval" name="productionDate"  	  id="productionDate" 	    size="15" maxlength="15"></td></tr>
-            </div>
-					</tbody>
-				</table>
-    </div>
-    
-    <!--
-    <img class="img-responsive" src="images/genvImage.jpg">
-    -->
-  </div>
+      </div><!-- Inputs -->
+    </div><!-- row -->
 
 </div><!-- end of main container -->
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <!--
-    <script src="js/vendor/modernizr-3.5.0.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
-    <script>window.jQuery || document.write('<script src="js/vendor/jquery-3.2.1.min.js"><\/script>')</script>
-    <script src="js/vendor/bootstrap.min.js"></script>
-    <script src="js/vendor/bootstrap-slider.min.js"></script>
-    -->
-
-            <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.3.1.min.js"
-              crossorigin="anonymous"
-              integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT">
-              </script>
-            <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"
-              crossorigin="anonymous"
-              integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd">
-              </script>
-
-	  <script src="https://cdn.jsdelivr.net/npm/bootstrap-add-clear@1.0.7/bootstrap-add-clear.js"></script>
-    <script src="js/main.js?ver=1.007"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.3.1.min.js" crossorigin="anonymous"
+        integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT">
+    </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" crossorigin="anonymous"
+        integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd">
+    </script>
+	<script src="js/util.js?ver=1.011"></script>
+    <script src="js/main.js?ver=1.009"></script>
 
 </body>
 </html>

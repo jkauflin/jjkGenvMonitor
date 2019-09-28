@@ -12,7 +12,8 @@ Modification History
 2018-03-21 JJK  Working on moisture and water control
 2018-05-18 JJK  Modified to present and allow configuration updates from
                 the web page
-2019-09-22 JJK  Getting it going again
+2019-09-08 JJK  Upgraded to Raspbian Buster and NodeJS v10
+2019-09-28 JJK  Re-implementing web display and updates to config values
 =============================================================================*/
 
 // Read environment variables from the .env file
@@ -25,6 +26,8 @@ require('dotenv').config();
 //EMONCMS_INPUT_URL=
 //STORE_DIR=
 //IMAGES_DIR=
+
+var WEB_PORT = process.env.WEB_PORT;
 
 // General handler for any uncaught exceptions
 process.on('uncaughtException', function (e) {
@@ -52,14 +55,28 @@ app.use(function (err, req, res, next) {
 })
 
 // Have the web server listen for requests
-httpServer.listen(process.env.WEB_PORT,function() {
-    console.log("Live at Port " + process.env.WEB_PORT + " - Let's rock!");
+httpServer.listen(WEB_PORT,function() {
+    console.log("Live at Port " + WEB_PORT + " - Let's rock!");
 });
 
 // Include the Arduino board functions
-console.log("Before the boardFunctions");
 var boardFunctions = require('./boardFunctions.js');
 
+app.get('/GetValues', function (req, res, next) {
+    res.send(JSON.stringify(boardFunctions.getStoreRec()));
+});
+
+app.post('/UpdateConfig', function (req, res, next) {
+    //console.log("in the postTest, req.body = "+JSON.stringify(req.body));
+    /*
+    var array = req.body;
+    console.log(array[0]["name"].toString());
+    console.log(array[0]["value"].toString());
+    console.log(array[1]["name"].toString());
+    console.log(array[1]["value"].toString());
+    res.send(JSON.stringify(req.body));
+    */
+});
 
 /*
 var bodyParser = require("body-parser");

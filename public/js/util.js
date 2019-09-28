@@ -18,6 +18,9 @@
  *                  an Id and check for checkbox "checked"
  * 2018-12-19 JJK   Added functions to abstract screen activities such as
  *                  display, search, edit, and update
+ * 2019-09-28 JJK   Modified the JSON inputs method to accept DEV object
+ *                  or name string.  Modified the AJAX calls to use new
+ *                  promises to check result
  *============================================================================*/
  var util = (function(){
     'use strict';  // Force declaration of variables before use (among other things)
@@ -35,6 +38,7 @@
     //=================================================================================================================
     // Bind events
     // General AJAX error handler to log the exception and set a message in DIV tags with a ajaxError class
+    /* 2019-09-28 JJK - Commented out (just handle within the AJAX calls)
     $document.ajaxError(function (e, xhr, settings, exception) {
         console.log("ajax exception = " + exception);
         console.log("ajax url = " + settings.url);
@@ -42,16 +46,17 @@
         defaultCursor();
         $ajaxError.html("An Error has occurred (see console log)");
     });
+    */
 
-     // Auto-close the collapse menu after clicking a non-dropdown menu item (in the bootstrap nav header)
-     $document.on('click', '.navbar-collapse.in', function (e) {
-         if ($(e.target).is('a') && $(e.target).attr('class') != 'dropdown-toggle') {
-             $(this).collapse('hide');
-         }
-     });
+    // Auto-close the collapse menu after clicking a non-dropdown menu item (in the bootstrap nav header)
+    $document.on('click', '.navbar-collapse.in', function (e) {
+        if ($(e.target).is('a') && $(e.target).attr('class') != 'dropdown-toggle') {
+            $(this).collapse('hide');
+        }
+    });
 
-     // Using addClear plug-in function to add a clear button on input text fields
-     $resetval.addClear();
+    // Using addClear plug-in function to add a clear button on input text fields
+    //$resetval.addClear();
 
      // Initialize Date picker library
      /*
@@ -197,12 +202,20 @@
 
     // Function to get all input objects within a DIV, and extra entries from a map
     // and construct a JSON object with names and values (to pass in POST updates)
-    function getJSONfromInputs(InputsDiv, paramMap) {
+    // 2018-08-31 JJK - Modified to check for input DIV name string or object
+    // Parameters:
+    //   inDiv - DIV (JQuery object or String name) with input fields to include in JSON inputs
+    //   paramMap - Structure holding extra parameters to include
+    function getJSONfromInputs(inDiv, paramMap) {
         var first = true;
         var jsonStr = '{';
 
-        if (InputsDiv !== null) {
+        if (inDiv !== null) {
             // Get all the input objects within the DIV
+            var InputsDiv;
+            if (inDiv instanceof String) {
+                InputsDiv = $("#" + inDiv);
+            }
             var FormInputs = InputsDiv.find("input,textarea,select");
 
             // Loop through the objects and construct the JSON string
@@ -340,20 +353,29 @@
     function updateDataRecord(updateDataService, $Inputs, paramMap, displayFields, $ListDisplay, editClass) {
         //console.log("getJSONfromInputs() = " + getJSONfromInputs($Inputs, paramMap));
         waitCursor();
-        $.ajax(updateDataService, {
+
+        $.ajax(url, {
             type: "POST",
             contentType: "application/json",
             data: getJSONfromInputs($Inputs, paramMap),
-            dataType: "json",
-            success: function (list) {
-                // Render the list 
-                displayList(displayFields, list, $ListDisplay, editClass);
-                defaultCursor();
-                clearInputs($Inputs);
-            },
-            error: function () {
-                displayError("An error occurred in the update - see log");
-            }
+            dataType: "json"
+            //dataType: "html"
+        })
+        .done(function (response) {
+            //Ajax request was successful.
+            //$("#" + outDiv).html(response);
+            // Render the list 
+            displayList(displayFields, response, $ListDisplay, editClass);
+            defaultCursor();
+            clearInputs($Inputs);
+        })
+        .fail(function (xhr, status, error) {
+            //Ajax request failed.
+            displayError("An error occurred in the update - see log");
+            console.log('Error in AJAX request to ' + url + ', xhr = ' + xhr.status + ': ' + xhr.statusText +
+                ', status = ' + status + ', error = ' + error);
+            alert('Error in AJAX request to ' + url + ', xhr = ' + xhr.status + ': ' + xhr.statusText +
+                ', status = ' + status + ', error = ' + error);
         });
     }
 

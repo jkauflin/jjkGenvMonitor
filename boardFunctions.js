@@ -48,7 +48,8 @@ const EventEmitter = require('events');
 var five = require("johnny-five");
 
 // Set up the configuration store and initial values
-var store = require('json-fs-store')(process.env.STORE_DIR);
+//var store = require('json-fs-store')(process.env.STORE_DIR);
+var store = require('json-fs-store')("./");
 var storeId = 'storeid';
 var initStoreRec = {
     id: storeId,              // unique identifier
@@ -466,7 +467,17 @@ function waterThePlants() {
 }
 
 function getStoreRec () {
-  return sr;
+    return sr;
+}
+
+function updateConfig (inStoreRec) {
+    sr = inStoreRec;
+    store.add(sr, function (err) {
+        if (err) {
+            //throw err;
+            console.log("Error updating store rec, err = " + err);
+        }
+    });
 }
 
 module.exports = {
