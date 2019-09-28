@@ -178,9 +178,9 @@ var board = new five.Board({
 var boardReady = false;
 
 board.on("error", function () {
-    //console.log("*** Error in Board ***");
+    console.log("*** Error in Board ***");
     boardReady = false;
-    botEvent.emit("error", "*** Error in Board ***");
+    //botEvent.emit("error", "*** Error in Board ***");
 }); // board.on("error", function() {
 
 //board.on("message", function(event) {
