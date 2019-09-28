@@ -37,6 +37,7 @@ Modification History
 2018-06-18 JJK  Added lightDuration to store rec
 2018-08-19 JJK  Turned off camera, added important dates and description
 2018-09-30 JJK  Turned metrics back on to track tempature
+2019-09-27 JJK  Testing new digital relay
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -169,8 +170,8 @@ var boardEvent = new EventEmitter();
 // Create Johnny-Five board object
 var board = new five.Board({
     repl: false,
-    debug: false,
-    timeout: 12000
+    debug: false
+//    timeout: 12000
 });
 
 // State variables
@@ -195,25 +196,23 @@ board.on("ready", function () {
     console.log("*** board ready ***");
     boardReady = true;
 
-    var relay = new five.Relay(3);
-
-    this.wait(3000, function () {
-        console.log("Setting relay ON");
-        relay.on();
-    });
-
-
-  // Control the relay in real time
-  // from the REPL by typing commands, eg.
-  //
-  // relay.on();
-  //
-  // relay.off();
-  //
+    console.log("Initialize relays");
+    relays = new five.Relays([{
+        pin: 3
+    }]);
 
     /*
-    //type: "NO"  // Normally open - electricity not flowing - normally OFF
-    console.log("Initialize relays");
+    this.wait(3000, function () {
+        console.log("Setting relay ON");
+        relays[0].on();
+    });
+    this.wait(6000, function () {
+        console.log("Setting relay OFF");
+        relays[0].off();
+    });
+    */
+
+    /*
     relays = new five.Relays([{
         pin: 10,
         type: "NO",
@@ -227,7 +226,6 @@ board.on("ready", function () {
         pin: 13,
         type: "NO",
     }]);
-
     //relays.close();  // turn all the power OFF
     // for the Sunfounder relay, normal open, use OPEN to electrify the coil and allow electricity
     // use CLOSE to de-electrify the coil, and stop electricity
