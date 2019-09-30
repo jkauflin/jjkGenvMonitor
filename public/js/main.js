@@ -21,6 +21,7 @@ var main = (function () {
     // Private variables for the Module
     var isTouchDevice = 'ontouchstart' in document.documentElement;
 
+
     var getDataService = "getResponses.php";
     var updateDataService = "updateResponses.php";
     var displayFields = ["id", "deleted", "keywords", "verbalResponse", "robotCommand", "score"];
@@ -35,6 +36,7 @@ var main = (function () {
     var $logMessage = $document.find("#logMessage");
     var $StatusDisplay = $document.find("#StatusDisplay");
     var $LookupButton = $document.find("#LookupButton");
+    var $UpdateButton = $document.find("#UpdateButton");
 
     var $Inputs = $document.find("#InputValues");
 
@@ -51,15 +53,16 @@ var main = (function () {
     // Bind events
     $LookupButton.click(_lookup);
 
-    $SearchButton.click(_search);
-    $ClearButton.click(_clear);
+    //$SearchButton.click(_search);
+    //$ClearButton.click(_clear);
     $UpdateButton.click(_update);
-    $ModuleDiv.on("click", "." + editClass, _edit);
+    //$ModuleDiv.on("click", "." + editClass, _edit);
 
 
 	// Send updated values to the server (through web socket)
 	$(document).on("click", "#UpdateButton", function () {
         
+        console.log("in the Update click");
         /*
         storeRec.desc = $("#desc").val();
 	    storeRec.germinationDate = $("#germinationDate").val();
@@ -238,7 +241,7 @@ var main = (function () {
         $.ajax("UpdateConfig", {
             type: "POST",
             contentType: "application/json",
-            data: getJSONfromInputs($Inputs, paramMap),
+            data: util.getJSONfromInputs($Inputs, paramMap),
             dataType: "json"
             //dataType: "html"
         })

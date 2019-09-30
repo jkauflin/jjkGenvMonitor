@@ -67,7 +67,7 @@ app.get('/GetValues', function (req, res, next) {
 });
 
 app.post('/UpdateConfig', function (req, res, next) {
-    //console.log("in the postTest, req.body = "+JSON.stringify(req.body));
+    console.log("in the postTest, req.body = "+JSON.stringify(req.body));
     /*
     var array = req.body;
     console.log(array[0]["name"].toString());
