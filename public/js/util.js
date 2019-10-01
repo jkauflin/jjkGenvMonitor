@@ -215,6 +215,8 @@
             var InputsDiv;
             if (inDiv instanceof String) {
                 InputsDiv = $("#" + inDiv);
+            } else {
+                InputsDiv = inDiv;
             }
             var FormInputs = InputsDiv.find("input,textarea,select");
 

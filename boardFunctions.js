@@ -38,13 +38,13 @@ Modification History
 2018-08-19 JJK  Turned off camera, added important dates and description
 2018-09-30 JJK  Turned metrics back on to track tempature
 2019-09-27 JJK  Testing new digital relay
+2019-10-01 JJK  Checking JSON store functions, and 4 channel solid state relay
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
 const EventEmitter = require('events');
 
-// When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
-// be sure to shut the REPL off!
+// Library to control the Arduino board
 var five = require("johnny-five");
 
 // Set up the configuration store and initial values
@@ -52,21 +52,21 @@ var five = require("johnny-five");
 var store = require('json-fs-store')("./");
 var storeId = 'storeid';
 var initStoreRec = {
-    id: storeId,              // unique identifier
-    desc: 'tempDesc',         // description
-    germinationDate: '',      // genermination start date
-    harvestDate: '',          // harvest start date
-    cureDate: '',             // curing start date
-    productionDate: '',       // production complete date
-    targetTemperature: 72.0,  // degrees fahrenheit
-    airInterval: 2,           // minutes
-    airDuration: 2,           // minutes
-    heatInterval: 1.5,        // minutes
-    heatDuration: 1,          // minutes
-    heatDurationMin: 1,       // minutes
-    heatDurationMax: 1.5,     // minutes
-    lightDuration: 18,        // hours
-    waterDuration: 20         // seconds
+    id: storeId,                // unique identifier
+    desc: 'tempDesc',           // description
+    germinationDate: '',        // genermination start date
+    harvestDate: '',            // harvest start date
+    cureDate: '',               // curing start date
+    productionDate: '',         // production complete date
+    targetTemperature: 72,      // degrees fahrenheit
+    airInterval: 2,             // minutes
+    airDuration: 2,             // minutes
+    heatInterval: 1.5,          // minutes
+    heatDuration: 1,            // minutes
+    heatDurationMin: 1,         // minutes
+    heatDurationMax: 1.5,       // minutes
+    lightDuration: 18,          // hours
+    waterDuration: 20           // seconds
 };
 
 // Structure to hold current configuration values
@@ -169,6 +169,8 @@ EventEmitter.defaultMaxListeners = 15;
 var boardEvent = new EventEmitter();
 
 // Create Johnny-Five board object
+// When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
+// be sure to shut the REPL off!
 var board = new five.Board({
     repl: false,
     debug: false
@@ -466,12 +468,14 @@ function waterThePlants() {
   }, sr.waterDuration * secondsToMilliseconds);
 }
 
-function getStoreRec () {
+function getStoreRec() {
     return sr;
 }
 
-function updateConfig (inStoreRec) {
+function updateConfig(inStoreRec) {
     sr = inStoreRec;
+    //console.log("in updateConfig, sr.targetTemperature = " + sr.targetTemperature);
+    sr.id = storeId;
     store.add(sr, function (err) {
         if (err) {
             //throw err;
@@ -483,6 +487,7 @@ function updateConfig (inStoreRec) {
 module.exports = {
     boardEvent,
     webControl,
-    getStoreRec
+    getStoreRec,
+    updateConfig
 };
 

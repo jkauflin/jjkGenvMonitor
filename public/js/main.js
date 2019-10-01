@@ -52,38 +52,12 @@ var main = (function () {
     //=================================================================================================================
     // Bind events
     $LookupButton.click(_lookup);
+    _lookup();
 
     //$SearchButton.click(_search);
     //$ClearButton.click(_clear);
     $UpdateButton.click(_update);
     //$ModuleDiv.on("click", "." + editClass, _edit);
-
-
-	// Send updated values to the server (through web socket)
-	$(document).on("click", "#UpdateButton", function () {
-        
-        console.log("in the Update click");
-        /*
-        storeRec.desc = $("#desc").val();
-	    storeRec.germinationDate = $("#germinationDate").val();
-	    storeRec.harvestDate = $("#harvestDate").val();
-	    storeRec.cureDate = $("#cureDate").val();
-	    storeRec.productionDate = $("#productionDate").val();
-	    storeRec.targetTemperature = $("#targetTemperature").val();
-	    storeRec.airInterval = $("#airInterval").val();
-	    storeRec.airDuration = $("#airDuration").val();
-	    storeRec.heatInterval = $("#heatInterval").val();
-	    storeRec.heatDuration = $("#heatDuration").val();
-	    storeRec.heatDurationMin = $("#heatDurationMin").val();
-	    storeRec.heatDurationMax = $("#heatDurationMax").val();
-	    storeRec.lightDuration = $("#lightDuration").val();
-        storeRec.waterDuration = $("#waterDuration").val();
-        */
-
-        // POST storeRec
-
-	    //wsSend('{"storeRec" : '+JSON.stringify(storeRec)+'}');
-	});
 
 	$("#LightsButton")
 	    .mousedown(function () {
@@ -213,23 +187,27 @@ var main = (function () {
     // Module methods
     function _lookup(event) {
         var jqxhr = $.getJSON("GetValues", "", function (storeRec) {
-            $("#desc").val(storeRec.desc);
-            $("#germinationDate").val(storeRec.germinationDate);
-            $("#harvestDate").val(storeRec.harvestDate);
-            $("#cureDate").val(storeRec.cureDate);
-            $("#productionDate").val(storeRec.productionDate);
-            $("#targetTemperature").val(storeRec.targetTemperature);
-            $("#airInterval").val(storeRec.airInterval);
-            $("#airDuration").val(storeRec.airDuration);
-            $("#heatInterval").val(storeRec.heatInterval);
-            $("#heatDuration").val(storeRec.heatDuration);
-            $("#heatDurationMin").val(storeRec.heatDurationMin);
-            $("#heatDurationMax").val(storeRec.heatDurationMax);
-            $("#lightDuration").val(storeRec.lightDuration);
-            $("#waterDuration").val(storeRec.waterDuration);
+            _renderConfig(storeRec);
         }).fail(function (e) {
             console.log("Error getting environment variables");
         });
+    }
+
+    function _renderConfig(storeRec) {
+        $("#desc").val(storeRec.desc);
+        $("#germinationDate").val(storeRec.germinationDate);
+        $("#harvestDate").val(storeRec.harvestDate);
+        $("#cureDate").val(storeRec.cureDate);
+        $("#productionDate").val(storeRec.productionDate);
+        $("#targetTemperature").val(storeRec.targetTemperature);
+        $("#airInterval").val(storeRec.airInterval);
+        $("#airDuration").val(storeRec.airDuration);
+        $("#heatInterval").val(storeRec.heatInterval);
+        $("#heatDuration").val(storeRec.heatDuration);
+        $("#heatDurationMin").val(storeRec.heatDurationMin);
+        $("#heatDurationMax").val(storeRec.heatDurationMax);
+        $("#lightDuration").val(storeRec.lightDuration);
+        $("#waterDuration").val(storeRec.waterDuration);
     }
 
     function _update(event) {
@@ -238,21 +216,17 @@ var main = (function () {
         //paramMap.set('parcelId', event.target.getAttribute("data-Id"));
         //util.updateDataRecord(updateDataService, $Inputs, paramMap, displayFields, $ListDisplay, editClass);
 
-        $.ajax("UpdateConfig", {
+        var url = "UpdateConfig";
+        $.ajax(url, {
             type: "POST",
             contentType: "application/json",
             data: util.getJSONfromInputs($Inputs, paramMap),
             dataType: "json"
             //dataType: "html"
         })
-        .done(function (response) {
-            //Ajax request was successful.
-            //$("#" + outDiv).html(response);
-
-            // Render the list 
-            displayList(displayFields, response, $ListDisplay, editClass);
-            defaultCursor();
-            clearInputs($Inputs);
+        .done(function (storeRec) {
+            $("#logMessage").html("Record updated");
+            _renderConfig(storeRec);
         })
         .fail(function (xhr, status, error) {
             //Ajax request failed.

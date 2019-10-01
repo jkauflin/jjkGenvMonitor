@@ -47,6 +47,7 @@ var app = express();
 var httpServer = http.createServer(app);
 
 app.use('/',express.static('public'));
+app.use(express.json());
 
 // jjk new
 app.use(function (err, req, res, next) {
@@ -67,81 +68,6 @@ app.get('/GetValues', function (req, res, next) {
 });
 
 app.post('/UpdateConfig', function (req, res, next) {
-    console.log("in the postTest, req.body = "+JSON.stringify(req.body));
-    /*
-    var array = req.body;
-    console.log(array[0]["name"].toString());
-    console.log(array[0]["value"].toString());
-    console.log(array[1]["name"].toString());
-    console.log(array[1]["value"].toString());
-    res.send(JSON.stringify(req.body));
-    */
+    boardFunctions.updateConfig(req.body);
+    res.send(JSON.stringify(boardFunctions.getStoreRec()));
 });
-
-/*
-var bodyParser = require("body-parser");
-
-// Turn off URL encoded and just use JSON
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
- 
-app.post('/postTest', function (req, res, next) {
-  //console.log("in the postTest, req.body = "+JSON.stringify(req.body));
-  var array = req.body;
-  console.log(array[0]["name"].toString());
-  console.log(array[0]["value"].toString());
-  console.log(array[1]["name"].toString());
-  console.log(array[1]["value"].toString());
-  res.send(JSON.stringify(req.body));
-});
-*/
-
-/*
-// If they are set, get input parameters from the REQUEST
-header("Content-Type: application/json; charset=UTF-8");#
-Get JSON as a string
-$json_str = file_get_contents('php://input');#
-Get as an object
-$param = json_decode($json_str);
-
-//error_log(date('[Y-m-d H:i] '). '$sql = ' . $sql . PHP_EOL, 3, 'php.log');
-
-$conn = getConn();
-
-if ($param - > id == '') {
-  if ($param - > deleted != 'Y' && $param - > keywords != '') {
-    $stmt = $conn - > prepare("INSERT INTO responses (keywords,verbalResponse,robotCommand) VALUES (?,?,?); ");
-    $stmt - > bind_param("sss", $param - > keywords, $param - > verbalResponse, $param - > robotCommand);
-    $stmt - > execute();
-    $stmt - > close();
-  }
-} else {
-  if ($param - > deleted == "Y") {
-    //$stmt = $conn->prepare("UPDATE responses SET deleted=?,lastChangedTs=CURRENT_TIMESTAMP WHERE id = ? ; ");
-    //$stmt->bind_param("si",$param->deleted,$param->id);	
-    $stmt = $conn - > prepare("DELETE FROM responses WHERE id = ? ; ");
-    $stmt - > bind_param("i", $param - > id);
-  } else {
-    $stmt = $conn - > prepare("UPDATE responses SET deleted='N',keywords=?,verbalResponse=?,robotCommand=?,lastChangedTs=CURRENT_TIMESTAMP WHERE id = ? ; ");
-    $stmt - > bind_param("sssi", $param - > keywords, $param - > verbalResponse, $param - > robotCommand, $param - > id);
-  }
-  $stmt - > execute();
-  $stmt - > close();
-}
-
-$sql = "SELECT * FROM responses ";
-$stmt = $conn - > prepare($sql);
-$stmt - > execute();
-$result = $stmt - > get_result();
-$outputArray = array();
-if ($result != NULL) {
-  while ($row = $result - > fetch_assoc()) {
-    array_push($outputArray, $row);
-  }
-}
-$stmt - > close();
-
-$conn - > close();
-
-echo json_encode($outputArray);
-*/
