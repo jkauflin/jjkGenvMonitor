@@ -201,7 +201,7 @@ board.on("ready", function () {
 
     console.log("Initialize relays");
     relays = new five.Relays([{
-        pin: 3
+        pin: 10
     }]);
 
     /*
@@ -475,6 +475,15 @@ function getStoreRec() {
 function updateConfig(inStoreRec) {
     sr = inStoreRec;
     //console.log("in updateConfig, sr.targetTemperature = " + sr.targetTemperature);
+
+    /*
+    if (sr.targetTemperature == 72) {
+        relays[0].on();
+    } else {
+        relays[0].off();
+    }
+    */
+
     sr.id = storeId;
     store.add(sr, function (err) {
         if (err) {
