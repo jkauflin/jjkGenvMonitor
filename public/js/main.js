@@ -20,44 +20,38 @@ var main = (function () {
     //=================================================================================================================
     // Private variables for the Module
     var isTouchDevice = 'ontouchstart' in document.documentElement;
-
-
-    var getDataService = "getResponses.php";
-    var updateDataService = "updateResponses.php";
-    var displayFields = ["id", "deleted", "keywords", "verbalResponse", "robotCommand", "score"];
-    var editClass = "EditResponses";
-    var searchStrName = "keywords";
-
     var storeRec = null;
 
     //=================================================================================================================
     // Variables cached from the DOM
     var $document = $(document);
-    var $logMessage = $document.find("#logMessage");
-    var $StatusDisplay = $document.find("#StatusDisplay");
-    var $LookupButton = $document.find("#LookupButton");
+    var $desc = $document.find("#desc");
+    var $germinationDate = $document.find("#germinationDate");
+    var $harvestDate = $document.find("#harvestDate");
+    var $cureDate = $document.find("#cureDate");
+    var $productionDate = $document.find("#productionDate");
+    var $targetTemperature = $document.find("#targetTemperature");
+    var $airInterval = $document.find("#airInterval");
+    var $airDuration = $document.find("#airDuration");
+    var $heatInterval = $document.find("#heatInterval");
+    var $heatDuration = $document.find("#heatDuration");
+    var $heatDurationMin = $document.find("#heatDurationMin");
+    var $heatDurationMax = $document.find("#heatDurationMax");
+    var $lightDuration = $document.find("#lightDuration");
+    var $waterDuration = $document.find("#waterDuration");
+    var $ClearLogButton = $document.find("#ClearLogButton");
     var $UpdateButton = $document.find("#UpdateButton");
 
     var $Inputs = $document.find("#InputValues");
 
-    /*
-    var $ModuleDiv = $('#ResponsesPage');
-    var $SearchButton = $ModuleDiv.find("#SearchResponses");
-    var $SearchStr = $ModuleDiv.find("#" + searchStrName);
-    var $ClearButton = $ModuleDiv.find("#ClearResponses");
-    var $ListDisplay = $ModuleDiv.find("#ResponsesListDisplay tbody");
-    var $UpdateButton = $ModuleDiv.find("#UpdateResponses");
-    */
+    //var $altAddress = $moduleDiv.find("#altAddress");
+    var $LogMessageDisplay = $("#LogMessageDisplay").find('tbody');
 
     //=================================================================================================================
     // Bind events
-    $LookupButton.click(_lookup);
-    _lookup();
-
-    //$SearchButton.click(_search);
-    //$ClearButton.click(_clear);
+    $ClearLogButton.click(_clearLog);
     $UpdateButton.click(_update);
-    //$ModuleDiv.on("click", "." + editClass, _edit);
+    _lookup();
 
 	$("#LightsButton")
 	    .mousedown(function () {
@@ -194,20 +188,30 @@ var main = (function () {
     }
 
     function _renderConfig(storeRec) {
-        $("#desc").val(storeRec.desc);
-        $("#germinationDate").val(storeRec.germinationDate);
-        $("#harvestDate").val(storeRec.harvestDate);
-        $("#cureDate").val(storeRec.cureDate);
-        $("#productionDate").val(storeRec.productionDate);
-        $("#targetTemperature").val(storeRec.targetTemperature);
-        $("#airInterval").val(storeRec.airInterval);
-        $("#airDuration").val(storeRec.airDuration);
-        $("#heatInterval").val(storeRec.heatInterval);
-        $("#heatDuration").val(storeRec.heatDuration);
-        $("#heatDurationMin").val(storeRec.heatDurationMin);
-        $("#heatDurationMax").val(storeRec.heatDurationMax);
-        $("#lightDuration").val(storeRec.lightDuration);
-        $("#waterDuration").val(storeRec.waterDuration);
+        $desc.val(storeRec.desc);
+        $germinationDate.val(storeRec.germinationDate);
+        $harvestDate.val(storeRec.harvestDate);
+        $cureDate.val(storeRec.cureDate);
+        $productionDate.val(storeRec.productionDate);
+        $targetTemperature.val(storeRec.targetTemperature);
+        $airInterval.val(storeRec.airInterval);
+        $airDuration.val(storeRec.airDuration);
+        $heatInterval.val(storeRec.heatInterval);
+        $heatDuration.val(storeRec.heatDuration);
+        $heatDurationMin.val(storeRec.heatDurationMin);
+        $heatDurationMax.val(storeRec.heatDurationMax);
+        $lightDuration.val(storeRec.lightDuration);
+        $waterDuration.val(storeRec.waterDuration);
+
+        // loop through and add to a table
+        var tr = '';
+        $.each(storeRec.logList, function (index, logRec) {
+            tr += '<tr>';
+            tr += '<td>' + logRec + '</td>';
+            tr += '</tr>';
+        });
+
+        $LogMessageDisplay.html(tr);
     }
 
     function _update(event) {
@@ -225,7 +229,6 @@ var main = (function () {
             //dataType: "html"
         })
         .done(function (storeRec) {
-            $("#logMessage").html("Record updated");
             _renderConfig(storeRec);
         })
         .fail(function (xhr, status, error) {
@@ -237,18 +240,13 @@ var main = (function () {
         });
     }
 
-    function _search(event) {
-        util.searchDataDisplay(getDataService, searchStrName + "=" + $SearchStr.val(), displayFields, $ListDisplay, editClass);
+    function _clearLog(event) {
+        var jqxhr = $.getJSON("ClearLog", "", function (storeRec) {
+            _renderConfig(storeRec);
+        }).fail(function (e) {
+            console.log("Error clearing log");
+        });
     }
-
-    function _clear(event) {
-        util.clearInputs($Inputs);
-    }
-
-    function _edit(event) {
-        util.editDataRecord(getDataService, "id=" + event.target.getAttribute("data-id"), $Inputs);
-    }
-
 
     // General function to send the boardMessage to the server if Websocket is connected
     function wsSend(boardMessage) {

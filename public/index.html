@@ -32,61 +32,58 @@
       <div id="InputValues">
 
         <!-- Column 1 -->
-        <div class="col-sm-4">
+        <div class="col-sm-3">
             <form>
                 <div class="form-group row">
-                    <label for="targetTemperature" class="col-sm-6 col-form-label text-right">Target Temperature</label>
+                    <label for="targetTemperature" class="col-sm-9 col-form-label text-right">Target Temperature</label>
                     <div class="col-sm-3">
                         <input id="targetTemperature" class="form-control">
                     </div>
-                    <div class="col-sm-3">
-                        <input id="targetTemperatureCurr" class="form-control" placeholder="curr" readonly>
-                    </div>
                 </div>
                 <div class="form-group row">
-                    <label for="airInterval" class="col-sm-6 col-form-label text-right">Air Interval</label>
+                    <label for="airInterval" class="col-sm-9 col-form-label text-right">Air Interval</label>
                     <div class="col-sm-3">
                         <input id="airInterval" class="form-control">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="airDuration" class="col-sm-6 col-form-label text-right">Air Duration</label>
+                    <label for="airDuration" class="col-sm-9 col-form-label text-right">Air Duration</label>
                     <div class="col-sm-3">
                         <input id="airDuration" class="form-control">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="heatInterval" class="col-sm-6 col-form-label text-right">Heat Interval</label>
+                    <label for="heatInterval" class="col-sm-9 col-form-label text-right">Heat Interval</label>
                     <div class="col-sm-3">
                         <input id="heatInterval" class="form-control">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="heatDuration" class="col-sm-6 col-form-label text-right">Heat Duration</label>
+                    <label for="heatDuration" class="col-sm-9 col-form-label text-right">Heat Duration</label>
                     <div class="col-sm-3">
                         <input id="heatDuration" class="form-control">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="heatDurationMin" class="col-sm-6 col-form-label text-right">Heat Duration Min</label>
+                    <label for="heatDurationMin" class="col-sm-9 col-form-label text-right">Heat Duration Min</label>
                     <div class="col-sm-3">
                         <input id="heatDurationMin" class="form-control">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="heatDurationMax" class="col-sm-6 col-form-label text-right">Heat Duration Max</label>
+                    <label for="heatDurationMax" class="col-sm-9 col-form-label text-right">Heat Duration Max</label>
                     <div class="col-sm-3">
                         <input id="heatDurationMax" class="form-control">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="lightDuration" class="col-sm-6 col-form-label text-right">Light Duration</label>
+                    <label for="lightDuration" class="col-sm-9 col-form-label text-right">Light Duration</label>
                     <div class="col-sm-3">
                         <input id="lightDuration" class="form-control">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="waterDuration" class="col-sm-6 col-form-label text-right">Water Duration</label>
+                    <label for="waterDuration" class="col-sm-9 col-form-label text-right">Water Duration</label>
                     <div class="col-sm-3">
                         <input id="waterDuration" class="form-control">
                     </div>
@@ -94,8 +91,8 @@
 
                 <div class="form-group row">
                     <div class="col-sm-9">
+                        <button id="ClearLogButton" type="button" class="btn btn-success">Clear log</button>
 			            <button id="UpdateButton" type="button" class="btn btn-primary">Update</button>
-			            <button id="LookupButton" type="button" class="btn btn-primary">Lookup</button>
                     </div>
                 </div>
             </form>
@@ -104,7 +101,7 @@
 
 
         <!-- Column 2 -->
-        <div class="col-sm-4">
+        <div class="col-sm-3">
             <form>
                     <div class="form-group row">
                         <label for="desc" class="col-sm-5 col-form-label text-right">Description</label>
@@ -142,9 +139,12 @@
         </div>
 
         <!-- Column 3 -->
-        <div class="col-sm-4">
-            <h5>Column 3</h5>
-            <div id="logMessage"></div>
+        <div class="col-sm-6">
+            <h5>Log messages:</h5>
+            <table id="LogMessageDisplay" class="table table-condensed table-striped">
+                <tbody>
+                </tbody>
+            </table>
         </div>
 
         <!--
@@ -164,8 +164,8 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" crossorigin="anonymous"
         integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd">
     </script>
-	<script src="js/util.js?ver=1.016"></script>
-    <script src="js/main.js?ver=1.016"></script>
+	<script src="js/util.js?ver=1.017"></script>
+    <script src="js/main.js?ver=1.019"></script>
 
 </body>
 </html>

@@ -39,6 +39,7 @@ Modification History
 2018-09-30 JJK  Turned metrics back on to track tempature
 2019-09-27 JJK  Testing new digital relay
 2019-10-01 JJK  Checking JSON store functions, and 4 channel solid state relay
+2019-10-02 JJK  Added a log message array and store rec save method
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -51,6 +52,7 @@ var five = require("johnny-five");
 //var store = require('json-fs-store')(process.env.STORE_DIR);
 var store = require('json-fs-store')("./");
 var storeId = 'storeid';
+var logArray = [];
 var initStoreRec = {
     id: storeId,                // unique identifier
     desc: 'tempDesc',           // description
@@ -66,7 +68,8 @@ var initStoreRec = {
     heatDurationMin: 1,         // minutes
     heatDurationMax: 1.5,       // minutes
     lightDuration: 18,          // hours
-    waterDuration: 20           // seconds
+    waterDuration: 20,           // seconds
+    logList: logArray
 };
 
 // Structure to hold current configuration values
@@ -181,25 +184,20 @@ var board = new five.Board({
 var boardReady = false;
 
 board.on("error", function () {
-    console.log("*** Error in Board ***");
+    log("*** Error in Board ***");
     boardReady = false;
-    //botEvent.emit("error", "*** Error in Board ***");
 }); // board.on("error", function() {
 
-//board.on("message", function(event) {
-//  console.log("Received a %s message, from %s, reporting: %s", event.type, event.class, event.message);
-//});
-
-console.log("============ Starting board initialization ================");
+log("===== Starting board initialization =====");
 //-------------------------------------------------------------------------------------------------------
 // When the board is ready, create and intialize global component objects (to be used by functions)
 //-------------------------------------------------------------------------------------------------------
 // When the board is ready, create and intialize global component objects (to be used by functions)
 board.on("ready", function () {
-    console.log("*** board ready ***");
+    log("*** board ready ***");
     boardReady = true;
 
-    console.log("Initialize relays");
+    log("Initialize relays");
     relays = new five.Relays([{
         pin: 10
     }]);
@@ -259,7 +257,7 @@ board.on("ready", function () {
     // Define the thermometer sensor
     this.wait(5000, function () {
         // This requires OneWire support using the ConfigurableFirmata
-        console.log("Initialize tempature sensor");
+        log("Initialize tempature sensor");
         thermometer = new five.Thermometer({
             controller: "DS18B20",
             pin: 2
@@ -304,8 +302,7 @@ board.on("ready", function () {
         }); // on termometer change
     });
    
-    console.log("End of board.on (initialize) event");
-    console.log(" ");
+    log("End of board.on (initialize) event");
 
 }); // board.on("ready", function() {
 
@@ -392,14 +389,6 @@ function logMetric() {
   });
 }
 
-/*
-function log(logId,logStr) {
-  if (development && debug) {
-    console.log(dateTime.create().format('H:M:S')+" "+logId+", "+logStr);
-  }
-}
-*/
-
 function webControl(boardMessage) {
   if (boardMessage.relay3 != null) {
     setRelay(HEAT,boardMessage.relay3);
@@ -472,20 +461,9 @@ function getStoreRec() {
     return sr;
 }
 
-function updateConfig(inStoreRec) {
-    sr = inStoreRec;
-    console.log("in updateConfig, sr.targetTemperature = " + sr.targetTemperature);
-
-    if (sr.targetTemperature == 69) {
-        relays[0].on();
-    } else if (sr.targetTemperature == 99) {
-        console.log("Throwing Test ERROR");
-        throw "Test ERROR";
-    } else {
-        relays[0].off();
-    }
-
+function _saveStoreRec() {
     sr.id = storeId;
+    sr.logList = logArray;
     store.add(sr, function (err) {
         if (err) {
             //throw err;
@@ -494,10 +472,37 @@ function updateConfig(inStoreRec) {
     });
 }
 
+function log(inStr) {
+    var logStr = dateTime.create().format('Y-m-d H:M:S') + " " + inStr;
+    console.log(logStr);
+    logArray.push(logStr);
+    _saveStoreRec();
+}
+
+function updateConfig(inStoreRec) {
+    sr = inStoreRec;
+    log("in updateConfig, sr.targetTemperature = " + sr.targetTemperature);
+
+    if (sr.targetTemperature == 69) {
+        relays[0].on();
+    } else if (sr.targetTemperature == 99) {
+        throw "Test ERROR";
+    } else {
+        relays[0].off();
+    }
+
+    _saveStoreRec();
+}
+
+function clearLog() {
+    logArray.length = 0;
+    _saveStoreRec();
+}
+
+
 module.exports = {
-    boardEvent,
-    webControl,
     getStoreRec,
-    updateConfig
+    updateConfig,
+    clearLog
 };
 
