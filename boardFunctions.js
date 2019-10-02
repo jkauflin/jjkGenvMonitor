@@ -474,15 +474,16 @@ function getStoreRec() {
 
 function updateConfig(inStoreRec) {
     sr = inStoreRec;
-    //console.log("in updateConfig, sr.targetTemperature = " + sr.targetTemperature);
+    console.log("in updateConfig, sr.targetTemperature = " + sr.targetTemperature);
 
-    /*
-    if (sr.targetTemperature == 72) {
+    if (sr.targetTemperature == 69) {
         relays[0].on();
+    } else if (sr.targetTemperature == 99) {
+        console.log("Throwing Test ERROR");
+        throw "Test ERROR";
     } else {
         relays[0].off();
     }
-    */
 
     sr.id = storeId;
     store.add(sr, function (err) {
