@@ -39,7 +39,8 @@ Modification History
 2018-09-30 JJK  Turned metrics back on to track tempature
 2019-09-27 JJK  Testing new digital relay
 2019-10-01 JJK  Checking JSON store functions, and 4 channel solid state relay
-2019-10-02 JJK  Added a log message array and store rec save method
+2019-10-02 JJK  Added a log message array and store rec save method.
+                Getting the 4 channel relay working.  Checking metric sends
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -61,8 +62,10 @@ var initStoreRec = {
     cureDate: '',               // curing start date
     productionDate: '',         // production complete date
     targetTemperature: 72,      // degrees fahrenheit
-    airInterval: 2,             // minutes
-    airDuration: 2,             // minutes
+    //airInterval: 2,             // minutes
+    airInterval: 1,             // minutes
+    //airDuration: 2,             // minutes
+    airDuration: 1,             // minutes
     heatInterval: 1.5,          // minutes
     heatDuration: 1,            // minutes
     heatDurationMin: 1,         // minutes
@@ -120,30 +123,28 @@ var nodewebcamOptions = {
 */
 
 // Global variables
-const development = process.env.NODE_ENV !== 'production';
-const debug = process.env.DEBUG;
 const EMONCMS_INPUT_URL = process.env.EMONCMS_INPUT_URL;
 var emoncmsUrl = "";
 var metricJSON = "";
 
-var intervalSeconds = 30;
-var intVal = intervalSeconds * 1000;
-var currMs;
-var nextSendMsTempature = 0;
+//var intervalSeconds = 30;
+var intervalSeconds = 5;
+var metricInterval = intervalSeconds * 1000;
 var thermometer = null;
 var currTemperature = sr.targetTemperature;
 const TEMPATURE_MAX = sr.targetTemperature + 2.0;
 const TEMPATURE_MIN = sr.targetTemperature - 2.0;
 
 var relays = null;
-const relayNames = ["lights","air","heat","water"];
+//const relayNames = ["lights", "air", "heat", "water"];
+const relayNames = ["water", "air", "heat", "lights"];
 const relayMetricON = 65;
 const relayMetricOFF = 60;
 const relayMetricValues = [relayMetricOFF,relayMetricOFF,relayMetricOFF,relayMetricOFF];
-const LIGHTS = 0;
+const LIGHTS = 3;
 const AIR = 1;
 const HEAT = 2;
-const WATER = 3;
+const WATER = 0;
 const OFF = 0;
 const ON = 1;
 
@@ -166,10 +167,6 @@ for (var i = 0; i < numReadings; i++) {
     readingsA0[i] = 0;     
 }
 var arrayFull = false;
-
-// Create EventEmitter object
-EventEmitter.defaultMaxListeners = 15;
-var boardEvent = new EventEmitter();
 
 // Create Johnny-Five board object
 // When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
@@ -197,65 +194,35 @@ board.on("ready", function () {
     log("*** board ready ***");
     boardReady = true;
 
-    log("Initialize relays");
-    relays = new five.Relays([{
-        pin: 10
-    }]);
-
-    /*
-    this.wait(3000, function () {
-        console.log("Setting relay ON");
-        relays[0].on();
-    });
-    this.wait(6000, function () {
-        console.log("Setting relay OFF");
-        relays[0].off();
-    });
-    */
-
-    /*
-    relays = new five.Relays([{
-        pin: 10,
-        type: "NO",
-    }, {
-        pin: 11,
-        type: "NO",
-    }, {
-        pin: 12,
-        type: "NO",
-    }, {
-        pin: 13,
-        type: "NO",
-    }]);
-    //relays.close();  // turn all the power OFF
-    // for the Sunfounder relay, normal open, use OPEN to electrify the coil and allow electricity
-    // use CLOSE to de-electrify the coil, and stop electricity
-    // (a little backward according to Johnny-Five documentation)
+    log("Initializing relays");
+    relays = new five.Relays([10, 11, 12, 13]);
 
     // Turn all the relays off when the borard starts
-    this.wait(3000, function () {
-        console.log("Setting relays OFF");
-        setRelay(LIGHTS, OFF);
-        setRelay(AIR, OFF);
-        setRelay(HEAT, OFF);
-        setRelay(WATER, OFF);
-
-        // Start the function to toggle air ventilation ON and OFF
-        console.log("Starting Air toggle interval");
-        setTimeout(toggleAir, 1000);
-    });
-    // If the board is exiting, turn all the relays off
-    this.on("exit", function () {
-        console.log("EXIT - Setting relays OFF");
-        setRelay(LIGHTS, OFF);
-        setRelay(AIR, OFF);
-        setRelay(HEAT, OFF);
-        setRelay(WATER, OFF);
+    /*
+    this.wait(2000, function () {
+        //log("Setting relays OFF");
+        //setRelay(LIGHTS, OFF);
+        //setRelay(AIR, OFF);
+        //setRelay(HEAT, OFF);
+        //setRelay(WATER, OFF);
     });
     */
 
+    // Start the function to toggle air ventilation ON and OFF
+    log("Starting Air toggle interval");
+    setTimeout(toggleAir, 1000);
+
+    // If the board is exiting, turn all the relays off
+    this.on("exit", function () {
+        log("EXIT - Setting relays OFF");
+        setRelay(LIGHTS, OFF);
+        setRelay(AIR, OFF);
+        setRelay(HEAT, OFF);
+        setRelay(WATER, OFF);
+    });
+
     // Define the thermometer sensor
-    this.wait(5000, function () {
+    this.wait(3000, function () {
         // This requires OneWire support using the ConfigurableFirmata
         log("Initialize tempature sensor");
         thermometer = new five.Thermometer({
@@ -279,7 +246,7 @@ board.on("ready", function () {
             }
             // calculate the average:
             if (arrayFull) {
-                currTemperature = totalA0 / numReadings;
+                currTemperature = Math.round(totalA0 / numReadings);
             }
 
             // Check to adjust the duration of ventilation and heating according to tempature
@@ -290,34 +257,44 @@ board.on("ready", function () {
                 sr.heatDuration = sr.heatDurationMin;
             }
 
-            currMs = Date.now();
-            //console.log("Tempature = "+this.fahrenheit + "°F");
-            /*
-            if (currMs > nextSendMsTempature && currTemperature > 60.0 && currTemperature < 135.0 && arrayFull) {
-                setTimeout(logMetric);
-                nextSendMsTempature = currMs + intVal;
-            }
-            */
-           
         }); // on termometer change
     });
-   
+
+    // Start sending metrics 10 seconds after starting
+    setTimeout(logMetric, 5000);
+
     log("End of board.on (initialize) event");
 
 }); // board.on("ready", function() {
 
+
+function setRelay(relayNum, relayVal) {
+    if (relayVal) {
+        // If value is 1 or true, set the relay to turn ON and let the electricity flow
+        //relays[relayNum].open();
+        relays[relayNum].on();
+        //console.log(relayNames[relayNum]+" ON");
+        relayMetricValues[relayNum] = relayMetricON + (relayNum * 2);
+    } else {
+        // If value is 0 or false, set the relay to turn OFF and stop the flow of electricity
+        //relays[relayNum].close();
+        relays[relayNum].off();
+        //console.log(relayNames[relayNum]+" OFF");
+        relayMetricValues[relayNum] = relayMetricOFF;
+    }
+}
 
 // Function to toggle air ventilation ON and OFF
 function toggleAir() {
   airTimeout = sr.airInterval;
 
   if (currAirVal == OFF) {
-    //console.log("Turning Air ON");
+    log("Turning Air ON");
     setRelay(AIR,ON);
     currAirVal = ON;
     airTimeout = sr.airDuration;
   } else {
-    //console.log("Turning Air OFF");
+    log("Turning Air OFF");
     setRelay(AIR,OFF);
     currAirVal = OFF;
     airTimeout = sr.airInterval;
@@ -330,8 +307,9 @@ function toggleAir() {
   date = new Date();
   hours = date.getHours();
   //if (hours > 17) {
-  //console.log("lightDuration = "+sr.lightDuration+", hours = "+hours);
-  if (hours > (sr.lightDuration-1)) {
+  log("lightDuration = "+sr.lightDuration+", hours = "+hours);
+  //if (hours > (sr.lightDuration - 1)) {
+  if (hours > 23) {
     if (currLightsVal == ON) {
       setRelay(LIGHTS,OFF);
       currLightsVal = OFF;
@@ -341,9 +319,11 @@ function toggleAir() {
       setRelay(LIGHTS,ON);
       currLightsVal = ON;
       // Take a selfie when you turn the lights on
-      setTimeout(letMeTakeASelfie, 100);
+      //setTimeout(letMeTakeASelfie, 100);
+
       // Water the plants for a few seconds when the light come on
       setTimeout(waterThePlants, 500);
+      //?????????????????????????????????????????????????????????????????????????????
     }
   }
 
@@ -354,7 +334,7 @@ function toggleAir() {
 
 // Function to turn air ventilation in/heat ON
 function turnHeatOn() {
-  //console.log("Turning Heat ON");
+  log("Turning Heat ON");
   setRelay(HEAT,ON);
   currHeatVal = ON;
   // Queue up function to turn the heat back off after the duration time
@@ -362,31 +342,35 @@ function turnHeatOn() {
 }
 // Function to turn air ventilation in/heat OFF
 function turnHeatOff() {
-  //console.log("Turning Heat OFF");
+  log("Turning Heat OFF");
   setRelay(HEAT,OFF);
   currHeatVal = OFF;
 }
 
-
+// Send metric values to a website
 function logMetric() {
-  metricJSON = "{" + "tempature:"+currTemperature
-      +",airDuration:"+sr.heatDuration
-      +","+relayNames[0]+":"+relayMetricValues[0]
-      +","+relayNames[1]+":"+relayMetricValues[1]
-      +","+relayNames[2]+":"+relayMetricValues[2]
-      +","+relayNames[3]+":"+relayMetricValues[3]
-      +"}";
-  emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON;
+    metricJSON = "{" + "tempature:" + currTemperature
+        + ",airDuration:" + sr.heatDuration
+        + "," + relayNames[0] + ":" + relayMetricValues[0]
+        + "," + relayNames[1] + ":" + relayMetricValues[1]
+        + "," + relayNames[2] + ":" + relayMetricValues[2]
+        + "," + relayNames[3] + ":" + relayMetricValues[3]
+        + "}";
+    emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON;
 
-  get.concat(emoncmsUrl, function (err, res, data) {
-    if (err) {
-      //console.error("Error in logMetric send, metricJSON = "+metricJSON);
-      //console.error("err = "+err);
-    } else {
-      //console.log(res.statusCode) // 200 
-      //console.log(data) // Buffer('this is the server response') 
-    }
-  });
+    get.concat(emoncmsUrl, function (err, res, data) {
+        if (err) {
+            log("Error in logMetric send, metricJSON = " + metricJSON);
+            log("err = " + err);
+        } else {
+            //log("Server statusCode = "+res.statusCode) // 200 
+            //log("Server response = "+data) // Buffer('this is the server response') 
+            log("logMetric send, metricJSON = " + metricJSON);
+        }
+    });
+
+    // Set the next time the function will run
+    setTimeout(logMetric, metricInterval);
 }
 
 function webControl(boardMessage) {
@@ -417,20 +401,6 @@ function webControl(boardMessage) {
 
 } // function webControl(boardMessage) {
 
-function setRelay(relayNum,relayVal) {
-  if (relayVal) {
-    // If value is 1 or true, set the relay to turn ON and let the electricity flow
-    relays[relayNum].open();
-    //console.log(relayNames[relayNum]+" ON");
-    relayMetricValues[relayNum] = relayMetricON+(relayNum*2);
-  } else {
-    // If value is 0 or false, set the relay to turn OFF and stop the flow of electricity
-    relays[relayNum].close();
-    //console.log(relayNames[relayNum]+" OFF");
-    relayMetricValues[relayNum] = relayMetricOFF;
-  }
-  setTimeout(logMetric);
-}
 
 function letMeTakeASelfie() {
   /*
@@ -449,12 +419,12 @@ function letMeTakeASelfie() {
 }
 
 function waterThePlants() {
-  //console.log("Watering the plants, waterDuration = "+sr.waterDuration);
-  setRelay(WATER,ON);
-  setTimeout(() => {
-    //console.log("Watering the plants OFF");
-    setRelay(WATER,OFF);
-  }, sr.waterDuration * secondsToMilliseconds);
+    log("Watering the plants, waterDuration = "+sr.waterDuration);
+    setRelay(WATER,ON);
+    setTimeout(() => {
+        log("Watering the plants OFF");
+        setRelay(WATER,OFF);
+    }, sr.waterDuration * secondsToMilliseconds);
 }
 
 function getStoreRec() {
@@ -467,7 +437,7 @@ function _saveStoreRec() {
     store.add(sr, function (err) {
         if (err) {
             //throw err;
-            console.log("Error updating store rec, err = " + err);
+            log("Error updating store rec, err = " + err);
         }
     });
 }
@@ -481,8 +451,8 @@ function log(inStr) {
 
 function updateConfig(inStoreRec) {
     sr = inStoreRec;
-    log("in updateConfig, sr.targetTemperature = " + sr.targetTemperature);
-
+    log("updateConfig, targetTemperature = " + sr.targetTemperature);
+    /*
     if (sr.targetTemperature == 69) {
         relays[0].on();
     } else if (sr.targetTemperature == 99) {
@@ -490,7 +460,7 @@ function updateConfig(inStoreRec) {
     } else {
         relays[0].off();
     }
-
+    */
     _saveStoreRec();
 }
 
@@ -498,7 +468,6 @@ function clearLog() {
     logArray.length = 0;
     _saveStoreRec();
 }
-
 
 module.exports = {
     getStoreRec,
