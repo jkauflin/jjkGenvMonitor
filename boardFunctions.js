@@ -197,17 +197,6 @@ board.on("ready", function () {
     log("Initializing relays");
     relays = new five.Relays([10, 11, 12, 13]);
 
-    // Turn all the relays off when the borard starts
-    /*
-    this.wait(2000, function () {
-        //log("Setting relays OFF");
-        //setRelay(LIGHTS, OFF);
-        //setRelay(AIR, OFF);
-        //setRelay(HEAT, OFF);
-        //setRelay(WATER, OFF);
-    });
-    */
-
     // Start the function to toggle air ventilation ON and OFF
     log("Starting Air toggle interval");
     setTimeout(toggleAir, 1000);
@@ -261,7 +250,7 @@ board.on("ready", function () {
     });
 
     // Start sending metrics 10 seconds after starting
-    setTimeout(logMetric, 5000);
+    setTimeout(logMetric, 10000);
 
     log("End of board.on (initialize) event");
 
@@ -323,7 +312,6 @@ function toggleAir() {
 
       // Water the plants for a few seconds when the light come on
       setTimeout(waterThePlants, 500);
-      //?????????????????????????????????????????????????????????????????????????????
     }
   }
 
@@ -452,15 +440,6 @@ function log(inStr) {
 function updateConfig(inStoreRec) {
     sr = inStoreRec;
     log("updateConfig, targetTemperature = " + sr.targetTemperature);
-    /*
-    if (sr.targetTemperature == 69) {
-        relays[0].on();
-    } else if (sr.targetTemperature == 99) {
-        throw "Test ERROR";
-    } else {
-        relays[0].off();
-    }
-    */
     _saveStoreRec();
 }
 
