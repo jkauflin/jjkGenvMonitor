@@ -204,6 +204,7 @@ var main = (function () {
         $waterDuration.val(storeRec.waterDuration);
 
         // loop through and add to a table
+        /*
         var tr = '';
         $.each(storeRec.logList, function (index, logRec) {
             tr += '<tr>';
@@ -212,6 +213,7 @@ var main = (function () {
         });
 
         $LogMessageDisplay.html(tr);
+        */
     }
 
     function _update(event) {

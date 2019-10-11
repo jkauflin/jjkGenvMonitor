@@ -41,6 +41,7 @@ Modification History
 2019-10-01 JJK  Checking JSON store functions, and 4 channel solid state relay
 2019-10-02 JJK  Added a log message array and store rec save method.
                 Getting the 4 channel relay working.  Checking metric sends
+2019-10-11 JJK  Testing service shutdown
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -134,22 +135,21 @@ var thermometer = null;
 var currTemperature = sr.targetTemperature;
 const TEMPATURE_MAX = sr.targetTemperature + 2.0;
 const TEMPATURE_MIN = sr.targetTemperature - 2.0;
+const minutesToMilliseconds = 60 * 1000;
+const secondsToMilliseconds = 1000;
 
 var relays = null;
-//const relayNames = ["lights", "air", "heat", "water"];
-const relayNames = ["water", "air", "heat", "lights"];
+const LIGHTS = 0;
+const WATER = 1;
+const AIR = 2;
+const HEAT = 3;
+const relayNames = ["lights", "water", "air",  "heat"];
 const relayMetricON = 65;
 const relayMetricOFF = 60;
 const relayMetricValues = [relayMetricOFF,relayMetricOFF,relayMetricOFF,relayMetricOFF];
-const LIGHTS = 3;
-const AIR = 1;
-const HEAT = 2;
-const WATER = 0;
+
 const OFF = 0;
 const ON = 1;
-
-const minutesToMilliseconds = 60 * 1000;
-const secondsToMilliseconds = 1000;
 var currAirVal = OFF;
 var currHeatVal = OFF;
 var currLightsVal = OFF;
@@ -198,17 +198,30 @@ board.on("ready", function () {
     relays = new five.Relays([10, 11, 12, 13]);
 
     // Start the function to toggle air ventilation ON and OFF
-    log("Starting Air toggle interval");
-    setTimeout(toggleAir, 1000);
+    //log("Starting Air toggle interval");
+    //setTimeout(toggleAir, 1000);
 
     // If the board is exiting, turn all the relays off
     this.on("exit", function () {
         log("EXIT - Setting relays OFF");
-        setRelay(LIGHTS, OFF);
-        setRelay(AIR, OFF);
-        setRelay(HEAT, OFF);
-        setRelay(WATER, OFF);
+        turnRelaysOFF();
     });
+
+    process.on('SIGINT', function () {
+        console.log('on SIGINT');
+        turnRelaysOFF();
+        process.exit(2);
+    });
+    process.on('SIGTERM', function () {
+        console.log('on SIGTERM');
+        turnRelaysOFF();
+        process.exit(2);
+    });
+
+    //[`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
+    //    process.on(eventType, cleanUpServer.bind(null, eventType));
+    //})
+
 
     // Define the thermometer sensor
     this.wait(3000, function () {
@@ -250,11 +263,26 @@ board.on("ready", function () {
     });
 
     // Start sending metrics 10 seconds after starting
-    setTimeout(logMetric, 10000);
+    setTimeout(logMetric, 1000);
+
+    log("Test LIGHTS ON");
+    setRelay(LIGHTS, ON);
+    setRelay(AIR, ON);
+    setRelay(HEAT, ON);
+    setRelay(WATER, ON);
+    currLightsVal = ON;
 
     log("End of board.on (initialize) event");
 
 }); // board.on("ready", function() {
+
+function turnRelaysOFF() {
+    log("Setting relays OFF");
+    setRelay(LIGHTS, OFF);
+    setRelay(AIR, OFF);
+    setRelay(HEAT, OFF);
+    setRelay(WATER, OFF);
+}
 
 
 function setRelay(relayNum, relayVal) {
@@ -337,6 +365,26 @@ function turnHeatOff() {
 
 // Send metric values to a website
 function logMetric() {
+
+    /*
+    if (currLightsVal == ON) {
+        log("Test LIGHTS OFF");
+        setRelay(LIGHTS, OFF);
+        setRelay(AIR, OFF);
+        setRelay(HEAT, OFF);
+        setRelay(WATER, OFF);
+
+        currLightsVal = OFF;
+    } else {
+        log("Test LIGHTS ON");
+        setRelay(LIGHTS, ON);
+        setRelay(AIR, ON);
+        setRelay(HEAT, ON);
+        setRelay(WATER, ON);
+        currLightsVal = ON;
+    }
+    */
+
     metricJSON = "{" + "tempature:" + currTemperature
         + ",airDuration:" + sr.heatDuration
         + "," + relayNames[0] + ":" + relayMetricValues[0]
@@ -433,8 +481,8 @@ function _saveStoreRec() {
 function log(inStr) {
     var logStr = dateTime.create().format('Y-m-d H:M:S') + " " + inStr;
     console.log(logStr);
-    logArray.push(logStr);
-    _saveStoreRec();
+    //logArray.push(logStr);
+    //_saveStoreRec();
 }
 
 function updateConfig(inStoreRec) {
