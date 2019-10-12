@@ -129,7 +129,7 @@ var emoncmsUrl = "";
 var metricJSON = "";
 
 //var intervalSeconds = 30;
-var intervalSeconds = 5;
+var intervalSeconds = 10;
 var metricInterval = intervalSeconds * 1000;
 var thermometer = null;
 var currTemperature = sr.targetTemperature;
@@ -198,33 +198,25 @@ board.on("ready", function () {
     relays = new five.Relays([10, 11, 12, 13]);
 
     // Start the function to toggle air ventilation ON and OFF
-    //log("Starting Air toggle interval");
-    //setTimeout(toggleAir, 1000);
+    log("Starting Air toggle interval");
+    setTimeout(toggleAir, 1000);
 
     // If the board is exiting, turn all the relays off
     this.on("exit", function () {
-        log("EXIT - Setting relays OFF");
+        log("on EXIT");
         turnRelaysOFF();
     });
-
-    process.on('SIGINT', function () {
-        console.log('on SIGINT');
-        turnRelaysOFF();
-        process.exit(2);
-    });
+    // Handle a termination signal
     process.on('SIGTERM', function () {
-        console.log('on SIGTERM');
+        log('on SIGTERM');
         turnRelaysOFF();
-        process.exit(2);
     });
-
     //[`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
     //    process.on(eventType, cleanUpServer.bind(null, eventType));
     //})
 
-
     // Define the thermometer sensor
-    this.wait(3000, function () {
+    this.wait(2000, function () {
         // This requires OneWire support using the ConfigurableFirmata
         log("Initialize tempature sensor");
         thermometer = new five.Thermometer({
@@ -262,15 +254,8 @@ board.on("ready", function () {
         }); // on termometer change
     });
 
-    // Start sending metrics 10 seconds after starting
-    setTimeout(logMetric, 1000);
-
-    log("Test LIGHTS ON");
-    setRelay(LIGHTS, ON);
-    setRelay(AIR, ON);
-    setRelay(HEAT, ON);
-    setRelay(WATER, ON);
-    currLightsVal = ON;
+    // Start sending metrics 4 seconds after starting
+    setTimeout(logMetric, 4000);
 
     log("End of board.on (initialize) event");
 
@@ -283,7 +268,6 @@ function turnRelaysOFF() {
     setRelay(HEAT, OFF);
     setRelay(WATER, OFF);
 }
-
 
 function setRelay(relayNum, relayVal) {
     if (relayVal) {
@@ -365,26 +349,6 @@ function turnHeatOff() {
 
 // Send metric values to a website
 function logMetric() {
-
-    /*
-    if (currLightsVal == ON) {
-        log("Test LIGHTS OFF");
-        setRelay(LIGHTS, OFF);
-        setRelay(AIR, OFF);
-        setRelay(HEAT, OFF);
-        setRelay(WATER, OFF);
-
-        currLightsVal = OFF;
-    } else {
-        log("Test LIGHTS ON");
-        setRelay(LIGHTS, ON);
-        setRelay(AIR, ON);
-        setRelay(HEAT, ON);
-        setRelay(WATER, ON);
-        currLightsVal = ON;
-    }
-    */
-
     metricJSON = "{" + "tempature:" + currTemperature
         + ",airDuration:" + sr.heatDuration
         + "," + relayNames[0] + ":" + relayMetricValues[0]
