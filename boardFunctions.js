@@ -58,12 +58,17 @@ var storeId = 'storeid';
 var logArray = [];
 var initStoreRec = {
     id: storeId,                // unique identifier
-    desc: 'tempDesc',           // description
-    germinationDate: '',        // genermination start date
+    desc: 'Blanket Flower',           // description
+    daysToGerm: '7 to 15',
+    daysToBloom: '90 to 180',
+    germinationStart: '2019-10-13',       // date seeds were planted
+    germinationDate: '',        // date the seeds germinated or sprouted
+    estBloomDate: '2020-01-13',              // 
+    bloomDate: '',              // 
     harvestDate: '',            // harvest start date
     cureDate: '',               // curing start date
     productionDate: '',         // production complete date
-    targetTemperature: 72,      // degrees fahrenheit
+    targetTemperature: 75,      // degrees fahrenheit
     airInterval: 2,             // minutes
     airDuration: 1,             // minutes
     heatInterval: 2,            // minutes
@@ -71,9 +76,10 @@ var initStoreRec = {
     heatDurationMin: 1,         // minutes
     heatDurationMax: 1.5,       // minutes
     lightDuration: 18,          // hours
-    waterDuration: 20,          // seconds
-    logList: logArray
+    waterDuration: 20           // seconds
 };
+
+//logList: logArray
 
 // Structure to hold current configuration values
 var sr = initStoreRec;
@@ -129,7 +135,7 @@ var metricJSON = "";
 
 //var intervalSeconds = 30;
 //var intervalSeconds = 10;
-var intervalSeconds = 5;
+var intervalSeconds = 30;
 var metricInterval = intervalSeconds * 1000;
 var thermometer = null;
 var currTemperature = sr.targetTemperature;
