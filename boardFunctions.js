@@ -64,16 +64,14 @@ var initStoreRec = {
     cureDate: '',               // curing start date
     productionDate: '',         // production complete date
     targetTemperature: 72,      // degrees fahrenheit
-    //airInterval: 2,             // minutes
-    airInterval: 1,             // minutes
-    //airDuration: 2,             // minutes
+    airInterval: 2,             // minutes
     airDuration: 1,             // minutes
-    heatInterval: 1.5,          // minutes
+    heatInterval: 2,            // minutes
     heatDuration: 1,            // minutes
     heatDurationMin: 1,         // minutes
     heatDurationMax: 1.5,       // minutes
     lightDuration: 18,          // hours
-    waterDuration: 20,           // seconds
+    waterDuration: 20,          // seconds
     logList: logArray
 };
 
@@ -130,7 +128,8 @@ var emoncmsUrl = "";
 var metricJSON = "";
 
 //var intervalSeconds = 30;
-var intervalSeconds = 10;
+//var intervalSeconds = 10;
+var intervalSeconds = 5;
 var metricInterval = intervalSeconds * 1000;
 var thermometer = null;
 var currTemperature = sr.targetTemperature;
@@ -145,8 +144,8 @@ const WATER = 1;
 const AIR = 2;
 const HEAT = 3;
 const relayNames = ["lights", "water", "air",  "heat"];
-const relayMetricON = 65;
-const relayMetricOFF = 60;
+const relayMetricON = 67;
+const relayMetricOFF = 66;
 const relayMetricValues = [relayMetricOFF,relayMetricOFF,relayMetricOFF,relayMetricOFF];
 
 const OFF = 0;
@@ -241,7 +240,7 @@ board.on("ready", function () {
             }
             // calculate the average:
             if (arrayFull) {
-                currTemperature = Math.round(totalA0 / numReadings);
+                currTemperature = (totalA0 / numReadings).toFixed(2);
             }
 
             // Check to adjust the duration of ventilation and heating according to tempature
@@ -255,7 +254,7 @@ board.on("ready", function () {
         }); // on termometer change
     });
 
-    // Start sending metrics 4 seconds after starting
+    // Start sending metrics 4 seconds after starting (so things are calm)
     setTimeout(logMetric, 4000);
 
     log("End of board.on (initialize) event");
@@ -276,7 +275,8 @@ function setRelay(relayNum, relayVal) {
         //relays[relayNum].open();
         relays[relayNum].on();
         //console.log(relayNames[relayNum]+" ON");
-        relayMetricValues[relayNum] = relayMetricON + (relayNum * 2);
+        //relayMetricValues[relayNum] = relayMetricON + (relayNum * 2);
+        relayMetricValues[relayNum] = relayMetricON + relayNum;
     } else {
         // If value is 0 or false, set the relay to turn OFF and stop the flow of electricity
         //relays[relayNum].close();
@@ -309,7 +309,7 @@ function toggleAir() {
   date = new Date();
   hours = date.getHours();
   //if (hours > 17) {
-  log("lightDuration = "+sr.lightDuration+", hours = "+hours);
+  //log("lightDuration = "+sr.lightDuration+", hours = "+hours);
   //if (hours > (sr.lightDuration - 1)) {
   if (hours > 23) {
     if (currLightsVal == ON) {
