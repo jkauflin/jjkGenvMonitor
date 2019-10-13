@@ -42,6 +42,7 @@ Modification History
 2019-10-02 JJK  Added a log message array and store rec save method.
                 Getting the 4 channel relay working.  Checking metric sends
 2019-10-11 JJK  Testing service shutdown
+2019-10-13 JJK  Getting it Production ready and implementing an audit array
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -365,7 +366,7 @@ function logMetric() {
         } else {
             //log("Server statusCode = "+res.statusCode) // 200 
             //log("Server response = "+data) // Buffer('this is the server response') 
-            log("logMetric send, metricJSON = " + metricJSON);
+            //log("logMetric send, metricJSON = " + metricJSON);
         }
     });
 
