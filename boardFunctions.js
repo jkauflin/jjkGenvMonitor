@@ -251,12 +251,14 @@ board.on("ready", function () {
             }
 
             // Check to adjust the duration of ventilation and heating according to tempature
+            /*
             if (currTemperature < TEMPATURE_MIN) {
                 sr.heatDuration = sr.heatDurationMax;
             }
             if (currTemperature > TEMPATURE_MAX) {
                 sr.heatDuration = sr.heatDurationMin;
             }
+            */
 
         }); // on termometer change
     });
