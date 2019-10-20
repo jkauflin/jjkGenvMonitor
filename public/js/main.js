@@ -202,9 +202,11 @@ var main = (function () {
         $estBloomDate.val(storeRec.estBloomDate);
         $bloomDate.val(storeRec.bloomDate);
 
+        $germinationDate.val(storeRec.germinationDate);
         $harvestDate.val(storeRec.harvestDate);
         $cureDate.val(storeRec.cureDate);
         $productionDate.val(storeRec.productionDate);
+
         $targetTemperature.val(storeRec.targetTemperature);
         $airInterval.val(storeRec.airInterval);
         $airDuration.val(storeRec.airDuration);
