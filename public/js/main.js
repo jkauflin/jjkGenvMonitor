@@ -26,6 +26,13 @@ var main = (function () {
     // Variables cached from the DOM
     var $document = $(document);
     var $desc = $document.find("#desc");
+
+    var $daysToGerm = $document.find("#daysToGerm");
+    var $daysToBloom = $document.find("#daysToBloom");
+    var $germinationStart = $document.find("#germinationStart");
+    var $estBloomDate = $document.find("#estBloomDate");
+    var $bloomDate = $document.find("#bloomDate");
+
     var $germinationDate = $document.find("#germinationDate");
     var $harvestDate = $document.find("#harvestDate");
     var $cureDate = $document.find("#cureDate");
@@ -41,7 +48,6 @@ var main = (function () {
     var $waterDuration = $document.find("#waterDuration");
     var $ClearLogButton = $document.find("#ClearLogButton");
     var $UpdateButton = $document.find("#UpdateButton");
-
     var $Inputs = $document.find("#InputValues");
 
     //var $altAddress = $moduleDiv.find("#altAddress");
@@ -181,6 +187,7 @@ var main = (function () {
     // Module methods
     function _lookup(event) {
         var jqxhr = $.getJSON("GetValues", "", function (storeRec) {
+            //console.log("GetValues, storeRec.desc = "+storeRec.desc);
             _renderConfig(storeRec);
         }).fail(function (e) {
             console.log("Error getting environment variables");
@@ -189,7 +196,12 @@ var main = (function () {
 
     function _renderConfig(storeRec) {
         $desc.val(storeRec.desc);
-        $germinationDate.val(storeRec.germinationDate);
+        $daysToGerm.val(storeRec.daysToGerm);
+        $daysToBloom.val(storeRec.daysToBloom);
+        $germinationStart.val(storeRec.germinationStart);
+        $estBloomDate.val(storeRec.estBloomDate);
+        $bloomDate.val(storeRec.bloomDate);
+
         $harvestDate.val(storeRec.harvestDate);
         $cureDate.val(storeRec.cureDate);
         $productionDate.val(storeRec.productionDate);

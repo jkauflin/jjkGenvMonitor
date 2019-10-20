@@ -14,7 +14,7 @@
     <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" 
         rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" 
         crossorigin="anonymous" />
-    <link rel="stylesheet" href="css/main.css?ver=1.011" />
+    <link rel="stylesheet" href="css/main.css?ver=1.012" />
 </head>
 
 <body>
@@ -32,7 +32,7 @@
       <div id="InputValues">
 
         <!-- Column 1 -->
-        <div class="col-sm-3">
+        <div class="col-sm-4">
             <form>
                 <div class="form-group row">
                     <label for="targetTemperature" class="col-sm-8 col-form-label text-right">Target Temp</label>
@@ -101,7 +101,7 @@
 
 
         <!-- Column 2 -->
-        <div class="col-sm-4">
+        <div class="col-sm-5">
             <form>
                     <div class="form-group row">
                         <label for="desc" class="col-sm-5 col-form-label text-right">Description</label>
@@ -109,12 +109,44 @@
                             <input id="desc" class="form-control">
                         </div>
                     </div>
+
                     <div class="form-group row">
-                        <label for="germinationDate" class="col-sm-5 col-form-label text-right">Germination Start</label>
+                        <label for="daysToGerm" class="col-sm-5 col-form-label text-right">Days to Germ</label>
+                        <div class="col-sm-7">
+                            <input id="daysToGerm" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="daysToBloom" class="col-sm-5 col-form-label text-right">Days to Bloom</label>
+                        <div class="col-sm-7">
+                            <input id="daysToBloom" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="germinationStart" class="col-sm-5 col-form-label text-right">Germination Start</label>
+                        <div class="col-sm-7">
+                            <input id="germinationStart" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="germinationDate" class="col-sm-5 col-form-label text-right">Germination Date</label>
                         <div class="col-sm-7">
                             <input id="germinationDate" class="form-control">
                         </div>
                     </div>
+                    <div class="form-group row">
+                        <label for="estBloomDate" class="col-sm-5 col-form-label text-right">Est Bloom Date</label>
+                        <div class="col-sm-7">
+                            <input id="estBloomDate" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="bloomDate" class="col-sm-5 col-form-label text-right">Bloom Date</label>
+                        <div class="col-sm-7">
+                            <input id="bloomDate" class="form-control">
+                        </div>
+                    </div>
+
                     <div class="form-group row">
                         <label for="harvestDate" class="col-sm-5 col-form-label text-right">Harvest Start</label>
                         <div class="col-sm-7">
@@ -139,7 +171,7 @@
         </div>
 
         <!-- Column 3 -->
-        <div class="col-sm-5">
+        <div class="col-sm-3">
             <h5>Log messages:</h5>
             <table id="LogMessageDisplay" class="table table-condensed table-striped">
                 <tbody>
@@ -165,7 +197,7 @@
         integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd">
     </script>
 	<script src="js/util.js?ver=1.017"></script>
-    <script src="js/main.js?ver=1.019"></script>
+    <script src="js/main.js?ver=1.021"></script>
 
 </body>
 </html>

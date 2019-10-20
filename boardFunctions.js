@@ -43,6 +43,7 @@ Modification History
                 Getting the 4 channel relay working.  Checking metric sends
 2019-10-11 JJK  Testing service shutdown
 2019-10-13 JJK  Getting it Production ready and implementing an audit array
+2019-10-20 JJK  Added new fields for germination and bloom dates
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -68,11 +69,11 @@ var initStoreRec = {
     harvestDate: '',            // harvest start date
     cureDate: '',               // curing start date
     productionDate: '',         // production complete date
-    targetTemperature: 75,      // degrees fahrenheit
-    airInterval: 2,             // minutes
-    airDuration: 1,             // minutes
-    heatInterval: 2,            // minutes
-    heatDuration: 1,            // minutes
+    targetTemperature: 77,      // degrees fahrenheit
+    airInterval: 1,             // minutes
+    airDuration: 1.2,             // minutes
+    heatInterval: 1,            // minutes
+    heatDuration: 1.2,            // minutes
     heatDurationMin: 1,         // minutes
     heatDurationMax: 1.5,       // minutes
     lightDuration: 18,          // hours
@@ -150,8 +151,8 @@ const WATER = 1;
 const AIR = 2;
 const HEAT = 3;
 const relayNames = ["lights", "water", "air",  "heat"];
-const relayMetricON = 67;
-const relayMetricOFF = 66;
+const relayMetricON = 72;
+const relayMetricOFF = relayMetricON-1;
 const relayMetricValues = [relayMetricOFF,relayMetricOFF,relayMetricOFF,relayMetricOFF];
 
 const OFF = 0;
@@ -297,12 +298,12 @@ function toggleAir() {
   airTimeout = sr.airInterval;
 
   if (currAirVal == OFF) {
-    log("Turning Air ON");
+    //log("Turning Air ON");
     setRelay(AIR,ON);
     currAirVal = ON;
     airTimeout = sr.airDuration;
   } else {
-    log("Turning Air OFF");
+    //log("Turning Air OFF");
     setRelay(AIR,OFF);
     currAirVal = OFF;
     airTimeout = sr.airInterval;
@@ -341,7 +342,7 @@ function toggleAir() {
 
 // Function to turn air ventilation in/heat ON
 function turnHeatOn() {
-  log("Turning Heat ON");
+  //log("Turning Heat ON");
   setRelay(HEAT,ON);
   currHeatVal = ON;
   // Queue up function to turn the heat back off after the duration time
@@ -349,7 +350,7 @@ function turnHeatOn() {
 }
 // Function to turn air ventilation in/heat OFF
 function turnHeatOff() {
-  log("Turning Heat OFF");
+  //log("Turning Heat OFF");
   setRelay(HEAT,OFF);
   currHeatVal = OFF;
 }
@@ -440,7 +441,7 @@ function getStoreRec() {
 
 function _saveStoreRec() {
     sr.id = storeId;
-    sr.logList = logArray;
+    //sr.logList = logArray;
     store.add(sr, function (err) {
         if (err) {
             //throw err;
