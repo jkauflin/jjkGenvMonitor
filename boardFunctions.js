@@ -70,11 +70,11 @@ var initStoreRec = {
     cureDate: '',               // curing start date
     productionDate: '',         // production complete date
     targetTemperature: 77,      // degrees fahrenheit
-    airInterval: 1,             // minutes
-    airDuration: 1.2,             // minutes
-    heatInterval: 1,            // minutes
-    heatDuration: 1.2,            // minutes
-    heatDurationMin: 1,         // minutes
+    airInterval: 2,             // minutes
+    airDuration: 2,             // minutes
+    heatInterval: 1,            // minutes  NOT USED
+    heatDuration: 1,            // minutes
+    heatDurationMin: 0.7,       // minutes
     heatDurationMax: 1.5,       // minutes
     lightDuration: 18,          // hours
     waterDuration: 20           // seconds
@@ -251,14 +251,12 @@ board.on("ready", function () {
             }
 
             // Check to adjust the duration of ventilation and heating according to tempature
-            /*
             if (currTemperature < TEMPATURE_MIN) {
                 sr.heatDuration = sr.heatDurationMax;
             }
             if (currTemperature > TEMPATURE_MAX) {
                 sr.heatDuration = sr.heatDurationMin;
             }
-            */
 
         }); // on termometer change
     });
