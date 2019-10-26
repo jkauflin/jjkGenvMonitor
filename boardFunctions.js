@@ -140,8 +140,8 @@ var intervalSeconds = 30;
 var metricInterval = intervalSeconds * 1000;
 var thermometer = null;
 var currTemperature = sr.targetTemperature;
-const TEMPATURE_MAX = sr.targetTemperature + 2.0;
-const TEMPATURE_MIN = sr.targetTemperature - 2.0;
+const TEMPATURE_MAX = sr.targetTemperature + 1.0;
+const TEMPATURE_MIN = sr.targetTemperature - 1.0;
 const minutesToMilliseconds = 60 * 1000;
 const secondsToMilliseconds = 1000;
 
@@ -358,7 +358,7 @@ function turnHeatOff() {
 // Send metric values to a website
 function logMetric() {
     metricJSON = "{" + "tempature:" + currTemperature
-        + ",airDuration:" + sr.heatDuration
+        + ",heatDuration:" + sr.heatDuration
         + "," + relayNames[0] + ":" + relayMetricValues[0]
         + "," + relayNames[1] + ":" + relayMetricValues[1]
         + "," + relayNames[2] + ":" + relayMetricValues[2]
