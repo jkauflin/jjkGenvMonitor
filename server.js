@@ -76,3 +76,7 @@ app.post('/UpdateConfig', function (req, res, next) {
     boardFunctions.updateConfig(req.body);
     res.send(JSON.stringify(boardFunctions.getStoreRec()));
 });
+
+app.get('/Water', function (req, res, next) {
+    boardFunctions.water(util.urlParam('waterSeconds'));
+});

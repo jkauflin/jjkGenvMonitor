@@ -74,7 +74,7 @@ var initStoreRec = {
     airDuration: 2,             // minutes
     heatInterval: 1,            // minutes  NOT USED
     heatDuration: 1,            // minutes
-    heatDurationMin: 0.7,       // minutes
+    heatDurationMin: 0.5,       // minutes
     heatDurationMax: 1.5,       // minutes
     lightDuration: 18,          // hours
     waterDuration: 20           // seconds
@@ -435,6 +435,15 @@ function waterThePlants() {
     }, sr.waterDuration * secondsToMilliseconds);
 }
 
+function _waterOn(waterSeconds) {
+    log("Turning Water ON, seconds = " + waterSeconds);
+    setRelay(WATER, ON);
+    setTimeout(() => {
+        log("Turning Water OFF");
+        setRelay(WATER, OFF);
+    }, waterSeconds * secondsToMilliseconds);
+}
+
 function getStoreRec() {
     return sr;
 }
@@ -468,9 +477,14 @@ function clearLog() {
     _saveStoreRec();
 }
 
+function water(waterSeconds) {
+    _waterOn(waterSeconds);
+}
+
 module.exports = {
     getStoreRec,
     updateConfig,
-    clearLog
+    clearLog,
+    water
 };
 

@@ -46,8 +46,10 @@ var main = (function () {
     var $heatDurationMax = $document.find("#heatDurationMax");
     var $lightDuration = $document.find("#lightDuration");
     var $waterDuration = $document.find("#waterDuration");
+    var $waterSeconds = $document.find("#waterSeconds");
     var $ClearLogButton = $document.find("#ClearLogButton");
     var $UpdateButton = $document.find("#UpdateButton");
+    var $WaterButton = $document.find("#WaterButton");
     var $Inputs = $document.find("#InputValues");
 
     //var $altAddress = $moduleDiv.find("#altAddress");
@@ -57,6 +59,7 @@ var main = (function () {
     // Bind events
     $ClearLogButton.click(_clearLog);
     $UpdateButton.click(_update);
+    $WaterButton.click(_water);
     _lookup();
 
 	$("#LightsButton")
@@ -259,6 +262,14 @@ var main = (function () {
     function _clearLog(event) {
         var jqxhr = $.getJSON("ClearLog", "", function (storeRec) {
             _renderConfig(storeRec);
+        }).fail(function (e) {
+            console.log("Error clearing log");
+        });
+    }
+
+    function _water(event) {
+        var jqxhr = $.getJSON("Water", "waterSeconds=" + $waterSeconds.val(), function (storeRec) {
+            console.log("Turning Water ON for waterSeconds = "+$waterSeconds.val());
         }).fail(function (e) {
             console.log("Error clearing log");
         });
