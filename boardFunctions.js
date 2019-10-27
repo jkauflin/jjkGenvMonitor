@@ -477,8 +477,8 @@ function clearLog() {
     _saveStoreRec();
 }
 
-function water(waterSeconds) {
-    _waterOn(waterSeconds);
+function water(inRec) {
+    _waterOn(inRec.waterSeconds);
 }
 
 module.exports = {

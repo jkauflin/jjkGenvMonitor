@@ -268,11 +268,27 @@ var main = (function () {
     }
 
     function _water(event) {
-        var jqxhr = $.getJSON("Water", "waterSeconds=" + $waterSeconds.val(), function (storeRec) {
-            console.log("Turning Water ON for waterSeconds = "+$waterSeconds.val());
-        }).fail(function (e) {
-            console.log("Error clearing log");
-        });
+        var paramMap = null;
+        var paramMap = new Map();
+        paramMap.set('waterSeconds', $waterSeconds.val());
+
+        var url = "Water";
+        $.ajax(url, {
+            type: "POST",
+            contentType: "application/json",
+            data: util.getJSONfromInputs(null, paramMap),
+            dataType: "html"
+        })
+            .done(function () {
+                //console.log("Successful call to Water");
+            })
+            .fail(function (xhr, status, error) {
+                //Ajax request failed.
+                console.log('Error in AJAX request to ' + url + ', xhr = ' + xhr.status + ': ' + xhr.statusText +
+                    ', status = ' + status + ', error = ' + error);
+                alert('Error in AJAX request to ' + url + ', xhr = ' + xhr.status + ': ' + xhr.statusText +
+                    ', status = ' + status + ', error = ' + error);
+            });
     }
 
     // General function to send the boardMessage to the server if Websocket is connected
