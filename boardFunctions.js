@@ -44,6 +44,7 @@ Modification History
 2019-10-11 JJK  Testing service shutdown
 2019-10-13 JJK  Getting it Production ready and implementing an audit array
 2019-10-20 JJK  Added new fields for germination and bloom dates
+2019-11-03 JJK  Making sure watering is working
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -315,10 +316,8 @@ function toggleAir() {
 
   date = new Date();
   hours = date.getHours();
-  //if (hours > 17) {
   //log("lightDuration = "+sr.lightDuration+", hours = "+hours);
-  //if (hours > (sr.lightDuration - 1)) {
-  if (hours > 23) {
+  if (hours > (sr.lightDuration - 1)) {
     if (currLightsVal == ON) {
       setRelay(LIGHTS,OFF);
       currLightsVal = OFF;
