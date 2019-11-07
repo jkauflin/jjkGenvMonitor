@@ -45,6 +45,8 @@ Modification History
 2019-10-13 JJK  Getting it Production ready and implementing an audit array
 2019-10-20 JJK  Added new fields for germination and bloom dates
 2019-11-03 JJK  Making sure watering is working
+2019-11-06 JJK  Modifying the air/heat toggle to give the tempature
+                adjustment more range to operate
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
