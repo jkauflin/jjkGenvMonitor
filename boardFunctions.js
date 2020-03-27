@@ -70,7 +70,7 @@ var initStoreRec = {
     harvestDate: '',            // harvest start date
     cureDate: '',               // curing start date
     productionDate: '',         // production complete date
-    targetTemperature: 77,      // degrees fahrenheit
+    targetTemperature: 75,      // degrees fahrenheit
     airInterval: 2,             // minutes
     airDuration: 2,             // minutes
     heatInterval: 1,            // minutes  NOT USED
