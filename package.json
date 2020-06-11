@@ -1,6 +1,6 @@
 {
   "name": "jjkgenvmonitor",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Monitor and control grow environment",
   "main": "server.js",
   "scripts": {
@@ -15,10 +15,9 @@
   },
   "dependencies": {
     "dotenv": "^4.0.0",
-    "nodemon": "latest",
     "express": "latest",
     "get-json": "^1.0.0",
-    "johnny-five": "^1.4.0",
+    "johnny-five": "latest",
     "json-fs-store": "^1.0.1",
     "node-datetime": "^2.0.3",
     "simple-get": "^2.7.0"

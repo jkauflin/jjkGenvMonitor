@@ -2,7 +2,7 @@
 (C) Copyright 2018 John J Kauflin, All rights reserved. 
 -----------------------------------------------------------------------------
 DESCRIPTION: NodeJS module to handle board functions.  Communicates with
-             the Arduino Mega board
+             the Arduino Mega board using johnny-five library
 -----------------------------------------------------------------------------
 Modification History
 2018-01-06 JJK  Initial version
@@ -47,6 +47,7 @@ Modification History
 2019-11-03 JJK  Making sure watering is working
 2019-11-06 JJK  Modifying the air/heat toggle to give the tempature
                 adjustment more range to operate
+2020-06-11 JJK  Add calculation of estimated harvest date (75 days)
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
