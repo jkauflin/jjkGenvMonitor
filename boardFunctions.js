@@ -369,16 +369,21 @@ function logMetric() {
         + "}";
     emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON;
 
-    get.concat(emoncmsUrl, function (err, res, data) {
-        if (err) {
-            log("Error in logMetric send, metricJSON = " + metricJSON);
-            log("err = " + err);
-        } else {
-            log("Server statusCode = "+res.statusCode) // 200 
-            log("Server response = "+data) // Buffer('this is the server response') 
-            log("logMetric send, metricJSON = " + metricJSON);
-        }
-    });
+    // Use this if we need to limit the send to between the hours of 6 and 20
+    var date = new Date();
+    var hours = date.getHours();
+    if (hours > 6 && hours < 3) {
+        get.concat(emoncmsUrl, function (err, res, data) {
+            if (err) {
+                log("Error in logMetric send, metricJSON = " + metricJSON);
+                log("err = " + err);
+            } else {
+                log("Server statusCode = " + res.statusCode) // 200 
+                log("Server response = " + data) // Buffer('this is the server response') 
+                log("logMetric send, metricJSON = " + metricJSON);
+            }
+        });
+    }
 
     // Set the next time the function will run
     setTimeout(logMetric, metricInterval);
