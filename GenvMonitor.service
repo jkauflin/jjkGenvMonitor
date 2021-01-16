@@ -1,0 +1,28 @@
+# Example file for setting up the app as a linux service
+#
+# Copy service file to /etc/systemd/system/GenvMonitor.service
+#
+# Add the following aliases to .bashrc to set up and check the service
+#alias logs='journalctl --no-page -u GenvMonitor'
+#alias enables='sudo systemctl enable GenvMonitor.service'
+#alias disables='sudo systemctl disable GenvMonitor.service'
+#alias stops='sudo systemctl stop GenvMonitor.service'
+#alias starts='sudo systemctl start GenvMonitor.service'
+#alias reloads='sudo systemctl daemon-reload'
+
+[Unit]
+Description=Energy Monitor service
+# Wait for the network before starting
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+# Set the user, directory, and node start command
+User=pi
+WorkingDirectory=/home/pi/jjkGenvMonitor
+ExecStart=/usr/bin/npm start
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

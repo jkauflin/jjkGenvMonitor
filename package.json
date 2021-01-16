@@ -1,6 +1,6 @@
 {
   "name": "jjkgenvmonitor",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Monitor and control grow environment",
   "main": "server.js",
   "scripts": {
@@ -14,12 +14,12 @@
     "url": "https://github.com/jkauflin/jjkGenvMonitor.git"
   },
   "dependencies": {
-    "dotenv": "^4.0.0",
+    "dotenv": "^8.2.0",
+    "get-json": "^1.0.1",
+    "johnny-five": "^2.0.0",
+    "node-datetime": "^2.1.2",
+    "simple-get": "^4.0.0",
     "express": "latest",
-    "get-json": "^1.0.0",
-    "johnny-five": "latest",
-    "json-fs-store": "^1.0.1",
-    "node-datetime": "^2.0.3",
-    "simple-get": "^2.7.0"
+    "json-fs-store": "^1.0.1"
   }
 }

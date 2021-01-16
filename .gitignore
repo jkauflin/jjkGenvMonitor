@@ -12,7 +12,6 @@ yarn-debug.log*
 yarn-error.log*
 /.changelog
 .env
-package-lock.json
 public/images/*.jpg
 store.json
 storeid.json
