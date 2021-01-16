@@ -374,9 +374,9 @@ function logMetric() {
             log("Error in logMetric send, metricJSON = " + metricJSON);
             log("err = " + err);
         } else {
-            //log("Server statusCode = "+res.statusCode) // 200 
-            //log("Server response = "+data) // Buffer('this is the server response') 
-            //log("logMetric send, metricJSON = " + metricJSON);
+            log("Server statusCode = "+res.statusCode) // 200 
+            log("Server response = "+data) // Buffer('this is the server response') 
+            log("logMetric send, metricJSON = " + metricJSON);
         }
     });
 
