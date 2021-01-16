@@ -19,16 +19,9 @@ Modification History
 
 // Read environment variables from the .env file
 require('dotenv').config();
-//NODE_ENV=
-//DEBUG=
-//HOST=
-//WEB_PORT=
-//WS_PORT=
 //EMONCMS_INPUT_URL=
-//STORE_DIR=
-//IMAGES_DIR=
 
-var WEB_PORT = process.env.WEB_PORT;
+var WEB_PORT = 3035;
 
 // General handler for any uncaught exceptions
 process.on('uncaughtException', function (e) {

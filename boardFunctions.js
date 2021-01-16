@@ -52,7 +52,7 @@ Modification History
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
-const EventEmitter = require('events');
+//const EventEmitter = require('events');
 
 // Library to control the Arduino board
 var five = require("johnny-five");
