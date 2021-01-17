@@ -82,7 +82,7 @@ var initStoreRec = {
     heatInterval: 1,            // minutes  NOT USED
     heatDuration: 1,            // minutes
     heatDurationMin: 0.5,       // minutes
-    heatDurationMax: 1.5,       // minutes
+    heatDurationMax: 2.5,       // minutes
     lightDuration: 18,          // hours
     waterDuration: 20           // seconds
 };
