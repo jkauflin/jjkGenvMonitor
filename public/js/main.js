@@ -1,5 +1,5 @@
 /*==============================================================================
- * (C) Copyright 2017,2019 John J Kauflin, All rights reserved. 
+ * (C) Copyright 2017,2019,2021 John J Kauflin, All rights reserved. 
  *----------------------------------------------------------------------------
  * DESCRIPTION: Client-side JS functions and logic for web app
  *----------------------------------------------------------------------------
@@ -7,12 +7,13 @@
  * 2017-09-08 JJK 	Initial version 
  * 2017-12-29 JJK	Initial controls and WebSocket communication
  * 2018-04-02 JJK   Added control to manually trigger watering
- * 2018-05-19 JJK  Added update of configuration store record values
- * 2018-06-18 JJK  Added lightDuration
- * 2018-08-19 JJK  Added description and dates
- * 2019-09-22 JJK  Getting it going again
- * 2019-09-28 JJK  Implemented modules concept and moved common methods to
- *                 util.js
+ * 2018-05-19 JJK   Added update of configuration store record values
+ * 2018-06-18 JJK   Added lightDuration
+ * 2018-08-19 JJK   Added description and dates
+ * 2019-09-22 JJK   Getting it going again
+ * 2019-09-28 JJK   Implemented modules concept and moved common methods to
+ *                  util.js
+ * 2021-01-17 JJK   Making updates for bootstrap 4, and to use fetch()
  *============================================================================*/
 var main = (function () {
     'use strict';
@@ -57,6 +58,11 @@ var main = (function () {
 
     //=================================================================================================================
     // Bind events
+    // Auto-close the collapse menu after clicking a non-dropdown menu item (in the bootstrap nav header)
+    $(".navbar-nav li a:not('.dropdown-toggle')").on('click', function () { 
+        $('.navbar-collapse').collapse('hide'); 
+    });
+
     $ClearLogButton.click(_clearLog);
     $UpdateButton.click(_update);
     $WaterButton.click(_water);
@@ -185,16 +191,19 @@ var main = (function () {
 	    });
 
 
-
     //=================================================================================================================
     // Module methods
     function _lookup(event) {
-        var jqxhr = $.getJSON("GetValues", "", function (storeRec) {
-            //console.log("GetValues, storeRec.desc = "+storeRec.desc);
+        fetch('GetValues').then(function (response) {
+            //console.log(response);
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Error in response or JSON from server, code = '+response.status);
+            }
+        }).then(function (storeRec) {
             _renderConfig(storeRec);
-        }).fail(function (e) {
-            console.log("Error getting environment variables");
-        });
+        })
     }
 
     function _renderConfig(storeRec) {

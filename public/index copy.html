@@ -37,152 +37,192 @@
     <div class="tab-content">
 
         <div class="tab-pane show active" id="HomePage">
-            <form id="InputValues" class="form-group" action="#">
-                <div class="row mt-3">
-                    <div class="col-4">
-                            <div class="form-group form-row">
+            <div class="row">
+                <!--
+                  	<form id="SearchInput" class="form-group" action="#">
+                    	<input type="text" class="form-control form-control-sm m-1 resetval" name="searchStr"  	id="searchStr" 	placeholder="Enter value to search">
+                    	<button id="SearchButton" type="button" class="btn btn-primary mt-2 mb-2">Search</button>
+                    	<button id="AdvancedOptionsButton" type="button" class="btn btn-info mt-2 ml-2 mb-2" data-toggle="collapse" data-target="#AdvancedSearchOptions">Advanced Options</button>
+						<div id="AdvancedSearchOptions" class="collapse">
+	                    	<div class="form-group">
+	                    		<input type="text" name="parcelId"  	id="parcelId" 	placeholder="Parcel Id (R35617399 0001)" class="form-control form-control-sm mb-1 resetval">
+	                    		<input type="text" name="lotNo"     	id="lotNo"		placeholder="Lot Number" class="form-control form-control-sm mb-1 resetval">
+	                    		<input type="text" name="address"       id="address"   	placeholder="Property Address" class="form-control form-control-sm mb-1 resetval">
+	                    		<input type="text" name="ownerName"     id="ownerName" 	placeholder="Owner Name (Last First)" class="form-control form-control-sm mb-1 resetval">
+	                    		<input type="text" name="phoneNo"       id="phoneNo"   	placeholder="Phone Number" class="form-control form-control-sm mb-1 resetval">
+	                    		<input type="text" name="altAddress"    id="altAddress"	placeholder="Alternate Address" class="form-control form-control-sm mb-1 resetval">
+                            </div>
+                        </div>
+                    </form>
+                -->
+
+                <div id="InputValues">
+                    <!-- Column 1 -->
+                    <div class="col-sm-4">
+                        Column 1
+                        <!--
+
+                        <form>
+                            <div class="form-group row">
                                 <label for="targetTemperature" class="col-sm-8 col-form-label text-right">Target Temp</label>
                                 <div class="col-sm-4">
                                     <input id="targetTemperature" class="form-control">
                                 </div>
                             </div>
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="airInterval" class="col-sm-8 col-form-label text-right">Air Interval</label>
                                 <div class="col-sm-4">
                                     <input id="airInterval" class="form-control">
                                 </div>
                             </div>
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="airDuration" class="col-sm-8 col-form-label text-right">Air Duration</label>
                                 <div class="col-sm-4">
                                     <input id="airDuration" class="form-control">
                                 </div>
                             </div>
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="heatInterval" class="col-sm-8 col-form-label text-right">Heat Interval</label>
                                 <div class="col-sm-4">
                                     <input id="heatInterval" class="form-control">
                                 </div>
                             </div>
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="heatDuration" class="col-sm-8 col-form-label text-right">Heat Duration</label>
                                 <div class="col-sm-4">
                                     <input id="heatDuration" class="form-control">
                                 </div>
                             </div>
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="heatDurationMin" class="col-sm-8 col-form-label text-right">Heat Duration Min</label>
                                 <div class="col-sm-4">
                                     <input id="heatDurationMin" class="form-control">
                                 </div>
                             </div>
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="heatDurationMax" class="col-sm-8 col-form-label text-right">Heat Duration Max</label>
                                 <div class="col-sm-4">
                                     <input id="heatDurationMax" class="form-control">
                                 </div>
                             </div>
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="lightDuration" class="col-sm-8 col-form-label text-right">Light Duration</label>
                                 <div class="col-sm-4">
                                     <input id="lightDuration" class="form-control">
                                 </div>
                             </div>
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="waterDuration" class="col-sm-8 col-form-label text-right">Water Duration</label>
                                 <div class="col-sm-4">
                                     <input id="waterDuration" class="form-control">
                                 </div>
                             </div>
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="waterSeconds" class="col-sm-8 col-form-label text-right">Water Seconds</label>
                                 <div class="col-sm-4">
                                     <input id="waterSeconds" class="form-control">
                                 </div>
                             </div>
-                            
-                            <div class="form-group form-row">
+                
+                            <div class="form-group row">
                                 <div class="col-sm-8">
                                     <button id="ClearLogButton" type="button" class="btn btn-success">Clear log</button>
                                     <button id="UpdateButton" type="button" class="btn btn-primary">Update</button>
                                     <button id="WaterButton" type="button" class="btn btn-warning">Water</button>
                                 </div>
                             </div>
+                        </form>
+                        -->
+                
                     </div>
-                    <div class="col-5">
-                            <div class="form-group form-row">
+                
+                
+                    <!-- Column 2 -->
+                    <div class="col-sm-5">
+                        Column 2
+                        <!--
+
+                        <form>
+                            <div class="form-group row">
                                 <label for="desc" class="col-sm-5 col-form-label text-right">Description</label>
                                 <div class="col-sm-7">
                                     <input id="desc" class="form-control">
                                 </div>
                             </div>
                 
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="daysToGerm" class="col-sm-5 col-form-label text-right">Days to Germ</label>
                                 <div class="col-sm-7">
                                     <input id="daysToGerm" class="form-control">
                                 </div>
                             </div>
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="daysToBloom" class="col-sm-5 col-form-label text-right">Days to Bloom</label>
                                 <div class="col-sm-7">
                                     <input id="daysToBloom" class="form-control">
                                 </div>
                             </div>
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="germinationStart" class="col-sm-5 col-form-label text-right">Germination Start</label>
                                 <div class="col-sm-7">
                                     <input id="germinationStart" class="form-control">
                                 </div>
                             </div>
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="germinationDate" class="col-sm-5 col-form-label text-right">Germination Date</label>
                                 <div class="col-sm-7">
                                     <input id="germinationDate" class="form-control">
                                 </div>
                             </div>
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="estBloomDate" class="col-sm-5 col-form-label text-right">Est Bloom Date</label>
                                 <div class="col-sm-7">
                                     <input id="estBloomDate" class="form-control">
                                 </div>
                             </div>
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="bloomDate" class="col-sm-5 col-form-label text-right">Bloom Date</label>
                                 <div class="col-sm-7">
                                     <input id="bloomDate" class="form-control">
                                 </div>
                             </div>
                 
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="harvestDate" class="col-sm-5 col-form-label text-right">Harvest Start</label>
                                 <div class="col-sm-7">
                                     <input id="harvestDate" class="form-control">
                                 </div>
                             </div>
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="cureDate" class="col-sm-5 col-form-label text-right">Cure Start</label>
                                 <div class="col-sm-7">
                                     <input id="cureDate" class="form-control">
                                 </div>
                             </div>
-                            <div class="form-group form-row">
+                            <div class="form-group row">
                                 <label for="productionDate" class="col-sm-5 col-form-label text-right">Production Date</label>
                                 <div class="col-sm-7">
                                     <input id="productionDate" class="form-control">
                                 </div>
                             </div>
-
+                
+                        </form>
+                        -->
+                
                     </div>
-                    <div class="col-3">
-                        <h6>Log messages:</h6>
+                
+                    <!-- Column 3 -->
+                    <div class="col-sm-3">
+                        <h5>Log messages:</h5>
                         <table id="LogMessageDisplay" class="table table-condensed table-striped">
                             <tbody>
                             </tbody>
                         </table>
                     </div>
-                </div><!-- end of row -->
-            </form>
+                
+                </div><!-- Inputs -->
+
+            </div><!-- end of row -->
         </div><!-- end of Home tab -->
 
     </div><!-- end of main tab content -->

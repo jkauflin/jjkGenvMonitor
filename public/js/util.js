@@ -33,38 +33,9 @@
     var $ajaxError = $document.find(".ajaxError");
     var $wildcard = $('*');
     var $resetval = $document.find(".resetval");
-    //var $Date = $document.find(".Date");
 
     //=================================================================================================================
     // Bind events
-    // General AJAX error handler to log the exception and set a message in DIV tags with a ajaxError class
-    /* 2019-09-28 JJK - Commented out (just handle within the AJAX calls)
-    $document.ajaxError(function (e, xhr, settings, exception) {
-        console.log("ajax exception = " + exception);
-        console.log("ajax url = " + settings.url);
-        console.log("xhr.responseText = " + xhr.responseText);
-        defaultCursor();
-        $ajaxError.html("An Error has occurred (see console log)");
-    });
-    */
-
-    // Auto-close the collapse menu after clicking a non-dropdown menu item (in the bootstrap nav header)
-    $document.on('click', '.navbar-collapse.in', function (e) {
-        if ($(e.target).is('a') && $(e.target).attr('class') != 'dropdown-toggle') {
-            $(this).collapse('hide');
-        }
-    });
-
-    // Using addClear plug-in function to add a clear button on input text fields
-    //$resetval.addClear();
-
-     // Initialize Date picker library
-     /*
-     $Date.datetimepicker({
-         timepicker: false,
-         format: 'Y-m-d'
-     });
-     */
 
     //=================================================================================================================
     // Module methods
@@ -145,17 +116,11 @@
     }
 
     function waitCursor() {
-        $wildcard.css('cursor', 'progress');
-        $ajaxError.html("");
+        //$wildcard.css('cursor', 'progress');
+        //$ajaxError.html("");
     }
-    /*
-    commented out because it messed up the cursor in other functions - put it individually around JSON services
-    $document.ajaxComplete(function(event, request, settings) {
-        $wildcard.css('cursor', 'default');
-    });
-    */
     function defaultCursor() {
-        $wildcard.css('cursor', 'default');
+        //$wildcard.css('cursor', 'default');
     }
 
     // Helper functions for setting UI components from data
