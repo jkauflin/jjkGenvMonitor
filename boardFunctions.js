@@ -206,10 +206,10 @@ board.on("ready", function () {
     log("*** board ready ***");
     boardReady = true;
 
-    /*
     log("Initializing relays");
     relays = new five.Relays([10, 11, 12, 13]);
 
+    /*
     // Start the function to toggle air ventilation ON and OFF
     log("Starting Air toggle interval");
     setTimeout(toggleAir, 1000);
@@ -223,7 +223,7 @@ board.on("ready", function () {
     // If the board is exiting, turn all the relays off
     this.on("exit", function () {
         log("on EXIT");
-        turnRelaysOFF();
+        //turnRelaysOFF();
     });
     //[`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
     //    process.on(eventType, cleanUpServer.bind(null, eventType));
@@ -375,18 +375,18 @@ function logMetric() {
     var date = new Date();
     var hours = date.getHours();
     log("hours = "+hours);
-    //if (hours > 6 && hours < 3) {
+    if (hours > 5 || hours < 3) {
         get.concat(emoncmsUrl, function (err, res, data) {
             if (err) {
                 log("Error in logMetric send, metricJSON = " + metricJSON);
                 log("err = " + err);
             } else {
-                log("Server statusCode = " + res.statusCode) // 200 
-                log("Server response = " + data) // Buffer('this is the server response') 
-                log("logMetric send, metricJSON = " + metricJSON);
+                //log("Server statusCode = " + res.statusCode) // 200 
+                //log("Server response = " + data) // Buffer('this is the server response') 
+                //log("logMetric send, metricJSON = " + metricJSON);
             }
         });
-    //}
+    }
 
     // Set the next time the function will run
     setTimeout(logMetric, metricInterval);
