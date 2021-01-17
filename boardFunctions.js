@@ -214,17 +214,17 @@ board.on("ready", function () {
     log("Starting Air toggle interval");
     setTimeout(toggleAir, 1000);
 
-    // If the board is exiting, turn all the relays off
-    this.on("exit", function () {
-        log("on EXIT");
-        turnRelaysOFF();
-    });
     // Handle a termination signal
     process.on('SIGTERM', function () {
         log('on SIGTERM');
         turnRelaysOFF();
     });
     */
+    // If the board is exiting, turn all the relays off
+    this.on("exit", function () {
+        log("on EXIT");
+        turnRelaysOFF();
+    });
     //[`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
     //    process.on(eventType, cleanUpServer.bind(null, eventType));
     //})
@@ -374,7 +374,8 @@ function logMetric() {
     // Use this if we need to limit the send to between the hours of 6 and 20
     var date = new Date();
     var hours = date.getHours();
-    if (hours > 6 && hours < 3) {
+    log("hours = "+hours);
+    //if (hours > 6 && hours < 3) {
         get.concat(emoncmsUrl, function (err, res, data) {
             if (err) {
                 log("Error in logMetric send, metricJSON = " + metricJSON);
@@ -385,7 +386,7 @@ function logMetric() {
                 log("logMetric send, metricJSON = " + metricJSON);
             }
         });
-    }
+    //}
 
     // Set the next time the function will run
     setTimeout(logMetric, metricInterval);
