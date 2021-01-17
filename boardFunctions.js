@@ -206,6 +206,7 @@ board.on("ready", function () {
     log("*** board ready ***");
     boardReady = true;
 
+    /*
     log("Initializing relays");
     relays = new five.Relays([10, 11, 12, 13]);
 
@@ -223,6 +224,7 @@ board.on("ready", function () {
         log('on SIGTERM');
         turnRelaysOFF();
     });
+    */
     //[`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
     //    process.on(eventType, cleanUpServer.bind(null, eventType));
     //})
