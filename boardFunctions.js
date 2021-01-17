@@ -371,7 +371,7 @@ function logMetric() {
         + "}";
     emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON;
 
-    log("relays = "+relays+", relays[0].on() = "+relays[0].on());
+    log("relays = "+relays+", relays[0].close() = "+relays[0].close());
 
 
     // Use this if we need to limit the send to between the hours of 6 and 20
