@@ -48,7 +48,9 @@ Modification History
 2019-11-06 JJK  Modifying the air/heat toggle to give the tempature
                 adjustment more range to operate
 2020-06-11 JJK  Add calculation of estimated harvest date (75 days)
-2021-01-16 JJK  Updating
+2021-01-16 JJK  Updating for newest johnny-five version
+2021-01-17 JJK  Got relays working by using .open and .close functions
+                instead of .off and .on which don't appear to be defined
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -288,23 +290,15 @@ function setRelay(relayNum, relayVal) {
     if (relayVal) {
         // If value is 1 or true, set the relay to turn ON and let the electricity flow
         //relays[relayNum].on();
-        //relays[relayNum].open();
-        //log(relayNames[relayNum]+" ON open");
-
         relays[relayNum].close();
         log(relayNames[relayNum]+" ON close");
-
         //relayMetricValues[relayNum] = relayMetricON + (relayNum * 2);
         relayMetricValues[relayNum] = relayMetricON + relayNum;
     } else {
         // If value is 0 or false, set the relay to turn OFF and stop the flow of electricity
         //relays[relayNum].off();
-        //relays[relayNum].close();
-        //log(relayNames[relayNum]+" OFF close");
-
         relays[relayNum].open();
         log(relayNames[relayNum]+" OFF open");
-
         relayMetricValues[relayNum] = relayMetricOFF;
     }
 }
