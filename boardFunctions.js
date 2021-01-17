@@ -79,7 +79,7 @@ var initStoreRec = {
     targetTemperature: 75,      // degrees fahrenheit
     airInterval: 2,             // minutes
     airDuration: 2,             // minutes
-    heatInterval: 1,            // minutes  NOT USED
+    heatInterval: 1,            // minutes
     heatDuration: 1,            // minutes
     heatDurationMin: 0.5,       // minutes
     heatDurationMax: 2.5,       // minutes
@@ -171,6 +171,7 @@ var currLightsVal = OFF;
 var date;
 var hours = 0;
 var airTimeout = 1.0;
+var heatTimeout = 1.0;
 
 // Variables to hold sensor values
 var numReadings = 10;   // Total number of readings to average
@@ -215,6 +216,10 @@ board.on("ready", function () {
     // Start the function to toggle air ventilation ON and OFF
     log("Starting Air toggle interval");
     setTimeout(toggleAir, 2000);
+
+    // Start the function to toggle heat ON and OFF
+    log("Starting Heat toggle interval");
+    setTimeout(toggleHeat, 4000);
 
     // If the board is exiting, turn all the relays off
     this.on("exit", function () {
@@ -303,63 +308,82 @@ function setRelay(relayNum, relayVal) {
 
 // Function to toggle air ventilation ON and OFF
 function toggleAir() {
-  airTimeout = sr.airInterval;
-
-  if (currAirVal == OFF) {
-    //log("Turning Air ON");
-    setRelay(AIR,ON);
-    currAirVal = ON;
-    airTimeout = sr.airDuration;
-  } else {
-    //log("Turning Air OFF");
-    setRelay(AIR,OFF);
-    currAirVal = OFF;
     airTimeout = sr.airInterval;
-    // When the air goes off, turn the heat on
-    if (currHeatVal == OFF) {
-      setTimeout(turnHeatOn,0);
-    }
-  }
 
-  date = new Date();
-  hours = date.getHours();
-  //log("lightDuration = "+sr.lightDuration+", hours = "+hours);
-  if (hours > (sr.lightDuration - 1)) {
-    if (currLightsVal == ON) {
-      setRelay(LIGHTS,OFF);
-      currLightsVal = OFF;
+    if (currAirVal == OFF) {
+        //log("Turning Air ON");
+        setRelay(AIR,ON);
+        currAirVal = ON;
+        airTimeout = sr.airDuration;
+    } else {
+        //log("Turning Air OFF");
+        setRelay(AIR,OFF);
+        currAirVal = OFF;
+        airTimeout = sr.airInterval;
     }
-  } else {
-    if (currLightsVal == OFF) {
-      setRelay(LIGHTS,ON);
-      currLightsVal = ON;
-      // Take a selfie when you turn the lights on
-      //setTimeout(letMeTakeASelfie, 100);
 
-      // Water the plants for a few seconds when the light come on
-      setTimeout(waterThePlants, 500);
+    date = new Date();
+    hours = date.getHours();
+    //log("lightDuration = "+sr.lightDuration+", hours = "+hours);
+    if (hours > (sr.lightDuration - 1)) {
+        if (currLightsVal == ON) {
+            setRelay(LIGHTS,OFF);
+            currLightsVal = OFF;
+        }
+    } else {
+        if (currLightsVal == OFF) {
+            setRelay(LIGHTS,ON);
+            currLightsVal = ON;
+            // Take a selfie when you turn the lights on
+            //setTimeout(letMeTakeASelfie, 100);
+
+            // Water the plants when the light come on
+            setTimeout(waterThePlants, 500);
+        }
     }
-  }
 
-  // Recursively call the function with the current timeout value  
-  setTimeout(toggleAir,airTimeout * minutesToMilliseconds);
+    // Recursively call the function with the current timeout value  
+    setTimeout(toggleAir,airTimeout * minutesToMilliseconds);
 
 } // function toggleAir() {
 
+// Function to toggle air ventilation ON and OFF
+function toggleHeat() {
+    heatTimeout = sr.heatInterval;
+
+    if (currHeatVal == OFF) {
+        //log("Turning Heat ON");
+        setRelay(HEAT, ON);
+        currHeatVal = ON;
+        heatTimeout = sr.heatDuration;
+    } else {
+        //log("Turning Heat OFF");
+        setRelay(HEAT, OFF);
+        currHeatVal = OFF;
+        heatTimeout = sr.heatInterval;
+    }
+
+    // Recursively call the function with the current timeout value  
+    setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds);
+
+} // function toggleHeat() {
+
 // Function to turn air ventilation in/heat ON
+/*
 function turnHeatOn() {
-  //log("Turning Heat ON");
-  setRelay(HEAT,ON);
-  currHeatVal = ON;
-  // Queue up function to turn the heat back off after the duration time
-  setTimeout(turnHeatOff,sr.heatDuration * minutesToMilliseconds);
+    //log("Turning Heat ON");
+    setRelay(HEAT,ON);
+    currHeatVal = ON;
+    // Queue up function to turn the heat back off after the duration time
+    setTimeout(turnHeatOff,sr.heatDuration * minutesToMilliseconds);
 }
 // Function to turn air ventilation in/heat OFF
 function turnHeatOff() {
-  //log("Turning Heat OFF");
-  setRelay(HEAT,OFF);
-  currHeatVal = OFF;
+    //log("Turning Heat OFF");
+    setRelay(HEAT,OFF);
+    currHeatVal = OFF;
 }
+*/
 
 // Send metric values to a website
 function logMetric() {
