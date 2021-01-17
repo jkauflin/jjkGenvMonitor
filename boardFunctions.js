@@ -287,16 +287,24 @@ function turnRelaysOFF() {
 function setRelay(relayNum, relayVal) {
     if (relayVal) {
         // If value is 1 or true, set the relay to turn ON and let the electricity flow
-        relays[relayNum].open();
         //relays[relayNum].on();
-        log(relayNames[relayNum]+" ON open");
+        //relays[relayNum].open();
+        //log(relayNames[relayNum]+" ON open");
+
+        relays[relayNum].close();
+        log(relayNames[relayNum]+" ON close");
+
         //relayMetricValues[relayNum] = relayMetricON + (relayNum * 2);
         relayMetricValues[relayNum] = relayMetricON + relayNum;
     } else {
         // If value is 0 or false, set the relay to turn OFF and stop the flow of electricity
-        relays[relayNum].close();
         //relays[relayNum].off();
-        log(relayNames[relayNum]+" OFF close");
+        //relays[relayNum].close();
+        //log(relayNames[relayNum]+" OFF close");
+
+        relays[relayNum].open();
+        log(relayNames[relayNum]+" OFF open");
+
         relayMetricValues[relayNum] = relayMetricOFF;
     }
 }
