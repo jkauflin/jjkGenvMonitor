@@ -141,7 +141,7 @@ var metricJSON = "";
 
 //var intervalSeconds = 30;
 //var intervalSeconds = 10;
-var intervalSeconds = 30;
+var intervalSeconds = 10;
 var metricInterval = intervalSeconds * 1000;
 var thermometer = null;
 var currTemperature = sr.targetTemperature;
@@ -371,10 +371,11 @@ function logMetric() {
         + "}";
     emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON;
 
+    log("relays = "+relays);
+
     // Use this if we need to limit the send to between the hours of 6 and 20
     var date = new Date();
     var hours = date.getHours();
-    log("hours = "+hours);
     if (hours > 5 || hours < 3) {
         get.concat(emoncmsUrl, function (err, res, data) {
             if (err) {
