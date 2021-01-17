@@ -158,7 +158,8 @@ const WATER = 1;
 const AIR = 2;
 const HEAT = 3;
 const relayNames = ["lights", "water", "air",  "heat"];
-const relayMetricON = 72;
+//const relayMetricON = 72;
+const relayMetricON = 71;
 const relayMetricOFF = relayMetricON-1;
 const relayMetricValues = [relayMetricOFF,relayMetricOFF,relayMetricOFF,relayMetricOFF];
 
