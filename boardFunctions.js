@@ -220,17 +220,14 @@ board.on("ready", function () {
         log("on EXIT");
         turnRelaysOFF();
     });
-
-    //[`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
-    //    process.on(eventType, cleanUpServer.bind(null, eventType));
-    //})
-    /*
-    // Handle a termination signal
+    // Handle a termination signal (from stopping the systemd service)
     process.on('SIGTERM', function () {
         log('on SIGTERM');
         turnRelaysOFF();
     });
-    */
+    //[`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
+    //    process.on(eventType, cleanUpServer.bind(null, eventType));
+    //})
 
     // Define the thermometer sensor
     this.wait(2000, function () {
@@ -291,14 +288,14 @@ function setRelay(relayNum, relayVal) {
         // If value is 1 or true, set the relay to turn ON and let the electricity flow
         //relays[relayNum].on();
         relays[relayNum].close();
-        log(relayNames[relayNum]+" ON close");
+        //log(relayNames[relayNum]+" ON close");
         //relayMetricValues[relayNum] = relayMetricON + (relayNum * 2);
         relayMetricValues[relayNum] = relayMetricON + relayNum;
     } else {
         // If value is 0 or false, set the relay to turn OFF and stop the flow of electricity
         //relays[relayNum].off();
         relays[relayNum].open();
-        log(relayNames[relayNum]+" OFF open");
+        //log(relayNames[relayNum]+" OFF open");
         relayMetricValues[relayNum] = relayMetricOFF;
     }
 }
