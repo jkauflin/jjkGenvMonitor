@@ -213,22 +213,22 @@ board.on("ready", function () {
     log("Starting Air toggle interval");
     setTimeout(toggleAir, 2000);
 
-    /*
+    // If the board is exiting, turn all the relays off
+    this.on("exit", function () {
+        log("on EXIT");
+        turnRelaysOFF();
+    });
 
+    //[`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
+    //    process.on(eventType, cleanUpServer.bind(null, eventType));
+    //})
+    /*
     // Handle a termination signal
     process.on('SIGTERM', function () {
         log('on SIGTERM');
         turnRelaysOFF();
     });
     */
-    // If the board is exiting, turn all the relays off
-    this.on("exit", function () {
-        log("on EXIT");
-        //turnRelaysOFF();
-    });
-    //[`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
-    //    process.on(eventType, cleanUpServer.bind(null, eventType));
-    //})
 
     // Define the thermometer sensor
     this.wait(2000, function () {
@@ -289,14 +289,14 @@ function setRelay(relayNum, relayVal) {
         // If value is 1 or true, set the relay to turn ON and let the electricity flow
         relays[relayNum].open();
         //relays[relayNum].on();
-        console.log(relayNames[relayNum]+" ON open");
+        log(relayNames[relayNum]+" ON open");
         //relayMetricValues[relayNum] = relayMetricON + (relayNum * 2);
         relayMetricValues[relayNum] = relayMetricON + relayNum;
     } else {
         // If value is 0 or false, set the relay to turn OFF and stop the flow of electricity
         relays[relayNum].close();
         //relays[relayNum].off();
-        console.log(relayNames[relayNum]+" OFF close");
+        log(relayNames[relayNum]+" OFF close");
         relayMetricValues[relayNum] = relayMetricOFF;
     }
 }
@@ -371,9 +371,6 @@ function logMetric() {
         + "," + relayNames[3] + ":" + relayMetricValues[3]
         + "}";
     emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON;
-
-    //log("relays = "+relays+", relays[0].close() = "+relays[0].close());
-
 
     // Use this if we need to limit the send to between the hours of 6 and 20
     var date = new Date();
