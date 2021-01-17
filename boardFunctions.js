@@ -209,10 +209,11 @@ board.on("ready", function () {
     log("Initializing relays");
     relays = new five.Relays([10, 11, 12, 13]);
 
-    /*
     // Start the function to toggle air ventilation ON and OFF
     log("Starting Air toggle interval");
-    setTimeout(toggleAir, 1000);
+    setTimeout(toggleAir, 2000);
+
+    /*
 
     // Handle a termination signal
     process.on('SIGTERM', function () {
@@ -286,16 +287,16 @@ function turnRelaysOFF() {
 function setRelay(relayNum, relayVal) {
     if (relayVal) {
         // If value is 1 or true, set the relay to turn ON and let the electricity flow
-        //relays[relayNum].open();
-        relays[relayNum].on();
-        //console.log(relayNames[relayNum]+" ON");
+        relays[relayNum].open();
+        //relays[relayNum].on();
+        console.log(relayNames[relayNum]+" ON open");
         //relayMetricValues[relayNum] = relayMetricON + (relayNum * 2);
         relayMetricValues[relayNum] = relayMetricON + relayNum;
     } else {
         // If value is 0 or false, set the relay to turn OFF and stop the flow of electricity
-        //relays[relayNum].close();
-        relays[relayNum].off();
-        //console.log(relayNames[relayNum]+" OFF");
+        relays[relayNum].close();
+        //relays[relayNum].off();
+        console.log(relayNames[relayNum]+" OFF close");
         relayMetricValues[relayNum] = relayMetricOFF;
     }
 }
@@ -371,7 +372,7 @@ function logMetric() {
         + "}";
     emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON;
 
-    log("relays = "+relays+", relays[0].close() = "+relays[0].close());
+    //log("relays = "+relays+", relays[0].close() = "+relays[0].close());
 
 
     // Use this if we need to limit the send to between the hours of 6 and 20
