@@ -39,6 +39,7 @@ Modification History
 2018-09-30 JJK  Turned metrics back on to track tempature
 2019-09-27 JJK  Testing new digital relay
 2019-10-01 JJK  Checking JSON store functions, and 4 channel solid state relay
+                *** Figured out it needed better, higher-amp rated relays ***
 2019-10-02 JJK  Added a log message array and store rec save method.
                 Getting the 4 channel relay working.  Checking metric sends
 2019-10-11 JJK  Testing service shutdown
@@ -51,6 +52,8 @@ Modification History
 2021-01-16 JJK  Updating for newest johnny-five version
 2021-01-17 JJK  Got relays working by using .open and .close functions
                 instead of .off and .on which don't appear to be defined
+2021-01-18 JJK  Disconnected heat cycle from air cycle and adding dynamic
+                adjustments to get more stable on target temperature
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -77,12 +80,12 @@ var initStoreRec = {
     cureDate: '',               // curing start date
     productionDate: '',         // production complete date
     targetTemperature: 75,      // degrees fahrenheit
-    airInterval: 2,             // minutes
-    airDuration: 2,             // minutes
+    airInterval: 1,             // minutes
+    airDuration: 1,             // minutes
     heatInterval: 1,            // minutes
     heatDuration: 1,            // minutes
     heatDurationMin: 0.5,       // minutes
-    heatDurationMax: 2.5,       // minutes
+    heatDurationMax: 3,       // minutes
     lightDuration: 18,          // hours
     waterDuration: 20           // seconds
 };
@@ -213,14 +216,6 @@ board.on("ready", function () {
     log("Initializing relays");
     relays = new five.Relays([10, 11, 12, 13]);
 
-    // Start the function to toggle air ventilation ON and OFF
-    log("Starting Air toggle interval");
-    setTimeout(toggleAir, 2000);
-
-    // Start the function to toggle heat ON and OFF
-    log("Starting Heat toggle interval");
-    setTimeout(toggleHeat, 4000);
-
     // If the board is exiting, turn all the relays off
     this.on("exit", function () {
         log("on EXIT");
@@ -274,8 +269,16 @@ board.on("ready", function () {
         }); // on termometer change
     });
 
-    // Start sending metrics 4 seconds after starting (so things are calm)
-    setTimeout(logMetric, 4000);
+
+    // Start the function to toggle air ventilation ON and OFF
+    log("Starting Air toggle interval");
+    setTimeout(toggleAir, 5000);
+    // Start the function to toggle heat ON and OFF
+    log("Starting Heat toggle interval");
+    setTimeout(toggleHeat, 6000);
+
+    // Start sending metrics 10 seconds after starting (so things are calm)
+    setTimeout(logMetric, 10000);
 
     log("End of board.on (initialize) event");
 
@@ -322,6 +325,7 @@ function toggleAir() {
         airTimeout = sr.airInterval;
     }
 
+    // Check to turn the light on/off
     date = new Date();
     hours = date.getHours();
     //log("lightDuration = "+sr.lightDuration+", hours = "+hours);
@@ -403,7 +407,7 @@ function logMetric() {
         get.concat(emoncmsUrl, function (err, res, data) {
             if (err) {
                 log("Error in logMetric send, metricJSON = " + metricJSON);
-                log("err = " + err);
+                //log("err = " + err);
             } else {
                 //log("Server statusCode = " + res.statusCode) // 200 
                 //log("Server response = " + data) // Buffer('this is the server response') 
