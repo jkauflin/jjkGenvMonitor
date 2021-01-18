@@ -79,7 +79,7 @@ var initStoreRec = {
     harvestDate: '',            // harvest start date
     cureDate: '',               // curing start date
     productionDate: '',         // production complete date
-    targetTemperature: 75,      // degrees fahrenheit
+    targetTemperature: 74,      // degrees fahrenheit
     airInterval: 1,             // minutes
     airDuration: 1,             // minutes
     heatInterval: 1,            // minutes
@@ -146,12 +146,12 @@ var metricJSON = "";
 
 //var intervalSeconds = 30;
 //var intervalSeconds = 10;
-var intervalSeconds = 10;
+var intervalSeconds = 15;
 var metricInterval = intervalSeconds * 1000;
 var thermometer = null;
 var currTemperature = sr.targetTemperature;
-const TEMPATURE_MAX = sr.targetTemperature + 1.0;
-const TEMPATURE_MIN = sr.targetTemperature - 1.0;
+var TEMPATURE_MAX = sr.targetTemperature + 1.0;
+var TEMPATURE_MIN = sr.targetTemperature - 1.0;
 const minutesToMilliseconds = 60 * 1000;
 const secondsToMilliseconds = 1000;
 
@@ -508,6 +508,8 @@ function log(inStr) {
 function updateConfig(inStoreRec) {
     sr = inStoreRec;
     log("updateConfig, targetTemperature = " + sr.targetTemperature);
+    TEMPATURE_MAX = sr.targetTemperature + 1.0;
+    TEMPATURE_MIN = sr.targetTemperature - 1.0;
     _saveStoreRec();
 }
 
