@@ -53,6 +53,8 @@ var main = (function () {
     var $WaterButton = $document.find("#WaterButton");
     var $Inputs = $document.find("#InputValues");
 
+    var $UpdateDisplay = $document.find("#UpdateDisplay");
+
     //var $altAddress = $moduleDiv.find("#altAddress");
     var $LogMessageDisplay = $("#LogMessageDisplay").find('tbody');
 
@@ -194,6 +196,7 @@ var main = (function () {
     //=================================================================================================================
     // Module methods
     function _lookup(event) {
+        $UpdateDisplay.empty();
         fetch('GetValues').then(function (response) {
             //console.log(response);
             if (response.ok) {
@@ -233,7 +236,7 @@ var main = (function () {
         /*
         var tr = '';
         $.each(storeRec.logList, function (index, logRec) {
-            tr += '<tr>';
+            tr += '<tr class="small">';
             tr += '<td>' + logRec + '</td>';
             tr += '</tr>';
         });
@@ -257,6 +260,7 @@ var main = (function () {
             //dataType: "html"
         })
         .done(function (storeRec) {
+            $UpdateDisplay.html("Update successful");
             _renderConfig(storeRec);
         })
         .fail(function (xhr, status, error) {

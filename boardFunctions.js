@@ -69,23 +69,23 @@ var storeId = 'storeid';
 var logArray = [];
 var initStoreRec = {
     id: storeId,                // unique identifier
-    desc: 'Blanket Flower',           // description
+    desc: 'Blanket Flower',     // description
     daysToGerm: '7 to 15',
     daysToBloom: '90 to 180',
-    germinationStart: '2019-10-13',       // date seeds were planted
+    germinationStart: '2019-10-13', // date seeds were planted
     germinationDate: '',        // date the seeds germinated or sprouted
-    estBloomDate: '2020-01-13',              // 
+    estBloomDate: '2020-01-13', // 
     bloomDate: '',              // 
     harvestDate: '',            // harvest start date
     cureDate: '',               // curing start date
     productionDate: '',         // production complete date
-    targetTemperature: 74,      // degrees fahrenheit
+    targetTemperature: 73,      // degrees fahrenheit
     airInterval: 1,             // minutes
     airDuration: 1,             // minutes
     heatInterval: 1,            // minutes
     heatDuration: 1,            // minutes
-    heatDurationMin: 0.5,       // minutes
-    heatDurationMax: 3,       // minutes
+    heatDurationMin: 1,         // minutes
+    heatDurationMax: 2,         // minutes
     lightDuration: 18,          // hours
     waterDuration: 20           // seconds
 };
@@ -161,7 +161,6 @@ const WATER = 1;
 const AIR = 2;
 const HEAT = 3;
 const relayNames = ["lights", "water", "air",  "heat"];
-//const relayMetricON = 72;
 const relayMetricON = 71;
 const relayMetricOFF = relayMetricON-1;
 const relayMetricValues = [relayMetricOFF,relayMetricOFF,relayMetricOFF,relayMetricOFF];
@@ -372,23 +371,6 @@ function toggleHeat() {
 
 } // function toggleHeat() {
 
-// Function to turn air ventilation in/heat ON
-/*
-function turnHeatOn() {
-    //log("Turning Heat ON");
-    setRelay(HEAT,ON);
-    currHeatVal = ON;
-    // Queue up function to turn the heat back off after the duration time
-    setTimeout(turnHeatOff,sr.heatDuration * minutesToMilliseconds);
-}
-// Function to turn air ventilation in/heat OFF
-function turnHeatOff() {
-    //log("Turning Heat OFF");
-    setRelay(HEAT,OFF);
-    currHeatVal = OFF;
-}
-*/
-
 // Send metric values to a website
 function logMetric() {
     metricJSON = "{" + "tempature:" + currTemperature
@@ -406,7 +388,7 @@ function logMetric() {
     if (hours > 5 || hours < 3) {
         get.concat(emoncmsUrl, function (err, res, data) {
             if (err) {
-                log("Error in logMetric send, metricJSON = " + metricJSON);
+                //log("Error in logMetric send, metricJSON = " + metricJSON);
                 //log("err = " + err);
             } else {
                 //log("Server statusCode = " + res.statusCode) // 200 
@@ -507,7 +489,7 @@ function log(inStr) {
 
 function updateConfig(inStoreRec) {
     sr = inStoreRec;
-    log("updateConfig, targetTemperature = " + sr.targetTemperature);
+    //log("updateConfig, targetTemperature = " + sr.targetTemperature);
     TEMPATURE_MAX = sr.targetTemperature + 1.0;
     TEMPATURE_MIN = sr.targetTemperature - 1.0;
     _saveStoreRec();
