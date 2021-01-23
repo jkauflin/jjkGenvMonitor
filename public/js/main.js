@@ -293,8 +293,9 @@ var main = (function () {
             dataType: "html"
         })
             .done(function () {
-                //console.log("Successful call to Water");
-            })
+            //console.log("Successful call to Water");
+            $UpdateDisplay.html("Water successful");
+        })
             .fail(function (xhr, status, error) {
                 //Ajax request failed.
                 console.log('Error in AJAX request to ' + url + ', xhr = ' + xhr.status + ': ' + xhr.statusText +
