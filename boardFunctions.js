@@ -457,10 +457,10 @@ function waterThePlants() {
 }
 
 function _waterOn(waterSeconds) {
-    log("Turning Water ON, seconds = " + waterSeconds);
+    //log("Turning Water ON, seconds = " + waterSeconds);
     setRelay(WATER, ON);
     setTimeout(() => {
-        log("Turning Water OFF");
+        //log("Turning Water OFF");
         setRelay(WATER, OFF);
     }, waterSeconds * secondsToMilliseconds);
 }
@@ -501,7 +501,7 @@ function clearLog() {
 }
 
 function water(inRec) {
-    log("in water, inRec.waterSeconds = "+inRec.waterSeconds);
+    //log("in water, inRec.waterSeconds = "+inRec.waterSeconds);
     _waterOn(inRec.waterSeconds);
 }
 
