@@ -501,6 +501,7 @@ function clearLog() {
 }
 
 function water(inRec) {
+    log("in water, inRec.waterSeconds = "+inRec.waterSeconds);
     _waterOn(inRec.waterSeconds);
 }
 
