@@ -263,7 +263,7 @@ board.on("ready", function () {
 
             // Check to adjust the duration of ventilation and heating according to tempature
             if (currTemperature < TEMPATURE_MIN) {
-                sr.heatDuration = sr.heatDurationMax + heatDurationMaxAdj;
+                sr.heatDuration = parseFloat(sr.heatDurationMax) + heatDurationMaxAdj;
                 log("Temp < Min, sr.heatDuration = "+sr.heatDuration);
             }
             if (currTemperature > TEMPATURE_MAX) {
