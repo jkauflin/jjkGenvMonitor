@@ -54,6 +54,9 @@ Modification History
                 instead of .off and .on which don't appear to be defined
 2021-01-18 JJK  Disconnected heat cycle from air cycle and adding dynamic
                 adjustments to get more stable on target temperature
+2021-01-26 JJK  Getting more dynamic with the heat duration max
+                Default to 2.5, but increase by .5 if lights are off
+                (maybe look at outside temperature to adjust as well)
 =============================================================================*/
 var dateTime = require('node-datetime');
 const get = require('simple-get')
@@ -85,7 +88,7 @@ var initStoreRec = {
     heatInterval: 1,            // minutes
     heatDuration: 1,            // minutes
     heatDurationMin: 1,         // minutes
-    heatDurationMax: 2,         // minutes
+    heatDurationMax: 2.5,         // minutes
     lightDuration: 18,          // hours
     waterDuration: 20           // seconds
 };
@@ -154,6 +157,7 @@ var TEMPATURE_MAX = sr.targetTemperature + 1.0;
 var TEMPATURE_MIN = sr.targetTemperature - 1.0;
 const minutesToMilliseconds = 60 * 1000;
 const secondsToMilliseconds = 1000;
+const heatDurationMaxAdj = 0.5;
 
 var relays = null;
 const LIGHTS = 0;
@@ -259,7 +263,7 @@ board.on("ready", function () {
 
             // Check to adjust the duration of ventilation and heating according to tempature
             if (currTemperature < TEMPATURE_MIN) {
-                sr.heatDuration = sr.heatDurationMax;
+                sr.heatDuration = sr.heatDurationMax + heatDurationMaxAdj;
             }
             if (currTemperature > TEMPATURE_MAX) {
                 sr.heatDuration = sr.heatDurationMin;
@@ -332,11 +336,13 @@ function toggleAir() {
         if (currLightsVal == ON) {
             setRelay(LIGHTS,OFF);
             currLightsVal = OFF;
+            heatDurationMaxAdj = 0.5;  // Add a little extra heat max when the lights are off
         }
     } else {
         if (currLightsVal == OFF) {
             setRelay(LIGHTS,ON);
             currLightsVal = ON;
+            heatDurationMaxAdj = 0.0;  // Don't add extra heat max when the lights are on
             // Take a selfie when you turn the lights on
             //setTimeout(letMeTakeASelfie, 100);
 
