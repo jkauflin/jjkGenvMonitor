@@ -264,6 +264,7 @@ board.on("ready", function () {
             // Check to adjust the duration of ventilation and heating according to tempature
             if (currTemperature < TEMPATURE_MIN) {
                 sr.heatDuration = sr.heatDurationMax + heatDurationMaxAdj;
+                log("Temp < Min, sr.heatDuration = "+sr.heatDuration);
             }
             if (currTemperature > TEMPATURE_MAX) {
                 sr.heatDuration = sr.heatDurationMin;
@@ -394,12 +395,12 @@ function logMetric() {
     if (hours > 5 || hours < 3) {
         get.concat(emoncmsUrl, function (err, res, data) {
             if (err) {
-                //log("Error in logMetric send, metricJSON = " + metricJSON);
-                //log("err = " + err);
+                log("Error in logMetric send, metricJSON = " + metricJSON);
+                log("err = " + err);
             } else {
                 //log("Server statusCode = " + res.statusCode) // 200 
                 //log("Server response = " + data) // Buffer('this is the server response') 
-                //log("logMetric send, metricJSON = " + metricJSON);
+                log("logMetric send, metricJSON = " + metricJSON);
             }
         });
     }
