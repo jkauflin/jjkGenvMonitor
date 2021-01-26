@@ -157,7 +157,6 @@ var TEMPATURE_MAX = sr.targetTemperature + 1.0;
 var TEMPATURE_MIN = sr.targetTemperature - 1.0;
 const minutesToMilliseconds = 60 * 1000;
 const secondsToMilliseconds = 1000;
-const heatDurationMaxAdj = 0.5;
 
 var relays = null;
 const LIGHTS = 0;
@@ -178,6 +177,7 @@ var date;
 var hours = 0;
 var airTimeout = 1.0;
 var heatTimeout = 1.0;
+var heatDurationMaxAdj = 0.5;
 
 // Variables to hold sensor values
 var numReadings = 10;   // Total number of readings to average
