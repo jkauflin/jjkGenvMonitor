@@ -85,10 +85,10 @@ var initStoreRec = {
     targetTemperature: 73,      // degrees fahrenheit
     airInterval: 1,             // minutes
     airDuration: 1,             // minutes
-    heatInterval: 1,            // minutes
-    heatDuration: 1,            // minutes
-    heatDurationMin: 1,         // minutes
-    heatDurationMax: 2.5,         // minutes
+    heatInterval: 2.5,            // minutes  (5/11/2021 went up to 2.5 to get down to 73 range)
+    heatDuration: 0.5,            // minutes  (5/11/2021 went down to 0.5 to get down to 73 range)
+    heatDurationMin: 0.5,         // minutes  (5/11/2021 went down to 0.5 to get down to 73 range)
+    heatDurationMax: 2.5,       // minutes
     lightDuration: 18,          // hours
     waterDuration: 20           // seconds
 };
