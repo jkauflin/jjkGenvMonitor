@@ -1,5 +1,5 @@
 /*==============================================================================
-(C) Copyright 2018,2019 John J Kauflin, All rights reserved. 
+(C) Copyright 2018,2019,2022 John J Kauflin, All rights reserved. 
 -----------------------------------------------------------------------------
 DESCRIPTION: Main nodejs server to run the web and control functions for
                 the grow environment monitor
@@ -14,7 +14,7 @@ Modification History
                 the web page
 2019-09-08 JJK  Upgraded to Raspbian Buster and NodeJS v10
 2019-09-28 JJK  Re-implementing web display and updates to config values
-2021-01-16 JJK  Updating
+2022-04-03 JJK  Updating to bootstrap 5
 =============================================================================*/
 
 // Read environment variables from the .env file

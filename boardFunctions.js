@@ -57,10 +57,11 @@ Modification History
 2021-01-26 JJK  Getting more dynamic with the heat duration max
                 Default to 2.5, but increase by .5 if lights are off
                 (maybe look at outside temperature to adjust as well)
+2022-04-03 JJK  Update to use http fetch
 =============================================================================*/
 var dateTime = require('node-datetime');
-const get = require('simple-get')
 //const EventEmitter = require('events');
+//const get = require('simple-get')
 
 // Library to control the Arduino board
 var five = require("johnny-five");
@@ -393,6 +394,7 @@ function logMetric() {
     var date = new Date();
     var hours = date.getHours();
     if (hours > 5 || hours < 3) {
+        /*
         get.concat(emoncmsUrl, function (err, res, data) {
             if (err) {
                 //log("Error in logMetric send, metricJSON = " + metricJSON);
@@ -403,6 +405,27 @@ function logMetric() {
                 //log("logMetric send, metricJSON = " + metricJSON);
             }
         });
+        */
+
+        fetch(emoncmsUrl)
+            .then(checkResponseStatus)
+            .then(res => res.json())
+            //.then(json => console.log(json))
+            .catch(err => log(err));
+
+        /*
+fetch(emoncmsUrl {
+method: 'POST',
+headers: {
+    'Content-Type': 'application/json',
+},
+body: JSON.stringify(metricData)
+})
+.then(res => res.json())
+.then(data => console.log(data))
+.catch(err => console.log(err));
+*/
+
     }
 
     // Set the next time the function will run
