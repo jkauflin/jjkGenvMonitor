@@ -1,6 +1,7 @@
 {
   "name": "jjkgenvmonitor",
   "version": "2.1.0",
+  "type": "module",
   "description": "Monitor and control grow environment",
   "main": "server.js",
   "scripts": {
