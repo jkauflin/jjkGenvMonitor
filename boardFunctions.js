@@ -62,6 +62,7 @@ Modification History
 var dateTime = require('node-datetime');
 //const EventEmitter = require('events');
 //const get = require('simple-get')
+import fetch from 'node-fetch';
 
 // Library to control the Arduino board
 var five = require("johnny-five");
@@ -407,24 +408,11 @@ function logMetric() {
         });
         */
 
-        fetch(emoncmsUrl)
-            .then(checkResponseStatus)
-            .then(res => res.json())
-            //.then(json => console.log(json))
-            .catch(err => log(err));
-
-        /*
-fetch(emoncmsUrl {
-method: 'POST',
-headers: {
-    'Content-Type': 'application/json',
-},
-body: JSON.stringify(metricData)
-})
-.then(res => res.json())
-.then(data => console.log(data))
-.catch(err => console.log(err));
-*/
+        try {
+            await fetch(emoncmsUrl);
+        } catch (error) {
+            log(error);
+        }
 
     }
 
