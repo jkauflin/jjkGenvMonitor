@@ -220,6 +220,8 @@ board.on("ready", function () {
     log("*** board ready ***");
     boardReady = true;
 
+    logMetric();
+
     log("Initializing relays");
     relays = new five.Relays([10, 11, 12, 13]);
 
