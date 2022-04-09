@@ -1,5 +1,5 @@
 /*==============================================================================
-(C) Copyright 2018,2021 John J Kauflin, All rights reserved. 
+(C) Copyright 2018,2021,2022 John J Kauflin, All rights reserved. 
 -----------------------------------------------------------------------------
 DESCRIPTION: NodeJS module to handle board functions.  Communicates with
              the Arduino Mega board using johnny-five library
@@ -57,12 +57,14 @@ Modification History
 2021-01-26 JJK  Getting more dynamic with the heat duration max
                 Default to 2.5, but increase by .5 if lights are off
                 (maybe look at outside temperature to adjust as well)
-2022-04-03 JJK  Update to use http fetch
+2022-04-09 JJK  Updated to use newest version of node-fetch
+                >>>>> hold off for now, v3 has breaking changes for ES6
+                went back to 2.6.5 for now
 =============================================================================*/
-var dateTime = require('node-datetime');
+//var dateTime = require('node-datetime');
 //const EventEmitter = require('events');
-//const get = require('simple-get')
-import fetch from 'node-fetch';
+const fetch = require('node-fetch');
+//import fetch from 'node-fetch';
 
 // Library to control the Arduino board
 var five = require("johnny-five");
@@ -408,11 +410,11 @@ function logMetric() {
         });
         */
 
-        try {
-            await fetch(emoncmsUrl);
-        } catch (error) {
-            log(error);
-        }
+        fetch(emoncmsUrl)
+        .then(checkResponseStatus)
+        .then(res => res.json())
+        //.then(json => console.log(json))
+        .catch(err => log(err));
 
     }
 
@@ -438,12 +440,14 @@ function webControl(boardMessage) {
   // If send a new store rec, replace the existing and store it to disk
   if (boardMessage.storeRec != null) {
     sr = boardMessage.storeRec;
+    /*
     store.add(sr, function(err) {
       if (err) {
         //throw err;
         console.log("Error updating store rec, err = "+err);
       }
     });
+    */
   }
 
 } // function webControl(boardMessage) {
@@ -490,16 +494,20 @@ function getStoreRec() {
 function _saveStoreRec() {
     sr.id = storeId;
     //sr.logList = logArray;
+    /*
     store.add(sr, function (err) {
         if (err) {
             //throw err;
             log("Error updating store rec, err = " + err);
         }
     });
+    */
 }
 
 function log(inStr) {
-    var logStr = dateTime.create().format('Y-m-d H:M:S') + " " + inStr;
+    //var logStr = dateTime.create().format('Y-m-d H:M:S') + " " + inStr;
+    var tempDate = new Date();
+    var logStr = tempDate.toDateString() + " " + inStr;
     console.log(logStr);
     //logArray.push(logStr);
     //_saveStoreRec();

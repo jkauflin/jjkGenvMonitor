@@ -15,4 +15,3 @@ yarn-error.log*
 public/images/*.jpg
 store.json
 storeid.json
-package-lock.json

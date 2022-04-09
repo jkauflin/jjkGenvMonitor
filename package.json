@@ -1,7 +1,6 @@
 {
   "name": "jjkgenvmonitor",
   "version": "2.1.0",
-  "type": "module",
   "description": "Monitor and control grow environment",
   "main": "server.js",
   "scripts": {
@@ -16,9 +15,8 @@
   },
   "dependencies": {
     "dotenv": "latest",
-    "node-fetch": "^3.2.3",
+    "node-fetch": "^2.6.7",
     "johnny-five": "^2.1.0",
-    "node-datetime": "^2.1.2",
     "express": "latest",
     "json-fs-store": "^1.0.1"
   }

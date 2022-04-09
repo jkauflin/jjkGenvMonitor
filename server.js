@@ -14,12 +14,18 @@ Modification History
                 the web page
 2019-09-08 JJK  Upgraded to Raspbian Buster and NodeJS v10
 2019-09-28 JJK  Re-implementing web display and updates to config values
-2022-04-03 JJK  Updating to bootstrap 5
+2022-04-03 JJK  Updating to ES6 and bootstrap 5
 =============================================================================*/
 
 // Read environment variables from the .env file
 require('dotenv').config();
+//import 'dotenv/config'
 //EMONCMS_INPUT_URL=
+
+var http = require('http');
+//import * as http from 'http';
+const express = require('express')
+//import express from 'express'
 
 var WEB_PORT = 3035;
 
@@ -33,10 +39,6 @@ process.on('uncaughtException', function (e) {
 });
 
 // Create a web server
-const http = require('http');
-const url = require('url');
-var dateTime = require('node-datetime');
-const express = require('express');
 var app = express();
 var httpServer = http.createServer(app);
 
@@ -54,8 +56,11 @@ httpServer.listen(WEB_PORT,function() {
     console.log("Live at Port " + WEB_PORT + " - Let's rock!");
 });
 
+
 // Include the Arduino board functions
 var boardFunctions = require('./boardFunctions.js');
+//import * as boardFunctions from './boardFunctions.js';
+
 
 app.get('/GetValues', function (req, res, next) {
     res.send(JSON.stringify(boardFunctions.getStoreRec()));
