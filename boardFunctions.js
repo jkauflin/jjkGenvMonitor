@@ -423,8 +423,10 @@ function logMetric() {
 
 function checkResponseStatus(res) {
     if(res.ok){
+        console.log('res is OK');
         return res
     } else {
+        console.log('res is NOT OK');
         //throw new Error(`The HTTP status of the reponse: ${res.status} (${res.statusText})`);
         log(`The HTTP status of the reponse: ${res.status} (${res.statusText})`);
     }
@@ -516,7 +518,7 @@ function _saveStoreRec() {
 function log(inStr) {
     //var logStr = dateTime.create().format('Y-m-d H:M:S') + " " + inStr;
     var td = new Date();
-    var dateStr = `date = ${td.toDateString()} ${td.getHours()}:${td.getMinutes()}:${td.getSeconds()}.${td.getMilliseconds()}`;
+    var dateStr = `${td.toDateString()} ${td.getHours()}:${td.getMinutes()}:${td.getSeconds()}.${td.getMilliseconds()}`;
     console.log(dateStr + " " + inStr);
     //logArray.push(logStr);
     //_saveStoreRec();
