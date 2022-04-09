@@ -396,7 +396,7 @@ function logMetric() {
     // Use this if we need to limit the send to between the hours of 6 and 20
     var date = new Date();
     var hours = date.getHours();
-    if (hours > 5 || hours < 3) {
+    //if (hours > 5 || hours < 3) {
         /*
         get.concat(emoncmsUrl, function (err, res, data) {
             if (err) {
@@ -415,7 +415,7 @@ function logMetric() {
         //.then(res => res.json())
         //.then(json => console.log(json))
         .catch(err => log(err));
-    }
+    //}
 
     // Set the next time the function will run
     setTimeout(logMetric, metricInterval);
