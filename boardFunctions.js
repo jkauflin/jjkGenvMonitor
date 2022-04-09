@@ -59,7 +59,7 @@ Modification History
                 (maybe look at outside temperature to adjust as well)
 2022-04-09 JJK  Updated to use newest version of node-fetch
                 >>>>> hold off for now, v3 has breaking changes for ES6
-                went back to 2.6.5 for now
+                went back to v2 for now
 =============================================================================*/
 //var dateTime = require('node-datetime');
 //const EventEmitter = require('events');
@@ -415,12 +415,21 @@ function logMetric() {
         .then(res => res.json())
         //.then(json => console.log(json))
         .catch(err => log(err));
-
     }
 
     // Set the next time the function will run
     setTimeout(logMetric, metricInterval);
 }
+
+function checkResponseStatus(res) {
+    if(res.ok){
+        return res
+    } else {
+        //throw new Error(`The HTTP status of the reponse: ${res.status} (${res.statusText})`);
+        log(`The HTTP status of the reponse: ${res.status} (${res.statusText})`);
+    }
+}
+
 
 function webControl(boardMessage) {
   if (boardMessage.relay3 != null) {
@@ -506,9 +515,9 @@ function _saveStoreRec() {
 
 function log(inStr) {
     //var logStr = dateTime.create().format('Y-m-d H:M:S') + " " + inStr;
-    var tempDate = new Date();
-    var logStr = tempDate.toDateString() + " " + inStr;
-    console.log(logStr);
+    var td = new Date();
+    var dateStr = `date = ${td.toDateString()} ${td.getHours()}:${td.getMinutes()}:${td.getSeconds()}.${td.getMilliseconds()}`;
+    console.log(dateStr + " " + inStr);
     //logArray.push(logStr);
     //_saveStoreRec();
 }

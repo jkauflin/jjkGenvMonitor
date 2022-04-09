@@ -15,6 +15,7 @@ Modification History
 2019-09-08 JJK  Upgraded to Raspbian Buster and NodeJS v10
 2019-09-28 JJK  Re-implementing web display and updates to config values
 2022-04-03 JJK  Updating to ES6 and bootstrap 5
+2022-04-09 JJK  Hold off on ES6 for now, just implement bootstrap 5
 =============================================================================*/
 
 // Read environment variables from the .env file
