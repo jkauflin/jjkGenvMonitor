@@ -424,6 +424,7 @@ function logMetric() {
 function checkResponseStatus(res) {
     if(res.ok){
         console.log('res is OK');
+        log(`The HTTP status of the reponse: ${res.status} (${res.statusText})`);
         return res
     } else {
         console.log('res is NOT OK');
