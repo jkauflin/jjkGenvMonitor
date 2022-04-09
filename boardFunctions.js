@@ -411,8 +411,8 @@ function logMetric() {
         */
 
         fetch(emoncmsUrl)
-        .then(checkResponseStatus)
-        .then(res => res.json())
+        //.then(checkResponseStatus)
+        //.then(res => res.json())
         //.then(json => console.log(json))
         .catch(err => log(err));
     }
