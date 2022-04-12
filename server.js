@@ -23,6 +23,7 @@ require('dotenv').config();
 //import 'dotenv/config'
 //EMONCMS_INPUT_URL=
 
+const fetch = require('node-fetch');
 
 const EMONCMS_INPUT_URL = process.env.EMONCMS_INPUT_URL;
 var emoncmsUrl = "";
@@ -92,6 +93,7 @@ logMetric();
 
 // Send metric values to a website
 function logMetric() {
+    /*
     metricJSON = "{" + "tempature:" + currTemperature
         + ",heatDuration:" + sr.heatDuration
         + "," + relayNames[0] + ":" + relayMetricValues[0]
@@ -100,6 +102,8 @@ function logMetric() {
         + "," + relayNames[3] + ":" + relayMetricValues[3]
         + "}";
     emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON;
+    */
+    emoncmsUrl = EMONCMS_INPUT_URL + "&json={}";
 
     // Use this if we need to limit the send to between the hours of 6 and 20
     var date = new Date();
@@ -122,7 +126,7 @@ function logMetric() {
         .then(checkResponseStatus)
         //.then(res => res.json())
         //.then(json => console.log(json))
-        .catch(err => log(err));
+        .catch(err => log("ERROR: "+err));
     //}
 }
 
