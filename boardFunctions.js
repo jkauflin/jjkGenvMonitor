@@ -194,6 +194,8 @@ for (var i = 0; i < numReadings; i++) {
 }
 var arrayFull = false;
 
+logMetric();
+
 // Create Johnny-Five board object
 // When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
 // be sure to shut the REPL off!
@@ -220,7 +222,6 @@ board.on("ready", function () {
     log("*** board ready ***");
     boardReady = true;
 
-    logMetric();
 
     log("Initializing relays");
     relays = new five.Relays([10, 11, 12, 13]);

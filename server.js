@@ -23,6 +23,12 @@ require('dotenv').config();
 //import 'dotenv/config'
 //EMONCMS_INPUT_URL=
 
+
+const EMONCMS_INPUT_URL = process.env.EMONCMS_INPUT_URL;
+var emoncmsUrl = "";
+var metricJSON = "";
+
+
 var http = require('http');
 //import * as http from 'http';
 const express = require('express')
@@ -59,7 +65,7 @@ httpServer.listen(WEB_PORT,function() {
 
 
 // Include the Arduino board functions
-var boardFunctions = require('./boardFunctions.js');
+//var boardFunctions = require('./boardFunctions.js');
 //import * as boardFunctions from './boardFunctions.js';
 
 
@@ -81,3 +87,62 @@ app.post('/Water', function (req, res, next) {
     boardFunctions.water(req.body);
     res.send('ok');
 });
+
+logMetric();
+
+// Send metric values to a website
+function logMetric() {
+    metricJSON = "{" + "tempature:" + currTemperature
+        + ",heatDuration:" + sr.heatDuration
+        + "," + relayNames[0] + ":" + relayMetricValues[0]
+        + "," + relayNames[1] + ":" + relayMetricValues[1]
+        + "," + relayNames[2] + ":" + relayMetricValues[2]
+        + "," + relayNames[3] + ":" + relayMetricValues[3]
+        + "}";
+    emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON;
+
+    // Use this if we need to limit the send to between the hours of 6 and 20
+    var date = new Date();
+    var hours = date.getHours();
+    //if (hours > 5 || hours < 3) {
+        /*
+        get.concat(emoncmsUrl, function (err, res, data) {
+            if (err) {
+                //log("Error in logMetric send, metricJSON = " + metricJSON);
+                //log("err = " + err);
+            } else {
+                //log("Server statusCode = " + res.statusCode) // 200 
+                //log("Server response = " + data) // Buffer('this is the server response') 
+                //log("logMetric send, metricJSON = " + metricJSON);
+            }
+        });
+        */
+
+        fetch(emoncmsUrl)
+        .then(checkResponseStatus)
+        //.then(res => res.json())
+        //.then(json => console.log(json))
+        .catch(err => log(err));
+    //}
+}
+
+function checkResponseStatus(res) {
+    if(res.ok){
+        console.log('res is OK');
+        log(`The HTTP status of the reponse: ${res.status} (${res.statusText})`);
+        return res
+    } else {
+        console.log('res is NOT OK');
+        //throw new Error(`The HTTP status of the reponse: ${res.status} (${res.statusText})`);
+        log(`The HTTP status of the reponse: ${res.status} (${res.statusText})`);
+    }
+}
+
+function log(inStr) {
+    //var logStr = dateTime.create().format('Y-m-d H:M:S') + " " + inStr;
+    var td = new Date();
+    var dateStr = `${td.toDateString()} ${td.getHours()}:${td.getMinutes()}:${td.getSeconds()}.${td.getMilliseconds()}`;
+    console.log(dateStr + " " + inStr);
+    //logArray.push(logStr);
+    //_saveStoreRec();
+}
