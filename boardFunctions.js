@@ -440,7 +440,7 @@ function getStoreRec() {
 function _saveStoreRec() {
     sr.id = storeId;
     //sr.logList = logArray;
-    log('Save JSON config record to storage file');
+    //log('Save JSON config record to storage file');
     store.add(sr, function (err) {
         if (err) {
             log("Error updating store rec, err = " + err);
@@ -450,7 +450,7 @@ function _saveStoreRec() {
 
 function updateConfig(inStoreRec) {
     sr = inStoreRec;
-    log("updateConfig, targetTemperature = " + sr.targetTemperature);
+    //log("updateConfig, targetTemperature = " + sr.targetTemperature);
     TEMPATURE_MAX = sr.targetTemperature + 1.0;
     TEMPATURE_MIN = sr.targetTemperature - 1.0;
     _saveStoreRec();
@@ -462,7 +462,7 @@ function clearLog() {
 }
 
 function water(inRec) {
-    log("in water, inRec.waterSeconds = "+inRec.waterSeconds);
+    //log("in water, inRec.waterSeconds = "+inRec.waterSeconds);
     _waterOn(inRec.waterSeconds);
 }
 
