@@ -147,6 +147,7 @@ var main = (function () {
             console.log('Error in AJAX request to ' + url + ', xhr = ' + xhr.status + ': ' + xhr.statusText +
                 ', status = ' + status + ', error = ' + error);
             alert(`Error in AJAX request to ${url}`);
+            $UpdateDisplay.html("Error in Update");
         });
     }
 
@@ -178,8 +179,8 @@ var main = (function () {
                 //Ajax request failed.
                 console.log('Error in AJAX request to ' + url + ', xhr = ' + xhr.status + ': ' + xhr.statusText +
                     ', status = ' + status + ', error = ' + error);
-                alert('Error in AJAX request to ' + url + ', xhr = ' + xhr.status + ': ' + xhr.statusText +
-                    ', status = ' + status + ', error = ' + error);
+                alert(`Error in AJAX request to ${url}`);
+                $UpdateDisplay.html("Error in Update");
             });
     }
 
