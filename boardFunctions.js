@@ -379,8 +379,8 @@ function logMetric() {
     //if (hours > 5 || hours < 3) {
         fetch(emoncmsUrl)
         .then(checkResponseStatus)
-        //.then(res => res.json())
-        //.then(json => console.log(json))
+        .then(res => res.json())
+        .then(json => log(`json = ${json}`))
         .catch(err => log("ERROR: "+err));
     //}
 
@@ -390,13 +390,11 @@ function logMetric() {
 
 function checkResponseStatus(res) {
     if(res.ok){
-        console.log('res is OK');
-        log(`The HTTP status of the reponse: ${res.status} (${res.statusText})`);
+        log(`Fetch reponse is OK: ${res.status} (${res.statusText})`);
         return res
     } else {
-        console.log('res is NOT OK');
         //throw new Error(`The HTTP status of the reponse: ${res.status} (${res.statusText})`);
-        log(`The HTTP status of the reponse: ${res.status} (${res.statusText})`);
+        log(`Fetch reponse is NOT OK: ${res.status} (${res.statusText})`);
     }
 }
 
