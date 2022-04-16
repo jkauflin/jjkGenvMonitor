@@ -456,12 +456,10 @@ function updateConfig(inStoreRec) {
     _saveStoreRec();
 }
 
-/*
 function clearLog() {
     logArray.length = 0;
     _saveStoreRec();
 }
-*/
 
 function water(inRec) {
     log("in water, inRec.waterSeconds = "+inRec.waterSeconds);
