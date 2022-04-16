@@ -62,6 +62,7 @@ Modification History
                 went back to v2 for now
 2022-04-12 JJK  Working on error handling - implementing a overall try/catch
                 for the main executable code
+2022-04-16 JJK  Checking function of file storage updates
 =============================================================================*/
 //const EventEmitter = require('events');
 const fetch = require('node-fetch');
@@ -398,38 +399,6 @@ function checkResponseStatus(res) {
     }
 }
 
-
-function webControl(boardMessage) {
-  if (boardMessage.relay3 != null) {
-    setRelay(HEAT,boardMessage.relay3);
-  }
-  if (boardMessage.relay4 != null) {
-    //setRelay(WATER,boardMessage.relay4);
-    if (boardMessage.relay4 == 1) {
-      setTimeout(waterThePlants);
-    }
-  }
-
-  if (boardMessage.selfie != null) {
-    setTimeout(letMeTakeASelfie);
-  }
-
-  // If send a new store rec, replace the existing and store it to disk
-  if (boardMessage.storeRec != null) {
-    sr = boardMessage.storeRec;
-    /*
-    store.add(sr, function(err) {
-      if (err) {
-        //throw err;
-        console.log("Error updating store rec, err = "+err);
-      }
-    });
-    */
-  }
-
-} // function webControl(boardMessage) {
-
-
 function letMeTakeASelfie() {
   /*
   setTimeout(() => {
@@ -471,41 +440,55 @@ function getStoreRec() {
 function _saveStoreRec() {
     sr.id = storeId;
     //sr.logList = logArray;
-    /*
+    log('Save JSON config record to storage file');
     store.add(sr, function (err) {
         if (err) {
-            //throw err;
             log("Error updating store rec, err = " + err);
         }
     });
-    */
-}
-
-function log(inStr) {
-    //var logStr = dateTime.create().format('Y-m-d H:M:S') + " " + inStr;
-    var td = new Date();
-    var dateStr = `${td.toDateString()} ${td.getHours()}:${td.getMinutes()}:${td.getSeconds()}.${td.getMilliseconds()}`;
-    console.log(dateStr + " " + inStr);
-    //logArray.push(logStr);
-    //_saveStoreRec();
 }
 
 function updateConfig(inStoreRec) {
     sr = inStoreRec;
-    //log("updateConfig, targetTemperature = " + sr.targetTemperature);
+    log("updateConfig, targetTemperature = " + sr.targetTemperature);
     TEMPATURE_MAX = sr.targetTemperature + 1.0;
     TEMPATURE_MIN = sr.targetTemperature - 1.0;
     _saveStoreRec();
 }
 
+/*
 function clearLog() {
     logArray.length = 0;
     _saveStoreRec();
 }
+*/
 
 function water(inRec) {
-    //log("in water, inRec.waterSeconds = "+inRec.waterSeconds);
+    log("in water, inRec.waterSeconds = "+inRec.waterSeconds);
     _waterOn(inRec.waterSeconds);
+}
+
+
+
+function log(inStr) {
+    //var logStr = dateTime.create().format('Y-m-d H:M:S') + " " + inStr;
+    var td = new Date();
+
+    var tempMonth = tempDate.getMonth() + 1;
+    if (tempDate.getMonth() < 9) {
+        tempMonth = '0' + (tempDate.getMonth() + 1);
+    }
+    var tempDay = tempDate.getDate();
+    if (tempDate.getDate() < 10) {
+        tempDay = '0' + tempDate.getDate();
+    }
+    var formattedDate = td.getFullYear() + '-' + tempMonth + '-' + tempDay;
+
+    //var dateStr = `${td.toDateString()} ${td.getHours()}:${td.getMinutes()}:${td.getSeconds()}.${td.getMilliseconds()}`;
+    var dateStr = `${formattedDate} ${td.getHours()}:${td.getMinutes()}:${td.getSeconds()}.${td.getMilliseconds()}`;
+    console.log(dateStr + " " + inStr);
+    //logArray.push(logStr);
+    //_saveStoreRec();
 }
 
 module.exports = {

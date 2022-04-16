@@ -13,7 +13,8 @@
  * 2019-09-22 JJK   Getting it going again
  * 2019-09-28 JJK   Implemented modules concept and moved common methods to
  *                  util.js
- * 2021-01-17 JJK   Making updates for bootstrap 4, and to use fetch()
+ * 2022-04-17 JJK   Making updates for bootstrap 5, and to use fetch()
+ *                  instead of AJAX.  Removed old websocket stuff
  *============================================================================*/
 var main = (function () {
     'use strict';
@@ -69,128 +70,6 @@ var main = (function () {
     $UpdateButton.click(_update);
     $WaterButton.click(_water);
     _lookup();
-
-	$("#LightsButton")
-	    .mousedown(function () {
-	        if (!isTouchDevice) {
-	            lightsPushed();
-	        }
-	    })
-	    .mouseup(function () {
-	        if (!isTouchDevice) {
-	            lightsReleased();
-	        }
-	    })
-	    .on('touchstart', function () {
-	        if (isTouchDevice) {
-	            lightsPushed();
-	        }
-	    })
-	    .on('touchend', function () {
-	        if (isTouchDevice) {
-	            lightsReleased();
-	        }
-	    });
-
-	$("#Relay1Button")
-	    .mousedown(function () {
-	        if (!isTouchDevice) {
-	            relay1Pushed();
-	        }
-	    })
-	    .mouseup(function () {
-	        if (!isTouchDevice) {
-	            relay1Released();
-	        }
-	    })
-	    .on('touchstart', function () {
-	        if (isTouchDevice) {
-	            relay1Pushed();
-	        }
-	    })
-	    .on('touchend', function () {
-	        if (isTouchDevice) {
-	            relay1Released();
-	        }
-	    });
-
-	$("#Relay2Button")
-	    .mousedown(function () {
-	        if (!isTouchDevice) {
-	            relay2Pushed();
-	        }
-	    })
-	    .mouseup(function () {
-	        if (!isTouchDevice) {
-	            relay2Released();
-	        }
-	    })
-	    .on('touchstart', function () {
-	        if (isTouchDevice) {
-	            relay2Pushed();
-	        }
-	    })
-	    .on('touchend', function () {
-	        if (isTouchDevice) {
-	            relay2Released();
-	        }
-	    });
-
-	$("#Relay3Button")
-	    .mousedown(function () {
-	        if (!isTouchDevice) {
-	            relay3Pushed();
-	        }
-	    })
-	    .mouseup(function () {
-	        if (!isTouchDevice) {
-	            relay3Released();
-	        }
-	    })
-	    .on('touchstart', function () {
-	        if (isTouchDevice) {
-	            relay3Pushed();
-	        }
-	    })
-	    .on('touchend', function () {
-	        if (isTouchDevice) {
-	            relay3Released();
-	        }
-	    });
-
-	$("#Relay4Button")
-	    .mousedown(function () {
-	        if (!isTouchDevice) {
-	            relay4Pushed();
-	        }
-	    })
-	    .mouseup(function () {
-	        if (!isTouchDevice) {
-	            relay4Released();
-	        }
-	    })
-	    .on('touchstart', function () {
-	        if (isTouchDevice) {
-	            relay4Pushed();
-	        }
-	    })
-	    .on('touchend', function () {
-	        if (isTouchDevice) {
-	            relay4Released();
-	        }
-	    });
-
-	$("#SelfieButton")
-	    .mousedown(function () {
-	        if (!isTouchDevice) {
-	            selfiePushed();
-	        }
-	    })
-	    .on('touchstart', function () {
-	        if (isTouchDevice) {
-	            selfiePushed();
-	        }
-	    });
 
 
     //=================================================================================================================
@@ -305,60 +184,6 @@ var main = (function () {
             });
     }
 
-    // General function to send the boardMessage to the server if Websocket is connected
-    function wsSend(boardMessage) {
-        //if (wsConnected) {
-        //	ws.send(boardMessage);
-        //}
-    }
-
-    function lightsPushed() {
-        //console.log("Lights - Pushed");
-        //$("#logMessage").html("Button - Pushed");
-        wsSend('{"lights" : 1}');
-    }
-
-    function lightsReleased() {
-        //console.log("Lights - Released");
-        //$("#logMessage").html("Button - Released");
-        wsSend('{"lights" : 0}');
-    }
-
-    function relay1Pushed() {
-        wsSend('{"relay1" : 1}');
-    }
-
-    function relay1Released() {
-        wsSend('{"relay1" : 0}');
-    }
-
-    function relay2Pushed() {
-        wsSend('{"relay2" : 1}');
-    }
-
-    function relay2Released() {
-        wsSend('{"relay2" : 0}');
-    }
-
-    function relay3Pushed() {
-        wsSend('{"relay3" : 1}');
-    }
-
-    function relay3Released() {
-        wsSend('{"relay3" : 0}');
-    }
-
-    function relay4Pushed() {
-        wsSend('{"relay4" : 1}');
-    }
-
-    function relay4Released() {
-        wsSend('{"relay4" : 0}');
-    }
-
-    function selfiePushed() {
-        wsSend('{"selfie" : 1}');
-    }
 
     //=================================================================================================================
     // This is what is exposed from this Module
