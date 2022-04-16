@@ -474,13 +474,13 @@ function log(inStr) {
     //var logStr = dateTime.create().format('Y-m-d H:M:S') + " " + inStr;
     var td = new Date();
 
-    var tempMonth = tempDate.getMonth() + 1;
-    if (tempDate.getMonth() < 9) {
-        tempMonth = '0' + (tempDate.getMonth() + 1);
+    var tempMonth = td.getMonth() + 1;
+    if (td.getMonth() < 9) {
+        tempMonth = '0' + (td.getMonth() + 1);
     }
-    var tempDay = tempDate.getDate();
-    if (tempDate.getDate() < 10) {
-        tempDay = '0' + tempDate.getDate();
+    var tempDay = td.getDate();
+    if (td.getDate() < 10) {
+        tempDay = '0' + td.getDate();
     }
     var formattedDate = td.getFullYear() + '-' + tempMonth + '-' + tempDay;
 
