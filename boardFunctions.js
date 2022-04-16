@@ -60,8 +60,9 @@ Modification History
 2022-04-09 JJK  Updated to use newest version of node-fetch
                 >>>>> hold off for now, v3 has breaking changes for ES6
                 went back to v2 for now
+2022-04-12 JJK  Working on error handling - implementing a overall try/catch
+                for the main executable code
 =============================================================================*/
-//var dateTime = require('node-datetime');
 //const EventEmitter = require('events');
 const fetch = require('node-fetch');
 //import fetch from 'node-fetch';
@@ -101,50 +102,6 @@ var initStoreRec = {
 
 // Structure to hold current configuration values
 var sr = initStoreRec;
-
-// Get values from the application storage record
-store.load(storeId, function(err, inStoreRec){
-    if (err) {
-        // Create one if it does not exist (with initial values)
-        store.add(initStoreRec, function (err) {
-            if (err) {
-                throw err;
-            }
-        });
-    } else {
-        // Get current values from the store record
-        sr = inStoreRec;
-    }
-});
-
-// Requires webcam utility - sudo apt-get install fswebcam
-/*
-var nodeWebcam = require( "node-webcam" );
-//Default options 
-var nodewebcamOptions = {
-  //Picture related 
-  width: 1280,
-  height: 720,
-  quality: 100,
-  //Delay to take shot 
-  delay: 0,
-  //Save shots in memory 
-  //saveShots: true,
-  saveShots: false,
-  // [jpeg, png] support varies 
-  // Webcam.OutputTypes 
-  output: "jpeg",
-  //Which camera to use 
-  //Use Webcam.list() for results 
-  //false for default device 
-  device: false,
-  // [location, buffer, base64] 
-  // Webcam.CallbackReturnTypes 
-  callbackReturn: "location",
-  //Logging 
-  verbose: false
-};
-*/
 
 // Global variables
 const EMONCMS_INPUT_URL = process.env.EMONCMS_INPUT_URL;
@@ -194,106 +151,126 @@ for (var i = 0; i < numReadings; i++) {
 }
 var arrayFull = false;
 
-logMetric();
-
-// Create Johnny-Five board object
-// When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
-// be sure to shut the REPL off!
-var board = new five.Board({
-    repl: false,
-    debug: false
-//    timeout: 12000
-});
-
 // State variables
 var boardReady = false;
 
-board.on("error", function () {
-    log("*** Error in Board ***");
-    boardReady = false;
-}); // board.on("error", function() {
-
-log("===== Starting board initialization =====");
-//-------------------------------------------------------------------------------------------------------
-// When the board is ready, create and intialize global component objects (to be used by functions)
-//-------------------------------------------------------------------------------------------------------
-// When the board is ready, create and intialize global component objects (to be used by functions)
-board.on("ready", function () {
-    log("*** board ready ***");
-    boardReady = true;
-
-
-    log("Initializing relays");
-    relays = new five.Relays([10, 11, 12, 13]);
-
-    // If the board is exiting, turn all the relays off
-    this.on("exit", function () {
-        log("on EXIT");
-        turnRelaysOFF();
+try {
+    // Get values from the application storage record
+    log("===== Reading storage record =====");
+    store.load(storeId, function(err, inStoreRec){
+        if (err) {
+            // Create one if it does not exist (with initial values)
+            store.add(initStoreRec, function (err) {
+                if (err) {
+                    throw err;
+                }
+            });
+        } else {
+            // Get current values from the store record
+            sr = inStoreRec;
+        }
     });
-    // Handle a termination signal (from stopping the systemd service)
-    process.on('SIGTERM', function () {
-        log('on SIGTERM');
-        turnRelaysOFF();
-    });
-    //[`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
-    //    process.on(eventType, cleanUpServer.bind(null, eventType));
-    //})
 
-    // Define the thermometer sensor
-    this.wait(2000, function () {
-        // This requires OneWire support using the ConfigurableFirmata
-        log("Initialize tempature sensor");
-        thermometer = new five.Thermometer({
-            controller: "DS18B20",
-            pin: 2
+    // Create Johnny-Five board object
+    // When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
+    // be sure to shut the REPL off!
+    var board = new five.Board({
+        repl: false,
+        debug: false
+        //    timeout: 12000
+    });
+
+    board.on("error", function (err) {
+        log("*** Error in Board ***");
+        console.error(err.stack);
+        boardReady = false;
+    }); // board.on("error", function() {
+    
+    log("===== Starting board initialization =====");
+    //-------------------------------------------------------------------------------------------------------
+    // When the board is ready, create and intialize global component objects (to be used by functions)
+    //-------------------------------------------------------------------------------------------------------
+    board.on("ready", function () {
+        log("*** board ready ***");
+        boardReady = true;
+    
+        log("Initializing relays");
+        relays = new five.Relays([10, 11, 12, 13]);
+    
+        // If the board is exiting, turn all the relays off
+        this.on("exit", function () {
+            log("on EXIT");
+            turnRelaysOFF();
         });
+        // Handle a termination signal (from stopping the systemd service)
+        process.on('SIGTERM', function () {
+            log('on SIGTERM');
+            turnRelaysOFF();
+        });
+        //[`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
+        //    process.on(eventType, cleanUpServer.bind(null, eventType));
+        //})
+    
+        // Define the thermometer sensor
+        this.wait(2000, function () {
+            // This requires OneWire support using the ConfigurableFirmata
+            log("Initialize tempature sensor");
+            thermometer = new five.Thermometer({
+                controller: "DS18B20",
+                pin: 2
+            });
+    
+            thermometer.on("change", function () {
+                // subtract the last reading:
+                totalA0 = totalA0 - readingsA0[indexA0];
+                readingsA0[indexA0] = this.fahrenheit;
+                // add the reading to the total:
+                totalA0 = totalA0 + readingsA0[indexA0];
+                // advance to the next position in the array: 
+                indexA0 = indexA0 + 1;
+                // if we're at the end of the array...
+                if (indexA0 >= numReadings) {
+                    // ...wrap around to the beginning:
+                    indexA0 = 0;
+                    arrayFull = true;
+                }
+                // calculate the average:
+                if (arrayFull) {
+                    currTemperature = (totalA0 / numReadings).toFixed(2);
+                }
+    
+                // Check to adjust the duration of ventilation and heating according to tempature
+                if (currTemperature < TEMPATURE_MIN) {
+                    sr.heatDuration = parseFloat(sr.heatDurationMax) + heatDurationMaxAdj;
+                    //log("Temp < Min, sr.heatDuration = "+sr.heatDuration);
+                }
+                if (currTemperature > TEMPATURE_MAX) {
+                    sr.heatDuration = sr.heatDurationMin;
+                }
+            }); // on termometer change
+        });
+    
+        // Start the function to toggle air ventilation ON and OFF
+        log("Starting Air toggle interval");
+        setTimeout(toggleAir, 5000);
+        // Start the function to toggle heat ON and OFF
+        log("Starting Heat toggle interval");
+        setTimeout(toggleHeat, 6000);
+    
+        // Start sending metrics 10 seconds after starting (so things are calm)
+        setTimeout(logMetric, 10000);
+    
+        log("End of board.on (initialize) event");
+    
+    }); // board.on("ready", function() {
+    
+} catch (err) {
+    log('Error in main initialization, err = '+err);
+    console.error(err.stack);
+} finally {
+    // turn things off?
+}
 
-        thermometer.on("change", function () {
-            // subtract the last reading:
-            totalA0 = totalA0 - readingsA0[indexA0];
-            readingsA0[indexA0] = this.fahrenheit;
-            // add the reading to the total:
-            totalA0 = totalA0 + readingsA0[indexA0];
-            // advance to the next position in the array: 
-            indexA0 = indexA0 + 1;
-            // if we're at the end of the array...
-            if (indexA0 >= numReadings) {
-                // ...wrap around to the beginning:
-                indexA0 = 0;
-                arrayFull = true;
-            }
-            // calculate the average:
-            if (arrayFull) {
-                currTemperature = (totalA0 / numReadings).toFixed(2);
-            }
-
-            // Check to adjust the duration of ventilation and heating according to tempature
-            if (currTemperature < TEMPATURE_MIN) {
-                sr.heatDuration = parseFloat(sr.heatDurationMax) + heatDurationMaxAdj;
-                //log("Temp < Min, sr.heatDuration = "+sr.heatDuration);
-            }
-            if (currTemperature > TEMPATURE_MAX) {
-                sr.heatDuration = sr.heatDurationMin;
-            }
-
-        }); // on termometer change
-    });
-
-
-    // Start the function to toggle air ventilation ON and OFF
-    log("Starting Air toggle interval");
-    setTimeout(toggleAir, 5000);
-    // Start the function to toggle heat ON and OFF
-    log("Starting Heat toggle interval");
-    setTimeout(toggleHeat, 6000);
-
-    // Start sending metrics 10 seconds after starting (so things are calm)
-    setTimeout(logMetric, 10000);
-
-    log("End of board.on (initialize) event");
-
-}); // board.on("ready", function() {
 
 function turnRelaysOFF() {
     log("Setting relays OFF");
@@ -400,24 +377,11 @@ function logMetric() {
     var date = new Date();
     var hours = date.getHours();
     //if (hours > 5 || hours < 3) {
-        /*
-        get.concat(emoncmsUrl, function (err, res, data) {
-            if (err) {
-                //log("Error in logMetric send, metricJSON = " + metricJSON);
-                //log("err = " + err);
-            } else {
-                //log("Server statusCode = " + res.statusCode) // 200 
-                //log("Server response = " + data) // Buffer('this is the server response') 
-                //log("logMetric send, metricJSON = " + metricJSON);
-            }
-        });
-        */
-
         fetch(emoncmsUrl)
         .then(checkResponseStatus)
         //.then(res => res.json())
         //.then(json => console.log(json))
-        .catch(err => log(err));
+        .catch(err => log("ERROR: "+err));
     //}
 
     // Set the next time the function will run
@@ -546,10 +510,9 @@ function water(inRec) {
     _waterOn(inRec.waterSeconds);
 }
 
-module.exports = {
+module.exports = {
     getStoreRec,
     updateConfig,
     clearLog,
     water
 };
-

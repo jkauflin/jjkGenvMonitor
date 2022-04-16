@@ -15,9 +15,9 @@
   },
   "dependencies": {
     "dotenv": "latest",
-    "node-fetch": "^2.6.7",
-    "johnny-five": "^2.1.0",
     "express": "latest",
-    "json-fs-store": "^1.0.1"
+    "johnny-five": "^2.1.0",
+    "json-fs-store": "^0.0.1",
+    "node-fetch": "^2.6.7"
   }
 }

@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
@@ -8,174 +8,145 @@
     <title>GenvMonitor</title>
     <link rel="icon" href="favicon.ico?ver=1.002">
     <!-- Bootstrap core CSS -->
+    <!--
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
         integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
     <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"
         integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous" />
-    <link rel="stylesheet" href="css/main.css?ver=4.006">
+    -->
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+
+    <link rel="stylesheet" href="css/main.css?ver=4.008">
 </head>
 
 <body>
 
 <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
-    <a class="navbar-brand" data-toggle="modal" href="#">Environment Monitor</a>
+    <a class="navbar-brand p-2" data-toggle="modal" href="#">Environment Monitor</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
         <span class="navbar-toggler-icon"></span>
     </button>
     <!-- Navbar links -->
     <div class="collapse navbar-collapse" id="collapsibleNavbar">
         <ul class="nav navbar-nav ml-auto">
-            <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#HomePage"><i class="fa fa-home">
-                    </i> Home</a></li>
+            <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#HomePage">
+                <i class="bi-house" ></i> Home</a></li>
         </ul>
     </div>
 </nav>
 
 <div class="container-fluid">
     <div class="tab-content">
-
         <div class="tab-pane show active" id="HomePage">
-            <form id="InputValues" class="form-group" action="#">
-                <div class="row mt-3">
-                    <div class="col-sm-5">
-                            <div class="form-group form-row m-0">
-                                <label for="targetTemperature" class="col-5 col-form-label text-right">Target Temp</label>
-                                <div class="col-4">
-                                    <input id="targetTemperature" class="form-control-sm">
-                                </div>
-                            </div>
-                            <div class="form-group form-row m-0">
-                                <label for="airInterval" class="col-5 col-form-label text-right">Air Interval</label>
-                                <div class="col-4">
-                                    <input id="airInterval" class="form-control-sm">
-                                </div>
-                            </div>
-                            <div class="form-group form-row m-0">
-                                <label for="airDuration" class="col-5 col-form-label text-right">Air Duration</label>
-                                <div class="col-4">
-                                    <input id="airDuration" class="form-control-sm">
-                                </div>
-                            </div>
-                            <div class="form-group form-row m-0">
-                                <label for="heatInterval" class="col-5 col-form-label text-right">Heat Interval</label>
-                                <div class="col-4">
-                                    <input id="heatInterval" class="form-control-sm">
-                                </div>
-                            </div>
-                            <div class="form-group form-row m-0">
-                                <label for="heatDuration" class="col-5 col-form-label text-right">Heat Duration</label>
-                                <div class="col-4">
-                                    <input id="heatDuration" class="form-control-sm">
-                                </div>
-                            </div>
-                            <div class="form-group form-row m-0">
-                                <label for="heatDurationMin" class="col-5 col-form-label text-right">Heat Duration Min</label>
-                                <div class="col-4">
-                                    <input id="heatDurationMin" class="form-control-sm">
-                                </div>
-                            </div>
-                            <div class="form-group form-row m-0">
-                                <label for="heatDurationMax" class="col-5 col-form-label text-right">Heat Duration Max</label>
-                                <div class="col-4">
-                                    <input id="heatDurationMax" class="form-control-sm">
-                                </div>
-                            </div>
-                            <div class="form-group form-row m-0">
-                                <label for="lightDuration" class="col-5 col-form-label text-right">Light Duration</label>
-                                <div class="col-4">
-                                    <input id="lightDuration" class="form-control-sm">
-                                </div>
-                            </div>
-                            <div class="form-group form-row m-0">
-                                <label for="waterDuration" class="col-5 col-form-label text-right">Water Duration</label>
-                                <div class="col-4">
-                                    <input id="waterDuration" class="form-control-sm">
-                                </div>
-                            </div>
-                            <div class="form-group form-row m-0">
-                                <label for="waterSeconds" class="col-5 col-form-label text-right">Water Seconds</label>
-                                <div class="col-4">
-                                    <input id="waterSeconds" class="form-control-sm">
-                                </div>
-                            </div>
-                            
-                            <div class="form-group form-row m-0">
-                                <div class="col-11">
-                                    <!--
-                                    <button id="ClearLogButton" type="button" class="btn btn-success">Clear log</button>
-                                    -->
-                                    <button id="WaterButton" type="button" class="btn btn-warning mr-2 mb-2 float-right">Water</button>
-                                    <button id="UpdateButton" type="button" class="btn btn-primary mr-2 mb-2 float-right">Update</button>
-                                    <div id="UpdateDisplay"></div>
-                                </div>
-                            </div>
-                    </div>
-                    <div class="col-sm-7">
-                            <div class="form-group form-row m-0">
-                                <label for="desc" class="col-5 col-form-label text-right">Description</label>
-                                <div class="col-5">
-                                    <input id="desc" class="form-control-sm">
-                                </div>
-                            </div>
-                
-                            <div class="form-group form-row m-0">
-                                <label for="daysToGerm" class="col-5 col-form-label text-right">Days to Germ</label>
-                                <div class="col-5">
-                                    <input id="daysToGerm" class="form-control-sm">
-                                </div>
-                            </div>
-                            <div class="form-group form-row m-0">
-                                <label for="daysToBloom" class="col-5 col-form-label text-right">Days to Bloom</label>
-                                <div class="col-5">
-                                    <input id="daysToBloom" class="form-control-sm">
-                                </div>
-                            </div>
-                            <div class="form-group form-row m-0">
-                                <label for="germinationStart" class="col-5 col-form-label text-right">Germination Start</label>
-                                <div class="col-5">
-                                    <input id="germinationStart" class="form-control-sm">
-                                </div>
-                            </div>
-                            <div class="form-group form-row m-0">
-                                <label for="germinationDate" class="col-5 col-form-label text-right">Germination Date</label>
-                                <div class="col-5">
-                                    <input id="germinationDate" class="form-control-sm">
-                                </div>
-                            </div>
-                            <div class="form-group form-row m-0">
-                                <label for="estBloomDate" class="col-5 col-form-label text-right">Est Bloom Date</label>
-                                <div class="col-5">
-                                    <input id="estBloomDate" class="form-control-sm">
-                                </div>
-                            </div>
-                            <div class="form-group form-row m-0">
-                                <label for="bloomDate" class="col-5 col-form-label text-right">Bloom Date</label>
-                                <div class="col-5">
-                                    <input id="bloomDate" class="form-control-sm">
-                                </div>
-                            </div>
-                
-                            <div class="form-group form-row m-0">
-                                <label for="harvestDate" class="col-5 col-form-label text-right">Harvest Start</label>
-                                <div class="col-5">
-                                    <input id="harvestDate" class="form-control-sm">
-                                </div>
-                            </div>
-                            <div class="form-group form-row m-0">
-                                <label for="cureDate" class="col-5 col-form-label text-right">Cure Start</label>
-                                <div class="col-5">
-                                    <input id="cureDate" class="form-control-sm">
-                                </div>
-                            </div>
-                            <div class="form-group form-row m-0">
-                                <label for="productionDate" class="col-5 col-form-label text-right">Production Date</label>
-                                <div class="col-5">
-                                    <input id="productionDate" class="form-control-sm">
-                                </div>
-                            </div>
 
+            <form id="InputValues" action="#">
+                <div class="row">
+
+                    <div class="col">
+                        <div class="form-floating m-2">
+                            <input id="targetTemperature" type="number" class="form-control">
+                            <label for="targetTemperature">Target temperature</label>
+                        </div>
+                        <div class="form-floating m-2">
+                            <input id="airInterval" type="number" class="form-control">
+                            <label for="airInterval">Air interval</label>
+                        </div>
+                        <div class="form-floating m-2">
+                            <input id="airDuration" type="number" class="form-control">
+                            <label for="airDuration">Air duration</label>
+                        </div>
+                        
+                        <button id="WaterButton" type="button" class="btn btn-warning mr-2 mb-2">Water</button>
+                        <button id="UpdateButton" type="button" class="btn btn-primary mr-2 mb-2">Update</button>
+                        <div id="UpdateDisplay"></div>
+                    </div>
+
+                    <div class="col">
+                        <div class="form-floating m-2">
+                            <input id="heatInterval" type="number" class="form-control">
+                            <label for="heatInterval">Heat interval</label>
+                        </div>
+                        <div class="form-floating m-2">
+                            <input id="heatDuration" type="number" class="form-control">
+                            <label for="heatDuration">Heat duration</label>
+                        </div>
+                        <div class="form-floating m-2">
+                            <input id="heatDurationMin" type="number" class="form-control">
+                            <label for="heatDurationMin">Heat duration Min</label>
+                        </div>
+                        <div class="form-floating m-2">
+                            <input id="heatDurationMax" type="number" class="form-control">
+                            <label for="heatDurationMax">Heat duration Max</label>
+                        </div>
+                    </div>
+
+                    <div class="col">
+                        <div class="form-floating m-2">
+                            <input id="lightDuration" type="number" class="form-control">
+                            <label for="lightDuration">Light duration</label>
+                        </div>
+                        <div class="form-floating m-2">
+                            <input id="waterDuration" type="number" class="form-control">
+                            <label for="waterDuration">Water duration</label>
+                        </div>
+                        <div class="form-floating m-2">
+                            <input id="waterSeconds" type="number" class="form-control">
+                            <label for="waterSeconds">Water seconds</label>
+                        </div>
                     </div>
                 </div><!-- end of row -->
+
+                <div class="row">
+                    <div class="col">
+                        <div class="form-floating m-2">
+                            <input id="desc" type="text" class="form-control">
+                            <label for="desc">Description</label>
+                        </div>
+                        <div class="form-floating m-2">
+                            <input id="daysToGerm" type="text" class="form-control">
+                            <label for="daysToGerm">Days to germinate</label>
+                        </div>
+                        <div class="form-floating m-2">
+                            <input id="germinationStart" type="date" class="form-control">
+                            <label for="germinationStart">Germination start</label>
+                        </div>
+                        <div class="form-floating m-2">
+                            <input id="germinationDate" type="date" class="form-control">
+                            <label for="germinationDate">Germination date</label>
+                        </div>
+                        <div class="form-floating m-2">
+                            <input id="harvestDate" type="date" class="form-control">
+                            <label for="harvestDate">Harvest start</label>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-floating m-2">
+                            <input id="daysToBloom" type="text" class="form-control">
+                            <label for="daysToBloom">Days to bloom</label>
+                        </div>
+                        <div class="form-floating m-2">
+                            <input id="estBloomDate" type="date" class="form-control">
+                            <label for="estBloomDate">Estimated bloom date</label>
+                        </div>
+                        <div class="form-floating m-2">
+                            <input id="bloomDate" type="date" class="form-control">
+                            <label for="bloomDate">Bloom date</label>
+                        </div>
+                        <div class="form-floating m-2">
+                            <input id="cureDate" type="date" class="form-control">
+                            <label for="cureDate">Cure start</label>
+                        </div>
+                        <div class="form-floating m-2">
+                            <input id="productionDate" type="date" class="form-control">
+                            <label for="productionDate">Production date</label>
+                        </div>
+                    </div>
+                </div><!-- end of row -->
+
             </form>
 
             <!--
@@ -197,13 +168,17 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
-        integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- JavaScript Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
         crossorigin="anonymous"></script>
-	<script src="js/util.js?ver=1.030"></script>
-    <script src="js/main.js?ver=1.030"></script>
+
+	<script src="js/util.js?ver=1.032"></script>
+    <script src="js/main.js?ver=1.032"></script>
 
 </body>
 </html>
