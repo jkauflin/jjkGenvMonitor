@@ -61,11 +61,6 @@ var main = (function () {
 
     //=================================================================================================================
     // Bind events
-    // Auto-close the collapse menu after clicking a non-dropdown menu item (in the bootstrap nav header)
-    $(".navbar-nav li a:not('.dropdown-toggle')").on('click', function () { 
-        $('.navbar-collapse').collapse('hide'); 
-    });
-
     $ClearLogButton.click(_clearLog);
     $UpdateButton.click(_update);
     $WaterButton.click(_water);
@@ -130,7 +125,8 @@ var main = (function () {
         //paramMap.set('parcelId', event.target.getAttribute("data-Id"));
         //util.updateDataRecord(updateDataService, $Inputs, paramMap, displayFields, $ListDisplay, editClass);
 
-        var url = "UpdateConfig";
+        var url = "UpdateConfigBAD";
+        /*
         $.ajax(url, {
             type: "POST",
             contentType: "application/json",
@@ -146,8 +142,27 @@ var main = (function () {
             //Ajax request failed.
             console.log('Error in AJAX request to ' + url + ', xhr = ' + xhr.status + ': ' + xhr.statusText +
                 ', status = ' + status + ', error = ' + error);
-            alert(`Error in AJAX request to ${url}`);
-            $UpdateDisplay.html("Error in Update");
+                alert(`Error in AJAX request to ${url}`);
+                $UpdateDisplay.html("Error in Update");
+        });
+        */
+       
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: util.getJSONfromInputs($Inputs, paramMap)
+        })
+        .then(response => response.json())
+        .then(data => {
+            //console.log('Success:', data);
+            $UpdateDisplay.html("Update successful");
+            _renderConfig(data);
+        })
+        .catch((error) => {
+            alert(`Error in request to ${url}, error = ${error}`);
+            console.error(`Error in request to ${url}, error = `, error);
         });
     }
 

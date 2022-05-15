@@ -64,7 +64,7 @@ httpServer.listen(WEB_PORT,function() {
 
 
 // Include the Arduino board functions
-var boardFunctions = require('./boardFunctions.js');
+//var boardFunctions = require('./boardFunctions.js');
 //import * as boardFunctions from './boardFunctions.js';
 
 
@@ -78,8 +78,9 @@ app.get('/ClearLog', function (req, res, next) {
 });
 
 app.post('/UpdateConfig', function (req, res, next) {
-    boardFunctions.updateConfig(req.body);
-    res.send(JSON.stringify(boardFunctions.getStoreRec()));
+    var tdata = req.body;
+    //boardFunctions.updateConfig(req.body);
+    //res.send(JSON.stringify(boardFunctions.getStoreRec()));
 });
 
 app.post('/Water', function (req, res, next) {

@@ -1,7 +1,8 @@
 /*==============================================================================
- * (C) Copyright 2015,2016,2017,2018 John J Kauflin, All rights reserved. 
+ * (C) Copyright 2015,2016,2017,2022 John J Kauflin, All rights reserved. 
  *----------------------------------------------------------------------------
- * DESCRIPTION: 
+ * DESCRIPTION:  Common JS functions for any web app to augment bootstrap
+ *               displays and form field/update functions
  *----------------------------------------------------------------------------
  * Modification History
  * 2015-03-06 JJK 	Initial version 
@@ -21,6 +22,11 @@
  * 2019-09-28 JJK   Modified the JSON inputs method to accept DEV object
  *                  or name string.  Modified the AJAX calls to use new
  *                  promises to check result
+ * 2022-05-15 JJK   Updating for bootstrap 5 and Fetch (and to be a good
+ *                  general set of utility function for any web app).
+ *                  Removed email address regedit (bootstrap 5 validates)
+ *                  Removed cursor stuff
+ * >>>>> should this count on UI DIV class stuff or just be functions???????????????????????????
  *============================================================================*/
  var util = (function(){
     'use strict';  // Force declaration of variables before use (among other things)
@@ -29,16 +35,41 @@
 
     //=================================================================================================================
     // Variables cached from the DOM
-    var $document = $(document);
-    var $ajaxError = $document.find(".ajaxError");
-    var $wildcard = $('*');
-    var $resetval = $document.find(".resetval");
 
     //=================================================================================================================
     // Bind events
+    // BS-5 Auto-close the collapse menu after clicking a non-dropdown menu item (in the bootstrap nav header)
+    $(".navbar-nav li a:not('.dropdown-toggle')").on('click', function () { 
+        $('.navbar-collapse').collapse('hide'); 
+    });
+
+    // *** should i add this to UTIL?
+    function displayTabPage(targetTab) {
+        var targetTabPage = targetTab + 'Page';
+        // Remove the active class on the current active tab
+        $(".nav-link.active").removeClass("active");
+        // Show the target tab page
+        $('.navbar-nav a[href="#'+targetTabPage+'"]').tab('show')
+        // Make the target tab page active
+        $('.navbar-nav a[href="#'+targetTabPage+'"]').addClass('active');
+    }
+
 
     //=================================================================================================================
     // Module methods
+    function currTime() {
+        const options = {
+            //timeZone: "Africa/Accra",
+            //hour12: true,
+            //hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        };
+
+        var tempDate = new Date();
+        return tempDate.toLocaleTimeString("en-US", options);
+    }
+
     function sleep(milliseconds) {
         var start = new Date().getTime();
         for (var i = 0; i < 1e7; i++) {
@@ -62,16 +93,6 @@
         urlParam('param1');     // name
         urlParam('id');         // 6
         rlParam('param2');      // null
-    */
-
-    var validEmailAddrRegExStr = "^((\"([ !#$%&'()*+,\\-./0-9:;<=>?@A-Z[\\]^_`a-z{|}~]|\\\\[ !\"#$%&'()*+,\\-./0-9:;<=>?@A-Z[\\\\\\]^_`a-z{|}~])*\"|([!#$%&'*+\\-/0-9=?A-Z^_`a-z{|}~]|\\\\[ !\"#$%&'()*+,\\-./0-9:;<=>?@A-Z[\\\\\\]^_`a-z{|}~])+)(\\.(\"([ !#$%&'()*+,\\-./0-9:;<=>?@A-Z[\\]^_`a-z{|}~]|\\\\[ !\"#$%&'()*+,\\-./0-9:;<=>?@A-Z[\\\\\\]^_`a-z{|}~])*\"|([!#$%&'*+\\-/0-9=?A-Z^_`a-z{|}~]|\\\\[ !\"#$%&'()*+,\\-./0-9:;<=>?@A-Z[\\\\\\]^_`a-z{|}~])+))*)@([a-zA-Z0-9]([-a-zA-Z0-9]*[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([-a-zA-Z0-9]*[a-zA-Z0-9])?)*\\.(?![0-9]*\\.?$)[a-zA-Z0-9]{2,}\\.?)$";
-    var validEmailAddr = new RegExp(validEmailAddrRegExStr, "g");
-    /*
-    if (validEmailAddr.test(inStr)) {
-        resultStr = '<b style="color:green;">VALID</b>';
-    } else {
-        resultStr = '<b style="color:red;">INVALID</b>';
-    }
     */
 
     // Non-Printable characters - Hex 01 to 1F, and 7F
@@ -115,12 +136,13 @@
         return tempDate.getFullYear() + '-' + tempMonth + '-' + tempDay;
     }
 
-    function waitCursor() {
-        //$wildcard.css('cursor', 'progress');
-        //$ajaxError.html("");
-    }
-    function defaultCursor() {
-        //$wildcard.css('cursor', 'default');
+    function formatDatetime(inDate) {
+        var td = inDate;
+        if (td == null) {
+            td = new Date();
+        }
+        var formattedDate = formatDate(td);
+        return `${formattedDate} ${td.getHours()}:${td.getMinutes()}:${td.getSeconds()}.${td.getMilliseconds()}`;
     }
 
     // Helper functions for setting UI components from data
@@ -146,6 +168,27 @@
         }
         return '<input id="' + idName + '" type="checkbox" ' + tempStr + '>';
     }
+
+/* Bootstrap 5 form input fields
+            <form id="InputValues" action="#">
+                <div class="row">
+                    <div class="col p-0">
+                        <div class="form-floating m-1">
+                            <input id="targetTemperature" type="number" class="form-control">
+                            <label for="targetTemperature">Target temp</label>
+                        </div>
+                        <div class="form-floating m-1">
+                            <input id="desc" type="text" class="form-control">
+                            <label for="desc">Description</label>
+                        </div>
+                        <div class="form-floating m-1">
+                            <input id="germinationDate" type="date" class="form-control">
+                            <label for="germinationDate">Germination date</label>
+                        </div>
+                    </div>
+                </div><!-- end of row -->
+            </form>
+*/
     function setInputText(idName, textVal, textSize) {
         return '<input id="' + idName + '" name="' + idName + '" type="text" class="form-control input-sm resetval" value="' + textVal + '" size="' + textSize + '" maxlength="' + textSize + '">';
     }
@@ -226,156 +269,30 @@
         return jsonStr;
     }
 
-    // Common function to render and display a list of data records in a table
-    function displayList(displayFields, list, $ListDisplay, editClass) {
-        $ListDisplay.empty();
-        var tr;
-        $.each(list, function (index, rec) {
-            if (index == 0) {
-                tr = $('<tr>');
-                $.each(rec, function (key, value) {
-                    if (displayFields.includes(key)) {
-                        tr.append($('<th>').html(key));
-                    }
-                });
-                tr.appendTo($ListDisplay);
-            }
-            tr = $('<tr>');
-            $.each(rec, function (key, value) {
-                if (displayFields.includes(key)) {
-                    if (key == 'id') {
-                        tr.append($('<td>')
-                            .append($('<a>').attr('href', "#")
-                                .attr('class', editClass)
-                                .attr('data-id', value)
-                                .html(value)));
-                    } else {
-                        tr.append($('<td>').html(value));
-                    }
-                }
-            });
-            tr.appendTo($ListDisplay);
-        });
-    }
-
-    // Clear all of the input, textarea, and select fields in a Div
-    function clearInputs(InputsDiv) {
-        if (InputsDiv !== null) {
-            // Get all the input objects within the DIV
-            var FormInputs = InputsDiv.find("input,textarea,select");
-            // Loop through the objects and construct the JSON string
-            $.each(FormInputs, function (index) {
-                if (typeof $(this).attr('id') !== 'undefined') {
-                    $(this).val("");
-                    if ($(this).attr("type") == "checkbox") {
-                        if ($(this).prop('checked')) {
-                            $(this).prop('checked', false);
-                        }
-                    }
-                }
-            });
-        }
-    }
-
-    // Common function to get data for a given search string, render and display in a table
-    //   Parameters:
-    //      getDataService      URL string of service to use to query data records (GET)        "getData.PHP"
-    //      searchStr           String for parameters for the search query                      "SearchStr=<value to search for>"
-    //      displayFields       Array of field names from the query to include in the display   ["id", "Field1", "Field2", "Field3"];
-    //      $ListDisplay,       JQuery object for the HTML table in which to render the list    $ModuleDiv.find("#Display tbody");
-    //      editClass           String of class attribute to be added to the id field as a link to edit the record      "EditClass"
-    function searchDataDisplay(getDataService, searchStr, displayFields, $ListDisplay, editClass) {
-        waitCursor();
-        $.getJSON(getDataService, searchStr, function (list) {
-             displayList(displayFields, list, $ListDisplay, editClass);
-             defaultCursor();
-        });
-    }
-
-    // Common function to get data for a given search string, render and display in a table
-    //   Parameters:
-    //      getDataService      URL string of service to use to query data records (GET)        "getData.PHP"
-    //      searchStr           String for parameters for the search query                      "id=" + event.target.getAttribute("data-id")
-    //      $Inputs             JQuery object for the HTML DIV which contains input fields      $ModuleDiv.find("#Input");
-    function editDataRecord(getDataService, idStr, $Inputs) {
-        waitCursor();
-        $.getJSON(getDataService, idStr, function (list) {
-            // Set values from the list into HTML input fields
-            $.each(list, function (index, rec) {
-                $.each(rec, function (key, value) {
-                    $Inputs.find("#" + key).val(value);
-                });
-            });
-            defaultCursor();
-        });
+    function log(inStr) {
+        console.log(formatDatetime + " " + inStr);
     }
     
-    //   Parameters:
-    //      updateDataService   URL string of service to use to update data records (POST)      "updateData.PHP"
-    //      displayFields       Array of field names from the query to include in the display   ["id", "Field1", "Field2", "Field3"];
-    //      $Inputs             JQuery object for the HTML DIV which contains input fields      $ModuleDiv.find("#Input");
-    //      paramMap            Map of extra parameters to add to the POST
-    //      $ListDisplay,       JQuery object for the HTML table in which to render the list    $ModuleDiv.find("#Display tbody");
-    //      editClass           String of class attribute to be added to the id field as a link to edit the record      "EditClass"
-    function updateDataRecord(updateDataService, $Inputs, paramMap, displayFields, $ListDisplay, editClass) {
-        //console.log("getJSONfromInputs() = " + getJSONfromInputs($Inputs, paramMap));
-        waitCursor();
-
-        $.ajax(url, {
-            type: "POST",
-            contentType: "application/json",
-            data: getJSONfromInputs($Inputs, paramMap),
-            dataType: "json"
-            //dataType: "html"
-        })
-        .done(function (response) {
-            //Ajax request was successful.
-            //$("#" + outDiv).html(response);
-            // Render the list 
-            displayList(displayFields, response, $ListDisplay, editClass);
-            defaultCursor();
-            clearInputs($Inputs);
-        })
-        .fail(function (xhr, status, error) {
-            //Ajax request failed.
-            displayError("An error occurred in the update - see log");
-            console.log('Error in AJAX request to ' + url + ', xhr = ' + xhr.status + ': ' + xhr.statusText +
-                ', status = ' + status + ', error = ' + error);
-            alert('Error in AJAX request to ' + url + ', xhr = ' + xhr.status + ': ' + xhr.statusText +
-                ', status = ' + status + ', error = ' + error);
-        });
-    }
-
-    // Common function to display error messages in fields with an ajaxError class
-    function displayError(errorMessage) {
-        $ajaxError.html(errorMessage);
-    }
-
     //=================================================================================================================
     // This is what is exposed from this Module
     return {
-        sleep:              sleep,
-        urlParam:           urlParam,
-        cleanStr:           cleanStr,
-        csvFilter:          csvFilter,
-        formatMoney:        formatMoney,
-        formatDate:         formatDate,
-        waitCursor:         waitCursor,
-        defaultCursor:      defaultCursor,
-        setBoolText:        setBoolText,
-        setCheckbox:        setCheckbox,
-        setCheckboxEdit:    setCheckboxEdit,
-        setInputText:       setInputText,
-        setTextArea:        setTextArea,
-        setInputDate:       setInputDate,
-        setSelectOption:    setSelectOption,
-        getJSONfromInputs:  getJSONfromInputs,
-        clearInputs:        clearInputs,
-        displayList:        displayList,
-        searchDataDisplay:  searchDataDisplay,
-        editDataRecord:     editDataRecord,
-        updateDataRecord:   updateDataRecord,
-        displayError:       displayError
+        sleep,
+        urlParam,
+        cleanStr,
+        csvFilter,
+        formatMoney,
+        formatDate,
+        formatDate,
+        formatDatetime,
+        setBoolText,
+        setCheckbox,
+        setCheckboxEdit,
+        setInputText,
+        setTextArea,
+        setInputDate,
+        setSelectOption,
+        getJSONfromInputs,
+        log
     };
         
 })(); // var util = (function(){
