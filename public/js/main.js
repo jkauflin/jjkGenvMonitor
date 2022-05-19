@@ -15,6 +15,7 @@
  *                  util.js
  * 2022-04-17 JJK   Making updates for bootstrap 5, and to use fetch()
  *                  instead of AJAX.  Removed old websocket stuff
+ * 2022-05-19 JJK   Updated to use new util.fetchData and updateData functions
  *============================================================================*/
 var main = (function () {
     'use strict';
@@ -70,41 +71,49 @@ var main = (function () {
     //=================================================================================================================
     // Module methods
     function _lookup(event) {
-        $UpdateDisplay.empty();
-        fetch('GetValues').then(function (response) {
-            //console.log(response);
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error('Error in response or JSON from server, code = '+response.status);
-            }
-        }).then(function (storeRec) {
-            _renderConfig(storeRec);
-        })
+        util.fetchData('GetValues',true,$UpdateDisplay,_renderConfig);
+    }
+
+    function _update(event) {
+        util.updateData('UpdateConfig',$Inputs,true,$UpdateDisplay,_renderConfig);
+    }
+
+    function _clearLog(event) {
+        util.updateData('ClearLog',null,false,$UpdateDisplay);
+    }
+
+    function _water(event) {
+        var paramMap = null;
+        var paramMap = new Map();
+        paramMap.set('waterSeconds', $waterSeconds.val());
+
+        util.updateData("Water",null,false,$UpdateDisplay,null,paramMap);
     }
 
     function _renderConfig(storeRec) {
-        $desc.val(storeRec.desc);
-        $daysToGerm.val(storeRec.daysToGerm);
-        $daysToBloom.val(storeRec.daysToBloom);
-        $germinationStart.val(storeRec.germinationStart);
-        $estBloomDate.val(storeRec.estBloomDate);
-        $bloomDate.val(storeRec.bloomDate);
-
-        $germinationDate.val(storeRec.germinationDate);
-        $harvestDate.val(storeRec.harvestDate);
-        $cureDate.val(storeRec.cureDate);
-        $productionDate.val(storeRec.productionDate);
-
-        $targetTemperature.val(storeRec.targetTemperature);
-        $airInterval.val(storeRec.airInterval);
-        $airDuration.val(storeRec.airDuration);
-        $heatInterval.val(storeRec.heatInterval);
-        $heatDuration.val(storeRec.heatDuration);
-        $heatDurationMin.val(storeRec.heatDurationMin);
-        $heatDurationMax.val(storeRec.heatDurationMax);
-        $lightDuration.val(storeRec.lightDuration);
-        $waterDuration.val(storeRec.waterDuration);
+        if (storeRec != null) {
+            $desc.val(storeRec.desc);
+            $daysToGerm.val(storeRec.daysToGerm);
+            $daysToBloom.val(storeRec.daysToBloom);
+            $germinationStart.val(storeRec.germinationStart);
+            $estBloomDate.val(storeRec.estBloomDate);
+            $bloomDate.val(storeRec.bloomDate);
+    
+            $germinationDate.val(storeRec.germinationDate);
+            $harvestDate.val(storeRec.harvestDate);
+            $cureDate.val(storeRec.cureDate);
+            $productionDate.val(storeRec.productionDate);
+    
+            $targetTemperature.val(storeRec.targetTemperature);
+            $airInterval.val(storeRec.airInterval);
+            $airDuration.val(storeRec.airDuration);
+            $heatInterval.val(storeRec.heatInterval);
+            $heatDuration.val(storeRec.heatDuration);
+            $heatDurationMin.val(storeRec.heatDurationMin);
+            $heatDurationMax.val(storeRec.heatDurationMax);
+            $lightDuration.val(storeRec.lightDuration);
+            $waterDuration.val(storeRec.waterDuration);
+        }
 
         // loop through and add to a table
         /*
@@ -118,87 +127,6 @@ var main = (function () {
         $LogMessageDisplay.html(tr);
         */
     }
-
-    function _update(event) {
-        var paramMap = null;
-        //var paramMap = new Map();
-        //paramMap.set('parcelId', event.target.getAttribute("data-Id"));
-        //util.updateDataRecord(updateDataService, $Inputs, paramMap, displayFields, $ListDisplay, editClass);
-
-        var url = "UpdateConfigBAD";
-        /*
-        $.ajax(url, {
-            type: "POST",
-            contentType: "application/json",
-            data: util.getJSONfromInputs($Inputs, paramMap),
-            dataType: "json"
-            //dataType: "html"
-        })
-        .done(function (storeRec) {
-            $UpdateDisplay.html("Update successful");
-            _renderConfig(storeRec);
-        })
-        .fail(function (xhr, status, error) {
-            //Ajax request failed.
-            console.log('Error in AJAX request to ' + url + ', xhr = ' + xhr.status + ': ' + xhr.statusText +
-                ', status = ' + status + ', error = ' + error);
-                alert(`Error in AJAX request to ${url}`);
-                $UpdateDisplay.html("Error in Update");
-        });
-        */
-       
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: util.getJSONfromInputs($Inputs, paramMap)
-        })
-        .then(response => response.json())
-        .then(data => {
-            //console.log('Success:', data);
-            $UpdateDisplay.html("Update successful");
-            _renderConfig(data);
-        })
-        .catch((error) => {
-            alert(`Error in request to ${url}, error = ${error}`);
-            console.error(`Error in request to ${url}, error = `, error);
-        });
-    }
-
-    function _clearLog(event) {
-        var jqxhr = $.getJSON("ClearLog", "", function (storeRec) {
-            _renderConfig(storeRec);
-        }).fail(function (e) {
-            console.log("Error clearing log");
-        });
-    }
-
-    function _water(event) {
-        var paramMap = null;
-        var paramMap = new Map();
-        paramMap.set('waterSeconds', $waterSeconds.val());
-
-        var url = "Water";
-        $.ajax(url, {
-            type: "POST",
-            contentType: "application/json",
-            data: util.getJSONfromInputs(null, paramMap),
-            dataType: "html"
-        })
-            .done(function () {
-            //console.log("Successful call to Water");
-            $UpdateDisplay.html("Water successful");
-        })
-            .fail(function (xhr, status, error) {
-                //Ajax request failed.
-                console.log('Error in AJAX request to ' + url + ', xhr = ' + xhr.status + ': ' + xhr.statusText +
-                    ', status = ' + status + ', error = ' + error);
-                alert(`Error in AJAX request to ${url}`);
-                $UpdateDisplay.html("Error in Update");
-            });
-    }
-
 
     //=================================================================================================================
     // This is what is exposed from this Module

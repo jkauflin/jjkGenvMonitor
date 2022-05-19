@@ -26,7 +26,18 @@
  *                  general set of utility function for any web app).
  *                  Removed email address regedit (bootstrap 5 validates)
  *                  Removed cursor stuff
- * >>>>> should this count on UI DIV class stuff or just be functions???????????????????????????
+ * 2022-05-18 JJK   Added 2 functions (updateJSONfromInputs, updateTEXTfromInputs)
+ *                  to handle Update requests to services using Fetch with POST 
+ *                  and JSON structure in Request body.  Makes use of the existing
+ *                  getJSONfromInputs function, and it does the thing I have
+ *                  always wanted to which is to parse the response to see if
+ *                  it is JSON or non-JSON if there was some kind of Exception.
+ *                  *** Philosophy is to NOT count on elements in the UI DOM,
+ *                  but to pass elements to functions if we want them to set
+ *                  display elements in the DOM.  The update functions will
+ *                  write details to the console.log and pop-up alerts if
+ *                  a display element is not specified.
+ *                  Added fetchData along the same pattern lines
  *============================================================================*/
  var util = (function(){
     'use strict';  // Force declaration of variables before use (among other things)
@@ -208,12 +219,79 @@
         return tempStr;
     }
 
+
+    //=============================================================================================
+    // Function to request a JSON data structure for a service url using Fetch instead of AJAX,
+    // and handling JSON parse errors, as well as diplay elements and render function call
+    // Parameters:
+    //   url - path to the service to call
+    //   jsonType - boolean indicating expected format of response data (TRUE = JSON, FALSE = TEXT)
+    //   messageDiv - DIV (JQuery object or String name) to display status messages
+    //   renderFunction - Pointer to a function that will do UI rendering of the JSON object data
+    //=============================================================================================
+    function fetchData(url, jsonType=true, messageDiv=null, renderFunction=null) {
+        // Check if a message element was specified
+        var displayMessage = false;
+        if (messageDiv !== null) {
+            displayMessage = true;
+            // Get all the input objects within the DIV
+            var MessageDiv;
+            if (messageDiv instanceof String) {
+                MessageDiv = $("#" + messageDiv);
+            } else {
+                MessageDiv = messageDiv;
+            }
+            // Clear out the display message element
+            MessageDiv.html("");
+        }
+
+        fetch(url)
+        .then(response => response.text())
+        .then(responseData => {
+            // Successful response, check for JSON format
+            //console.log('Successful response: ', responseData);
+            try {
+                if (jsonType) {
+                    // Parse the response data to see if it is JSON
+                    var jsonObject = JSON.parse(responseData);
+                    //console.log("Valid JSON string");
+                    // If a render function was specified, render the data in the JSON object
+                    if (renderFunction != null) {
+                        renderFunction(jsonObject);
+                    }
+                } else {
+                    // if NOT JSON, then display the response TEXT in the message element
+                    if (displayMessage) {
+                        MessageDiv.html(responseData);
+                    }
+                }
+            } catch (error) {
+                console.error(`Error in Fetch data request to ${url}, response = ${responseData}`);
+                if (displayMessage) {
+                    MessageDiv.html("Fetch data FAILED - check log");
+                } else {
+                    alert(`Error in request to ${url} - check log`);
+                }
+            }
+        })
+        .catch((error) => {
+            console.error(`Error in request to ${url}, error = `, error);
+            if (displayMessage) {
+                MessageDiv.html("Error in Fetch data request - check log");
+            } else {
+                alert(`Error in Fetch data request to ${url} - check log`);
+            }
+        });
+    }
+
+    //=============================================================================================
     // Function to get all input objects within a DIV, and extra entries from a map
     // and construct a JSON object with names and values (to pass in POST updates)
     // 2018-08-31 JJK - Modified to check for input DIV name string or object
     // Parameters:
     //   inDiv - DIV (JQuery object or String name) with input fields to include in JSON inputs
     //   paramMap - Structure holding extra parameters to include
+    //=============================================================================================
     function getJSONfromInputs(inDiv, paramMap) {
         var first = true;
         var jsonStr = '{';
@@ -269,6 +347,85 @@
         return jsonStr;
     }
 
+    //=============================================================================================
+    // Function to execute an update service using a Fetch POST of a JSON structure and getting
+    //      a JSON structure back, with proper error handling on the JSON parse, as well as 
+    //      diplay elements and render function call
+    // Parameters:
+    //   url - path to the service to call
+    //   inDiv - DIV (JQuery object or String name) with input fields to include in JSON inputs
+    //   jsonType - boolean indicating expected format of response data (TRUE = JSON, FALSE = TEXT)
+    //   messageDiv - DIV (JQuery object or String name) to display status messages
+    //   renderFunction - Pointer to a function that will do UI rendering of the JSON object data
+    //   paramMap - Structure holding extra parameters to include
+    //=============================================================================================
+    function updateData(url, inDiv, jsonType=true, messageDiv=null, renderFunction=null, paramMap=null) {
+        // Check if a message element was specified
+        var displayMessage = false;
+        if (messageDiv !== null) {
+            displayMessage = true;
+            // Get all the input objects within the DIV
+            var MessageDiv;
+            if (messageDiv instanceof String) {
+                MessageDiv = $("#" + messageDiv);
+            } else {
+                MessageDiv = messageDiv;
+            }
+            MessageDiv.html("");
+        }
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: getJSONfromInputs(inDiv, paramMap)
+        })
+        .then(response => response.text())
+        .then(responseData => {
+            // Successful response, check for JSON format
+            //console.log('Successful response: ', responseData);
+            try {
+                var returnText = "Update successful";
+                if (jsonType) {
+                    // Parse the response data to see if it is JSON
+                    var jsonObject = JSON.parse(responseData);
+                    //console.log("Valid JSON string");
+                    // If a render function was specified, render the data in the JSON object
+                    if (renderFunction != null) {
+                        renderFunction(jsonObject);
+                    }
+                    // Check if there is a display message in the JSON
+                    // if it's not NULL and non-blank use it instead of the general "Update successful" message???
+                } else {
+                    if (responseData != null && responseData.length > 0) {
+                        returnText = responseData;
+                    }
+                }
+
+                if (displayMessage) {
+                    MessageDiv.html(returnText);
+                }
+
+            } catch (error) {
+                console.error(`Error in request to ${url}, response = ${responseData}`);
+                if (displayMessage) {
+                    MessageDiv.html("Update FAILED - check log");
+                } else {
+                    alert(`Error in request to ${url} - check log`);
+                }
+            }
+        })
+        .catch((error) => {
+            console.error(`Error in request to ${url}, error = `, error);
+            if (displayMessage) {
+                MessageDiv.html("Error in Update - check log");
+            } else {
+                alert(`Error in request to ${url} - check log`);
+            }
+        });
+    }
+
     function log(inStr) {
         console.log(formatDatetime + " " + inStr);
     }
@@ -291,7 +448,9 @@
         setTextArea,
         setInputDate,
         setSelectOption,
+        fetchData,
         getJSONfromInputs,
+        updateData,
         log
     };
         

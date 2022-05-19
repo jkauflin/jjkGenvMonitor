@@ -16,6 +16,7 @@ Modification History
 2019-09-28 JJK  Re-implementing web display and updates to config values
 2022-04-03 JJK  Updating to ES6 and bootstrap 5
 2022-04-09 JJK  Hold off on ES6 for now, just implement bootstrap 5
+2022-05-16 JJK  Re-checked update functions using Fetch POST w-JSON object
 =============================================================================*/
 
 // Read environment variables from the .env file
@@ -64,7 +65,7 @@ httpServer.listen(WEB_PORT,function() {
 
 
 // Include the Arduino board functions
-//var boardFunctions = require('./boardFunctions.js');
+var boardFunctions = require('./boardFunctions.js');
 //import * as boardFunctions from './boardFunctions.js';
 
 
@@ -78,14 +79,15 @@ app.get('/ClearLog', function (req, res, next) {
 });
 
 app.post('/UpdateConfig', function (req, res, next) {
-    var tdata = req.body;
-    //boardFunctions.updateConfig(req.body);
-    //res.send(JSON.stringify(boardFunctions.getStoreRec()));
+    // Pass the JSON object in the Body to the update function
+    boardFunctions.updateConfig(req.body);
+    // Get the updated datastore values and send back in the response
+    res.send(JSON.stringify(boardFunctions.getStoreRec()));
 });
 
 app.post('/Water', function (req, res, next) {
-    boardFunctions.water(req.body);
-    res.send('ok');
+    var retMessage = boardFunctions.water(req.body);
+    res.send(retMessage);
 });
 
 

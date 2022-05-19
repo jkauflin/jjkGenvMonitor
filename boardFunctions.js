@@ -63,6 +63,8 @@ Modification History
 2022-04-12 JJK  Working on error handling - implementing a overall try/catch
                 for the main executable code
 2022-04-16 JJK  Checking function of file storage updates
+2022-05-16 JJK  Get to gracefully work with board not plugged in - already
+                working that way - error about serialport but runs rest
 =============================================================================*/
 //const EventEmitter = require('events');
 const fetch = require('node-fetch');
@@ -450,7 +452,7 @@ function _saveStoreRec() {
 
 function updateConfig(inStoreRec) {
     sr = inStoreRec;
-    //log("updateConfig, targetTemperature = " + sr.targetTemperature);
+    log("updateConfig, targetTemperature = " + sr.targetTemperature);
     TEMPATURE_MAX = sr.targetTemperature + 1.0;
     TEMPATURE_MIN = sr.targetTemperature - 1.0;
     _saveStoreRec();
@@ -462,10 +464,10 @@ function clearLog() {
 }
 
 function water(inRec) {
-    //log("in water, inRec.waterSeconds = "+inRec.waterSeconds);
-    _waterOn(inRec.waterSeconds);
+    log(`in water, inRec.waterSeconds = ${inRec.waterSeconds}`);
+    //_waterOn(inRec.waterSeconds);
+    return `Water turned on for ${inRec.waterSeconds} seconds`;
 }
-
 
 
 function log(inStr) {
