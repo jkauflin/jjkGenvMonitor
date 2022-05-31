@@ -38,6 +38,14 @@
  *                  write details to the console.log and pop-up alerts if
  *                  a display element is not specified.
  *                  Added fetchData along the same pattern lines
+ * 2022-05-25 JJK   Created getParamDatafromInputs for both JSON and url
+ *                  param string and implemented in fetch and update
+ *                  (Changed getJSONfromInputs to call new getParamDatafromInputs)
+ * 2022-05-30 JJK   Implemented a tradition (err,data) and callback for the 
+ *                  fetchData and getJSONfromInputs functions, and updated for 
+ *                  better error handling (the Catch catches error in the 
+ *                  main callback function after the fetch).
+ *                  Moved display functions back to the main callback function
  *============================================================================*/
  var util = (function(){
     'use strict';  // Force declaration of variables before use (among other things)
@@ -49,22 +57,6 @@
 
     //=================================================================================================================
     // Bind events
-    // BS-5 Auto-close the collapse menu after clicking a non-dropdown menu item (in the bootstrap nav header)
-    $(".navbar-nav li a:not('.dropdown-toggle')").on('click', function () { 
-        $('.navbar-collapse').collapse('hide'); 
-    });
-
-    // *** should i add this to UTIL?
-    function displayTabPage(targetTab) {
-        var targetTabPage = targetTab + 'Page';
-        // Remove the active class on the current active tab
-        $(".nav-link.active").removeClass("active");
-        // Show the target tab page
-        $('.navbar-nav a[href="#'+targetTabPage+'"]').tab('show')
-        // Make the target tab page active
-        $('.navbar-nav a[href="#'+targetTabPage+'"]').addClass('active');
-    }
-
 
     //=================================================================================================================
     // Module methods
@@ -220,211 +212,122 @@
     }
 
 
-    //=============================================================================================
-    // Function to request a JSON data structure for a service url using Fetch instead of AJAX,
-    // and handling JSON parse errors, as well as diplay elements and render function call
-    // Parameters:
-    //   url - path to the service to call
-    //   jsonType - boolean indicating expected format of response data (TRUE = JSON, FALSE = TEXT)
-    //   messageDiv - DIV (JQuery object or String name) to display status messages
-    //   renderFunction - Pointer to a function that will do UI rendering of the JSON object data
-    //=============================================================================================
-    function fetchData(url, jsonType=true, messageDiv=null, renderFunction=null) {
-        // Check if a message element was specified
-        var displayMessage = false;
-        if (messageDiv !== null) {
-            displayMessage = true;
-            // Get all the input objects within the DIV
-            var MessageDiv;
-            if (messageDiv instanceof String) {
-                MessageDiv = $("#" + messageDiv);
-            } else {
-                MessageDiv = messageDiv;
-            }
-            // Clear out the display message element
-            MessageDiv.html("");
-        }
-
-        fetch(url)
-        .then(response => response.text())
-        .then(responseData => {
-            // Successful response, check for JSON format
-            //console.log('Successful response: ', responseData);
-            try {
-                if (jsonType) {
-                    // Parse the response data to see if it is JSON
-                    var jsonObject = JSON.parse(responseData);
-                    //console.log("Valid JSON string");
-                    // If a render function was specified, render the data in the JSON object
-                    if (renderFunction != null) {
-                        renderFunction(jsonObject);
-                    }
-                } else {
-                    // if NOT JSON, then display the response TEXT in the message element
-                    if (displayMessage) {
-                        MessageDiv.html(responseData);
-                    }
-                }
-            } catch (error) {
-                console.error(`Error in Fetch data request to ${url}, response = ${responseData}`);
-                if (displayMessage) {
-                    MessageDiv.html("Fetch data FAILED - check log");
-                } else {
-                    alert(`Error in request to ${url} - check log`);
-                }
-            }
-        })
-        .catch((error) => {
-            console.error(`Error in request to ${url}, error = `, error);
-            if (displayMessage) {
-                MessageDiv.html("Error in Fetch data request - check log");
-            } else {
-                alert(`Error in Fetch data request to ${url} - check log`);
-            }
-        });
-    }
 
     //=============================================================================================
     // Function to get all input objects within a DIV, and extra entries from a map
-    // and construct a JSON object with names and values (to pass in POST updates)
+    // and construct output string with names and values (in JSON or param string)
     // 2018-08-31 JJK - Modified to check for input DIV name string or object
+    // 2022-05-25 JJK - Added option for JSON or url param string
     // Parameters:
-    //   inDiv - DIV (JQuery object or String name) with input fields to include in JSON inputs
+    //   formName - Form name which includes input fields to include in query
     //   paramMap - Structure holding extra parameters to include
+    //   jsonOutput - true or false (false means url param string starting with ?)
     //=============================================================================================
-    function getJSONfromInputs(inDiv, paramMap) {
-        var first = true;
-        var jsonStr = '{';
+    function getParamDatafromInputs(formName, paramMap=null, jsonOutput=true) {
+        let first = true;
+        let paramData = '';
+        let paramSeperator = '';
+        if (jsonOutput) {
+            paramSeperator = ',';
+        } else {
+            paramSeperator = ';';
+        }
 
-        if (inDiv !== null) {
-            // Get all the input objects within the DIV
-            var InputsDiv;
-            if (inDiv instanceof String) {
-                InputsDiv = $("#" + inDiv);
-            } else {
-                InputsDiv = inDiv;
+        // Check if the input form is specified
+        if (typeof formName !== "undefined" && formName !== null) {
+            // Get all the input objects within the Form
+            const inputForm = document.getElementById(formName);
+            if (inputForm !== null) {
+                // document.getElementsByClassName("form-control") - could use form-control class???
+                paramData = addParamDataForTag(inputForm, paramData, paramSeperator, first, jsonOutput, 'input');
+                paramData = addParamDataForTag(inputForm, paramData, paramSeperator, first, jsonOutput, 'textarea');
+                paramData = addParamDataForTag(inputForm, paramData, paramSeperator, first, jsonOutput, 'select');
             }
-            var FormInputs = InputsDiv.find("input,textarea,select");
-
-            // Loop through the objects and construct the JSON string
-            $.each(FormInputs, function (index) {
-                //id = useEmailCheckbox, type = checkbox
-                //id = propertyComments, type = text
-                // Only include elements that have an "id" in the JSON string
-                if (typeof $(this).attr('id') !== 'undefined') {
-                    if (first) {
-                        first = false;
-                    } else {
-                        jsonStr += ',';
-                    }
-                    //console.log("id = " + $(this).attr('id') + ", type = " + $(this).attr("type"));
-                    if ($(this).attr("type") == "checkbox") {
-                        //console.log("id = " + $(this).attr('id') + ", $(this).prop('checked') = " + $(this).prop('checked'));
-                        if ($(this).prop('checked')) {
-                            jsonStr += '"' + $(this).attr('id') + '" : 1';
-                        } else {
-                            jsonStr += '"' + $(this).attr('id') + '" : 0';
-                        }
-                    } else {
-                        jsonStr += '"' + $(this).attr('id') + '" : "' + cleanStr($(this).val()) + '"';
-                    }
-                }
-            });
         }
 
         if (paramMap !== null) {
             paramMap.forEach(function (value, key) {
                 if (first) {
                     first = false;
+                    if (jsonOutput) {
+                        paramData = '{';
+                    } else {
+                        paramData = '?';
+                    }
                 } else {
-                    jsonStr += ',';
+                    paramData += paramSeperator;
                 }
-                jsonStr += '"' + key + '" : "' + value + '"';
+                if (jsonOutput) {
+                    paramData += '"' + key + '" : "' + value + '"';
+                } else {
+                    paramData += key + '=' + value;
+                }
             });
         }
 
-        jsonStr += '}';
-        return jsonStr;
-    }
-
-    //=============================================================================================
-    // Function to execute an update service using a Fetch POST of a JSON structure and getting
-    //      a JSON structure back, with proper error handling on the JSON parse, as well as 
-    //      diplay elements and render function call
-    // Parameters:
-    //   url - path to the service to call
-    //   inDiv - DIV (JQuery object or String name) with input fields to include in JSON inputs
-    //   jsonType - boolean indicating expected format of response data (TRUE = JSON, FALSE = TEXT)
-    //   messageDiv - DIV (JQuery object or String name) to display status messages
-    //   renderFunction - Pointer to a function that will do UI rendering of the JSON object data
-    //   paramMap - Structure holding extra parameters to include
-    //=============================================================================================
-    function updateData(url, inDiv, jsonType=true, messageDiv=null, renderFunction=null, paramMap=null) {
-        // Check if a message element was specified
-        var displayMessage = false;
-        if (messageDiv !== null) {
-            displayMessage = true;
-            // Get all the input objects within the DIV
-            var MessageDiv;
-            if (messageDiv instanceof String) {
-                MessageDiv = $("#" + messageDiv);
-            } else {
-                MessageDiv = messageDiv;
-            }
-            MessageDiv.html("");
+        if (jsonOutput) {
+            paramData += '}';
         }
 
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: getJSONfromInputs(inDiv, paramMap)
-        })
-        .then(response => response.text())
-        .then(responseData => {
-            // Successful response, check for JSON format
-            //console.log('Successful response: ', responseData);
-            try {
-                var returnText = "Update successful";
-                if (jsonType) {
-                    // Parse the response data to see if it is JSON
-                    var jsonObject = JSON.parse(responseData);
-                    //console.log("Valid JSON string");
-                    // If a render function was specified, render the data in the JSON object
-                    if (renderFunction != null) {
-                        renderFunction(jsonObject);
-                    }
-                    // Check if there is a display message in the JSON
-                    // if it's not NULL and non-blank use it instead of the general "Update successful" message???
-                } else {
-                    if (responseData != null && responseData.length > 0) {
-                        returnText = responseData;
-                    }
-                }
-
-                if (displayMessage) {
-                    MessageDiv.html(returnText);
-                }
-
-            } catch (error) {
-                console.error(`Error in request to ${url}, response = ${responseData}`);
-                if (displayMessage) {
-                    MessageDiv.html("Update FAILED - check log");
-                } else {
-                    alert(`Error in request to ${url} - check log`);
-                }
-            }
-        })
-        .catch((error) => {
-            console.error(`Error in request to ${url}, error = `, error);
-            if (displayMessage) {
-                MessageDiv.html("Error in Update - check log");
-            } else {
-                alert(`Error in request to ${url} - check log`);
-            }
-        });
+        return paramData;
     }
+
+    function addParamDataForTag(inputForm, paramData, paramSeperator, first, jsonOutput, tagName) {
+        let inputElementList = inputForm.getElementsByTagName(tagName);
+        for (let i=0; i < inputElementList.length; i++) {
+            // Only include elements that have an id
+            if (inputElementList[i].id === null) {
+                continue;
+            }
+
+            if (first) {
+                first = false;
+                if (jsonOutput) {
+                    paramData = '{';
+                } else {
+                    paramData = '?';
+                }
+            } else {
+                paramData += paramSeperator;
+            }
+
+            //console.log(`id = ${inputElementList[i].id}, type = ${inputElementList[i].type}, value = ${inputElementList[i].value}, checked = ${inputElementList[i].checked}`)
+            if (inputElementList[i].type === "checkbox") {
+                if (inputElementList[i].checked) {
+                    if (jsonOutput) {
+                        paramData += '"' + inputElementList[i].id + '" : 1';
+                    } else {
+                        paramData += inputElementList[i].id + '=1';
+                    }
+            
+                } else {
+                    if (jsonOutput) {
+                        paramData += '"' + inputElementList[i].id + '" : 0';
+                    } else {
+                        paramData += inputElementList[i].id + '=0';
+                    }
+                }
+            } else {
+                if (jsonOutput) {
+                    paramData += '"' + inputElementList[i].id + '" : "' + cleanStr(inputElementList[i].value) + '"';
+                } else {
+                    paramData += inputElementList[i].id + '=' + cleanStr(inputElementList[i].value);
+                }
+            }
+        }
+
+        return paramData;
+    }
+
+    //=============================================================================================
+    // 2022-05-25 JJK   Modified the original function to call the new function with the default
+    //                  of JSON = true
+    // *** Get rid of this when everything has been re-factored to call the new function ***
+    //=============================================================================================
+    function getJSONfromInputs(formName, paramMap) {
+        return getParamDatafromInputs(formName, paramMap);
+    }
+
 
     function log(inStr) {
         console.log(formatDatetime + " " + inStr);
@@ -448,9 +351,8 @@
         setTextArea,
         setInputDate,
         setSelectOption,
-        fetchData,
+        getParamDatafromInputs,
         getJSONfromInputs,
-        updateData,
         log
     };
         

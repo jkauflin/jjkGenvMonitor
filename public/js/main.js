@@ -1,5 +1,5 @@
 /*==============================================================================
- * (C) Copyright 2017,2019,2021 John J Kauflin, All rights reserved. 
+ * (C) Copyright 2017,2019,2021,2022 John J Kauflin, All rights reserved. 
  *----------------------------------------------------------------------------
  * DESCRIPTION: Client-side JS functions and logic for web app
  *----------------------------------------------------------------------------
@@ -15,117 +15,123 @@
  *                  util.js
  * 2022-04-17 JJK   Making updates for bootstrap 5, and to use fetch()
  *                  instead of AJAX.  Removed old websocket stuff
- * 2022-05-19 JJK   Updated to use new util.fetchData and updateData functions
+ * 2022-05-31 JJK   Updated to use newest fetch ideas for lookup and update,
+ *                  and converted to use straight javascript
  *============================================================================*/
 var main = (function () {
     'use strict';
 
     //=================================================================================================================
-    // Private variables for the Module
-    var isTouchDevice = 'ontouchstart' in document.documentElement;
-    var storeRec = null;
-
-    //=================================================================================================================
-    // Variables cached from the DOM
-    var $document = $(document);
-    var $desc = $document.find("#desc");
-
-    var $daysToGerm = $document.find("#daysToGerm");
-    var $daysToBloom = $document.find("#daysToBloom");
-    var $germinationStart = $document.find("#germinationStart");
-    var $estBloomDate = $document.find("#estBloomDate");
-    var $bloomDate = $document.find("#bloomDate");
-
-    var $germinationDate = $document.find("#germinationDate");
-    var $harvestDate = $document.find("#harvestDate");
-    var $cureDate = $document.find("#cureDate");
-    var $productionDate = $document.find("#productionDate");
-    var $targetTemperature = $document.find("#targetTemperature");
-    var $airInterval = $document.find("#airInterval");
-    var $airDuration = $document.find("#airDuration");
-    var $heatInterval = $document.find("#heatInterval");
-    var $heatDuration = $document.find("#heatDuration");
-    var $heatDurationMin = $document.find("#heatDurationMin");
-    var $heatDurationMax = $document.find("#heatDurationMax");
-    var $lightDuration = $document.find("#lightDuration");
-    var $waterDuration = $document.find("#waterDuration");
-    var $waterSeconds = $document.find("#waterSeconds");
-    var $ClearLogButton = $document.find("#ClearLogButton");
-    var $UpdateButton = $document.find("#UpdateButton");
-    var $WaterButton = $document.find("#WaterButton");
-    var $Inputs = $document.find("#InputValues");
-
-    var $UpdateDisplay = $document.find("#UpdateDisplay");
-
-    //var $altAddress = $moduleDiv.find("#altAddress");
-    var $LogMessageDisplay = $("#LogMessageDisplay").find('tbody');
-
-    //=================================================================================================================
     // Bind events
-    $ClearLogButton.click(_clearLog);
-    $UpdateButton.click(_update);
-    $WaterButton.click(_water);
-    _lookup();
+    //document.getElementById("ClearLogButton").addEventListener("click", _clearLog);
+    document.getElementById("UpdateButton").addEventListener("click", _update);
+    document.getElementById("WaterButton").addEventListener("click", _water);
 
+    // Lookup values when the page loads
+    _lookup();
 
     //=================================================================================================================
     // Module methods
     function _lookup(event) {
-        util.fetchData('GetValues',true,$UpdateDisplay,_renderConfig);
+        let url = 'GetValues';
+        fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Response was not OK');
+            }
+            return response.json();
+        })
+        .then(data => {
+            _renderConfig(data);
+        })
+        .catch((err) => {
+            console.error(`Error in Fetch to ${url}, ${err}`);
+            document.getElementById("UpdateDisplay").innerHTML = "Fetch data FAILED - check log";
+        });
     }
 
     function _update(event) {
-        util.updateData('UpdateConfig',$Inputs,true,$UpdateDisplay,_renderConfig);
+        let url = 'UpdateConfig';
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: util.getParamDatafromInputs('InputValues')
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Response was not OK');
+            }
+            return response.json();
+        })
+        .then(data => {
+            document.getElementById("UpdateDisplay").innerHTML = "Update successful";
+            _renderConfig(data);
+        })
+        .catch((err) => {
+            console.error(`Error in Fetch to ${url}, ${err}`);
+            document.getElementById("UpdateDisplay").innerHTML = "Fetch data FAILED - check log";
+        });
     }
 
     function _clearLog(event) {
-        util.updateData('ClearLog',null,false,$UpdateDisplay);
+        let url = 'ClearLog';
     }
 
     function _water(event) {
         var paramMap = null;
         var paramMap = new Map();
-        paramMap.set('waterSeconds', $waterSeconds.val());
+        paramMap.set('waterSeconds', document.getElementById("waterSeconds").value);
 
-        util.updateData("Water",null,false,$UpdateDisplay,null,paramMap);
+        let url = 'Water';
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: util.getParamDatafromInputs(null,paramMap)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Response was not OK');
+            }
+            return response.text();
+        })
+        .then(message => {
+            document.getElementById("UpdateDisplay").innerHTML = message;
+        })
+        .catch((err) => {
+            console.error(`Error in Fetch to ${url}, ${err}`);
+            document.getElementById("UpdateDisplay").innerHTML = "Fetch data FAILED - check log";
+        });
     }
 
     function _renderConfig(storeRec) {
         if (storeRec != null) {
-            $desc.val(storeRec.desc);
-            $daysToGerm.val(storeRec.daysToGerm);
-            $daysToBloom.val(storeRec.daysToBloom);
-            $germinationStart.val(storeRec.germinationStart);
-            $estBloomDate.val(storeRec.estBloomDate);
-            $bloomDate.val(storeRec.bloomDate);
+            document.getElementById("desc").value = storeRec.desc;
+            document.getElementById("daysToGerm").value = storeRec.daysToGerm;
+            document.getElementById("daysToBloom").value = storeRec.daysToBloom;
+            document.getElementById("germinationStart").value = storeRec.germinationStart;
+            document.getElementById("estBloomDate").value = storeRec.estBloomDate;
+            document.getElementById("bloomDate").value = storeRec.bloomDate;
     
-            $germinationDate.val(storeRec.germinationDate);
-            $harvestDate.val(storeRec.harvestDate);
-            $cureDate.val(storeRec.cureDate);
-            $productionDate.val(storeRec.productionDate);
+            document.getElementById("germinationDate").value = storeRec.germinationDate;
+            document.getElementById("harvestDate").value = storeRec.harvestDate;
+            document.getElementById("cureDate").value = storeRec.cureDate;
+            document.getElementById("productionDate").value = storeRec.productionDate;
     
-            $targetTemperature.val(storeRec.targetTemperature);
-            $airInterval.val(storeRec.airInterval);
-            $airDuration.val(storeRec.airDuration);
-            $heatInterval.val(storeRec.heatInterval);
-            $heatDuration.val(storeRec.heatDuration);
-            $heatDurationMin.val(storeRec.heatDurationMin);
-            $heatDurationMax.val(storeRec.heatDurationMax);
-            $lightDuration.val(storeRec.lightDuration);
-            $waterDuration.val(storeRec.waterDuration);
+            document.getElementById("targetTemperature").value = storeRec.targetTemperature;
+            document.getElementById("airInterval").value = storeRec.airInterval;
+            document.getElementById("airDuration").value = storeRec.airDuration;
+            document.getElementById("heatInterval").value = storeRec.heatInterval;
+            document.getElementById("heatDuration").value = storeRec.heatDuration;
+            document.getElementById("heatDurationMin").value = storeRec.heatDurationMin;
+            document.getElementById("heatDurationMax").value = storeRec.heatDurationMax;
+            document.getElementById("lightDuration").value = storeRec.lightDuration;
+            document.getElementById("waterDuration").value = storeRec.waterDuration;
         }
 
-        // loop through and add to a table
-        /*
-        var tr = '';
-        $.each(storeRec.logList, function (index, logRec) {
-            tr += '<tr class="small">';
-            tr += '<td>' + logRec + '</td>';
-            tr += '</tr>';
-        });
-
-        $LogMessageDisplay.html(tr);
-        */
     }
 
     //=================================================================================================================

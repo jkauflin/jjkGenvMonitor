@@ -86,15 +86,15 @@ app.post('/UpdateConfig', function (req, res, next) {
 });
 
 app.post('/Water', function (req, res, next) {
-    var retMessage = boardFunctions.water(req.body);
+    let retMessage = boardFunctions.water(req.body);
     res.send(retMessage);
 });
 
 
 function log(inStr) {
-    //var logStr = dateTime.create().format('Y-m-d H:M:S') + " " + inStr;
-    var td = new Date();
-    var dateStr = `${td.toDateString()} ${td.getHours()}:${td.getMinutes()}:${td.getSeconds()}.${td.getMilliseconds()}`;
+    //let logStr = dateTime.create().format('Y-m-d H:M:S') + " " + inStr;
+    let td = new Date();
+    let dateStr = `${td.toDateString()} ${td.getHours()}:${td.getMinutes()}:${td.getSeconds()}.${td.getMilliseconds()}`;
     console.log(dateStr + " " + inStr);
     //logArray.push(logStr);
     //_saveStoreRec();
