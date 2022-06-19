@@ -72,8 +72,9 @@ const fetch = require('node-fetch');
 //import fetch from 'node-fetch';
 
 // Library to control the Arduino board
+//var PiIO = require('pi-io');
+const Raspi = require('raspi-io').RaspiIO;
 var five = require("johnny-five");
-var PiIO = require('pi-io');
 
 // Set up the configuration store and initial values
 //var store = require('json-fs-store')(process.env.STORE_DIR);
@@ -180,21 +181,10 @@ try {
     // When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
     // be sure to shut the REPL off!
     var board = new five.Board({
-        io: new PiIO(),
+        io: new Raspi(),
         repl: false,
         debug: false
         //    timeout: 12000
-    });
-
-
-    
-    var board = new five.Board({
-    });
-    
-    board.on('ready', function() {
-      var led = new five.Led('GPIO17');
-    
-      led.pulse(1000);
     });
 
 
@@ -239,6 +229,7 @@ try {
                 pin: 2
             });
             */
+            log(">>> BEFORE thermometer = new five.Sensor(GPIO4) ");
             thermometer = new five.Sensor("GPIO4");
             log(">>> AFTER thermometer = new five.Sensor(GPIO4) ");
             
