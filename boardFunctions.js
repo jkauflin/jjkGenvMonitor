@@ -65,6 +65,7 @@ Modification History
 2022-04-16 JJK  Checking function of file storage updates
 2022-05-16 JJK  Get to gracefully work with board not plugged in - already
                 working that way - error about serialport but runs rest
+2022-06-18 JJK  Testing pi-io library for the Raspberry Pi
 =============================================================================*/
 //const EventEmitter = require('events');
 const fetch = require('node-fetch');
@@ -72,6 +73,7 @@ const fetch = require('node-fetch');
 
 // Library to control the Arduino board
 var five = require("johnny-five");
+var PiIO = require('pi-io');
 
 // Set up the configuration store and initial values
 //var store = require('json-fs-store')(process.env.STORE_DIR);
@@ -178,10 +180,23 @@ try {
     // When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
     // be sure to shut the REPL off!
     var board = new five.Board({
+        io: new PiIO(),
         repl: false,
         debug: false
         //    timeout: 12000
     });
+
+
+    
+    var board = new five.Board({
+    });
+    
+    board.on('ready', function() {
+      var led = new five.Led('GPIO17');
+    
+      led.pulse(1000);
+    });
+
 
     board.on("error", function (err) {
         log("*** Error in Board ***");
@@ -218,12 +233,20 @@ try {
         this.wait(2000, function () {
             // This requires OneWire support using the ConfigurableFirmata
             log("Initialize tempature sensor");
+            /*
             thermometer = new five.Thermometer({
                 controller: "DS18B20",
                 pin: 2
             });
+            */
+            thermometer = new five.Sensor("GPIO4");
+            log(">>> AFTER thermometer = new five.Sensor(GPIO4) ");
+            
     
             thermometer.on("change", function () {
+
+                log("***** this.value = "+this.value);
+
                 // subtract the last reading:
                 totalA0 = totalA0 - readingsA0[indexA0];
                 readingsA0[indexA0] = this.fahrenheit;
