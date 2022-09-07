@@ -184,27 +184,27 @@ try {
     //-------------------------------------------------------------------------------------------------------
     //board.on("ready", function () {
  
-    var Gpio = require('onoff').Gpio; //include onoff to interact with the GPIO
-    var LED = new Gpio(17, 'out'); //use GPIO pin 4, and specify that it is output
+    var Gpio = require('onoff').Gpio //include onoff to interact with the GPIO
+    var LED = new Gpio(17, 'out') //use GPIO pin 4, and specify that it is output
 
-    var blinkInterval = setInterval(blinkLED, 250); //run the blinkLED function every 250ms
+    log("after LED init - starting blink")
+    var blinkInterval = setInterval(blinkLED, 250) //run the blinkLED function every 250ms
 
     function blinkLED() { //function to start blinking
         if (LED.readSync() === 0) { //check the pin state, if the state is 0 (or off)
-            LED.writeSync(1); //set pin state to 1 (turn LED on)
+            LED.writeSync(1) //set pin state to 1 (turn LED on)
         } else {
-            LED.writeSync(0); //set pin state to 0 (turn LED off)
+            LED.writeSync(0) //set pin state to 0 (turn LED off)
         }
     }
 
     function endBlink() { //function to stop blinking
-        clearInterval(blinkInterval); // Stop blink intervals
-        LED.writeSync(0); // Turn LED off
-        LED.unexport(); // Unexport GPIO to free resources
+        clearInterval(blinkInterval) // Stop blink intervals
+        LED.writeSync(0) // Turn LED off
+        LED.unexport() // Unexport GPIO to free resources
     }
 
-    setTimeout(endBlink, 5000); //stop blinking after 5 seconds
-
+    setTimeout(endBlink, 5000) //stop blinking after 5 seconds
 
         //log("Initializing relays");
         //relays = new five.Relays([10, 11, 12, 13]);
@@ -212,6 +212,7 @@ try {
         // Handle a termination signal (from stopping the systemd service)
         process.on('SIGTERM', function () {
             log('on SIGTERM');
+            LED.unexport();
             //turnRelaysOFF();
         });
         //[`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
