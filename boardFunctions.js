@@ -183,6 +183,8 @@ try {
     // When the board is ready, create and intialize global component objects (to be used by functions)
     //-------------------------------------------------------------------------------------------------------
     //board.on("ready", function () {
+
+    getTemperature();
  
     var Gpio = require('onoff').Gpio //include onoff to interact with the GPIO
     var LED = new Gpio(17, 'out') //use GPIO pin 4, and specify that it is output
@@ -204,7 +206,7 @@ try {
         LED.unexport() // Unexport GPIO to free resources
     }
 
-    setTimeout(endBlink, 5000) //stop blinking after 5 seconds
+    setTimeout(endBlink, 10000) //stop blinking after 5 seconds
 
         //log("Initializing relays");
         //relays = new five.Relays([10, 11, 12, 13]);
@@ -244,31 +246,17 @@ try {
 }
 
 function getTemperature() {
-    /*
-    fs.readFile(lastRunFilename, function (err, buf) {
-        if (!err) {
-            lastRunTimestamp = new Date(buf.toString());
-        }
-        console.log("Last Run Timestamp = " + lastRunTimestamp);
-        if (process.env.LAST_RUN_TIMESTAMP_OVERRIDE != undefined) {
-            console.log("LAST_RUN_TIMESTAMP_OVERRIDE = " + process.env.LAST_RUN_TIMESTAMP_OVERRIDE);
-            lastRunTimestamp = new Date(process.env.LAST_RUN_TIMESTAMP_OVERRIDE);
-            console.log("Last Run Timestamp = " + lastRunTimestamp);
-        }
-        // Start the walkSync to load all the files into the filelist array
-        fileList = walkSync(process.env.LOCAL_PHOTOS_ROOT + process.env.PHOTOS_START_DIR);
-        //for (var i = 0, len = fileList.length; i < len; i++) {
-        //    console.log("fileList[" + i + "] = " + fileList[i]);
-        //}
-        if (fileList.length > 0) {
-            // start transfer
-            startTransfer();
+    log("in getTemperature")
+    const oneWireOverlayTemperatureFile = "/sys/bus/w1/devices/28-0416b3494bff/temperature"
+    celsiusTemp = 22625
+    fs.readFile(oneWireOverlayTemperatureFile, function (err, celsiusTemp) {
+        if (err) {
+            log("Error in reading temperature file")
         } else {
-            console.log("No new pictures found");
-            console.log("");
+             currTemperature = (celsiusTemp * (9/5)) + 32
+             log(`currTemperature = ${currTemperature}`)
         }
     });
-    */
 }
 
 function turnRelaysOFF() {
