@@ -67,14 +67,18 @@ Modification History
                 working that way - error about serialport but runs rest
 2022-06-18 JJK  Testing pi-io library for the Raspberry Pi
 =============================================================================*/
+
+// Read environment variables from the .env file
+require('dotenv').config();
+
 //const EventEmitter = require('events');
 const fetch = require('node-fetch');
 //import fetch from 'node-fetch';
 
 // Library to control the Arduino board
 //var PiIO = require('pi-io');
-const Raspi = require('raspi-io').RaspiIO;
-var five = require("johnny-five");
+//const Raspi = require('raspi-io').RaspiIO;
+//var five = require("johnny-five");
 
 // Set up the configuration store and initial values
 //var store = require('json-fs-store')(process.env.STORE_DIR);
@@ -194,6 +198,9 @@ try {
         boardReady = false;
     }); // board.on("error", function() {
     
+  
+  
+  
     log("===== Starting board initialization =====");
     //-------------------------------------------------------------------------------------------------------
     // When the board is ready, create and intialize global component objects (to be used by functions)

@@ -1,7 +1,7 @@
 {
   "name": "jjkgenvmonitor",
-  "version": "2.1.0",
-  "description": "Monitor and control grow environment",
+  "version": "2.2.0",
+  "description": "Monitor temperature and control lights, air, and water in a grow environment",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -14,10 +14,8 @@
     "url": "https://github.com/jkauflin/jjkGenvMonitor.git"
   },
   "dependencies": {
-    "dotenv": "latest",
-    "express": "latest",
-    "raspi-io": "^11.0.0",
-    "johnny-five": "^2.1.0",
+    "dotenv": "^16.0.2",
+    "express": "^4.18.1",
     "json-fs-store": "^0.0.1",
     "node-fetch": "^2.6.7"
   }

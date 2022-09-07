@@ -19,16 +19,6 @@ Modification History
 2022-05-16 JJK  Re-checked update functions using Fetch POST w-JSON object
 =============================================================================*/
 
-// Read environment variables from the .env file
-require('dotenv').config();
-//import 'dotenv/config'
-//EMONCMS_INPUT_URL=
-
-const EMONCMS_INPUT_URL = process.env.EMONCMS_INPUT_URL;
-var emoncmsUrl = "";
-var metricJSON = "";
-
-
 var http = require('http');
 //import * as http from 'http';
 const express = require('express')
