@@ -248,7 +248,6 @@ try {
 function getTemperature() {
     log("in getTemperature")
     const oneWireOverlayTemperatureFile = "/sys/bus/w1/devices/28-0416b3494bff/temperature"
-    celsiusTemp = 22625
     fs.readFile(oneWireOverlayTemperatureFile, function (err, celsiusTemp) {
         if (err) {
             log("Error in reading temperature file")
