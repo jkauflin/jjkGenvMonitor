@@ -66,19 +66,18 @@ Modification History
 2022-05-16 JJK  Get to gracefully work with board not plugged in - already
                 working that way - error about serialport but runs rest
 2022-06-18 JJK  Testing pi-io library for the Raspberry Pi
+2022-09-06 JJK  Updated to use pigpio and onoff to control relays directly
+                from the Raspberry pi.  Also using the Pi overlay for 
+                1-wire control of the temperature sensor, and just reading
+                values from the overlay file
 =============================================================================*/
-
 // Read environment variables from the .env file
 require('dotenv').config();
 
 //const EventEmitter = require('events');
 const fetch = require('node-fetch');
 //import fetch from 'node-fetch';
-
-// Library to control the Arduino board
-//var PiIO = require('pi-io');
-//const Raspi = require('raspi-io').RaspiIO;
-//var five = require("johnny-five");
+const fs = require('fs');
 
 // Set up the configuration store and initial values
 //var store = require('json-fs-store')(process.env.STORE_DIR);
@@ -161,8 +160,6 @@ for (var i = 0; i < numReadings; i++) {
 }
 var arrayFull = false;
 
-// State variables
-var boardReady = false;
 
 try {
     // Get values from the application storage record
@@ -181,100 +178,53 @@ try {
         }
     });
 
-    // Create Johnny-Five board object
-    // When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
-    // be sure to shut the REPL off!
-    var board = new five.Board({
-        io: new Raspi(),
-        repl: false,
-        debug: false
-        //    timeout: 12000
-    });
-
-
-    board.on("error", function (err) {
-        log("*** Error in Board ***");
-        console.error(err.stack);
-        boardReady = false;
-    }); // board.on("error", function() {
-    
-  
-  
-  
     log("===== Starting board initialization =====");
     //-------------------------------------------------------------------------------------------------------
     // When the board is ready, create and intialize global component objects (to be used by functions)
     //-------------------------------------------------------------------------------------------------------
-    board.on("ready", function () {
-        log("*** board ready ***");
-        boardReady = true;
-    
-        log("Initializing relays");
-        relays = new five.Relays([10, 11, 12, 13]);
+    //board.on("ready", function () {
+ 
+    var Gpio = require('onoff').Gpio; //include onoff to interact with the GPIO
+    var LED = new Gpio(17, 'out'); //use GPIO pin 4, and specify that it is output
+    var blinkInterval = setInterval(blinkLED, 250); //run the blinkLED function every 250ms
+
+    function blinkLED() { //function to start blinking
+        if (LED.readSync() === 0) { //check the pin state, if the state is 0 (or off)
+            LED.writeSync(1); //set pin state to 1 (turn LED on)
+        } else {
+            LED.writeSync(0); //set pin state to 0 (turn LED off)
+        }
+    }
+
+    function endBlink() { //function to stop blinking
+        clearInterval(blinkInterval); // Stop blink intervals
+        LED.writeSync(0); // Turn LED off
+        LED.unexport(); // Unexport GPIO to free resources
+    }
+
+    setTimeout(endBlink, 5000); //stop blinking after 5 seconds
+
+
+        //log("Initializing relays");
+        //relays = new five.Relays([10, 11, 12, 13]);
     
         // If the board is exiting, turn all the relays off
         this.on("exit", function () {
             log("on EXIT");
-            turnRelaysOFF();
+            //turnRelaysOFF();
         });
         // Handle a termination signal (from stopping the systemd service)
         process.on('SIGTERM', function () {
             log('on SIGTERM');
-            turnRelaysOFF();
+            //turnRelaysOFF();
         });
         //[`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
         //    process.on(eventType, cleanUpServer.bind(null, eventType));
         //})
     
-        // Define the thermometer sensor
-        this.wait(2000, function () {
-            // This requires OneWire support using the ConfigurableFirmata
-            log("Initialize tempature sensor");
-            /*
-            thermometer = new five.Thermometer({
-                controller: "DS18B20",
-                pin: 2
-            });
-            */
-            log(">>> BEFORE thermometer = new five.Sensor(GPIO4) ");
-            thermometer = new five.Sensor("GPIO4");
-            log(">>> AFTER thermometer = new five.Sensor(GPIO4) ");
-            
-    
-            thermometer.on("change", function () {
-
-                log("***** this.value = "+this.value);
-
-                // subtract the last reading:
-                totalA0 = totalA0 - readingsA0[indexA0];
-                readingsA0[indexA0] = this.fahrenheit;
-                // add the reading to the total:
-                totalA0 = totalA0 + readingsA0[indexA0];
-                // advance to the next position in the array: 
-                indexA0 = indexA0 + 1;
-                // if we're at the end of the array...
-                if (indexA0 >= numReadings) {
-                    // ...wrap around to the beginning:
-                    indexA0 = 0;
-                    arrayFull = true;
-                }
-                // calculate the average:
-                if (arrayFull) {
-                    currTemperature = (totalA0 / numReadings).toFixed(2);
-                }
-    
-                // Check to adjust the duration of ventilation and heating according to tempature
-                if (currTemperature < TEMPATURE_MIN) {
-                    sr.heatDuration = parseFloat(sr.heatDurationMax) + heatDurationMaxAdj;
-                    //log("Temp < Min, sr.heatDuration = "+sr.heatDuration);
-                }
-                if (currTemperature > TEMPATURE_MAX) {
-                    sr.heatDuration = sr.heatDurationMin;
-                }
-            }); // on termometer change
-        });
     
         // Start the function to toggle air ventilation ON and OFF
+        /*
         log("Starting Air toggle interval");
         setTimeout(toggleAir, 5000);
         // Start the function to toggle heat ON and OFF
@@ -283,10 +233,11 @@ try {
     
         // Start sending metrics 10 seconds after starting (so things are calm)
         setTimeout(logMetric, 10000);
-    
+        */
+
         log("End of board.on (initialize) event");
     
-    }); // board.on("ready", function() {
+    //}); // board.on("ready", function() {
     
 } catch (err) {
     log('Error in main initialization, err = '+err);
@@ -295,6 +246,33 @@ try {
     // turn things off?
 }
 
+function getTemperature() {
+    /*
+    fs.readFile(lastRunFilename, function (err, buf) {
+        if (!err) {
+            lastRunTimestamp = new Date(buf.toString());
+        }
+        console.log("Last Run Timestamp = " + lastRunTimestamp);
+        if (process.env.LAST_RUN_TIMESTAMP_OVERRIDE != undefined) {
+            console.log("LAST_RUN_TIMESTAMP_OVERRIDE = " + process.env.LAST_RUN_TIMESTAMP_OVERRIDE);
+            lastRunTimestamp = new Date(process.env.LAST_RUN_TIMESTAMP_OVERRIDE);
+            console.log("Last Run Timestamp = " + lastRunTimestamp);
+        }
+        // Start the walkSync to load all the files into the filelist array
+        fileList = walkSync(process.env.LOCAL_PHOTOS_ROOT + process.env.PHOTOS_START_DIR);
+        //for (var i = 0, len = fileList.length; i < len; i++) {
+        //    console.log("fileList[" + i + "] = " + fileList[i]);
+        //}
+        if (fileList.length > 0) {
+            // start transfer
+            startTransfer();
+        } else {
+            console.log("No new pictures found");
+            console.log("");
+        }
+    });
+    */
+}
 
 function turnRelaysOFF() {
     log("Setting relays OFF");

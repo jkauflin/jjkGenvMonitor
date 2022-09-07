@@ -17,6 +17,7 @@ Modification History
 2022-04-03 JJK  Updating to ES6 and bootstrap 5
 2022-04-09 JJK  Hold off on ES6 for now, just implement bootstrap 5
 2022-05-16 JJK  Re-checked update functions using Fetch POST w-JSON object
+2022-09-06 JJK  Updated to use Raspberry Pi only without Arduino
 =============================================================================*/
 
 var http = require('http');
@@ -53,12 +54,11 @@ httpServer.listen(WEB_PORT,function() {
     log("Live at Port " + WEB_PORT + " - Let's rock!");
 });
 
-
+//--------------------------------------------------------------------------
 // Include the Arduino board functions
 var boardFunctions = require('./boardFunctions.js');
 //import * as boardFunctions from './boardFunctions.js';
-
-
+//--------------------------------------------------------------------------
 app.get('/GetValues', function (req, res, next) {
     res.send(JSON.stringify(boardFunctions.getStoreRec()));
 });
