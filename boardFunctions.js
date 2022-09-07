@@ -186,6 +186,7 @@ try {
  
     var Gpio = require('onoff').Gpio; //include onoff to interact with the GPIO
     var LED = new Gpio(17, 'out'); //use GPIO pin 4, and specify that it is output
+
     var blinkInterval = setInterval(blinkLED, 250); //run the blinkLED function every 250ms
 
     function blinkLED() { //function to start blinking
@@ -208,11 +209,6 @@ try {
         //log("Initializing relays");
         //relays = new five.Relays([10, 11, 12, 13]);
     
-        // If the board is exiting, turn all the relays off
-        this.on("exit", function () {
-            log("on EXIT");
-            //turnRelaysOFF();
-        });
         // Handle a termination signal (from stopping the systemd service)
         process.on('SIGTERM', function () {
             log('on SIGTERM');
