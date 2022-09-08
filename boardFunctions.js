@@ -187,7 +187,8 @@ try {
     getTemperature();
  
     var Gpio = require('onoff').Gpio //include onoff to interact with the GPIO
-    var LED = new Gpio(17, 'out') //use GPIO pin 4, and specify that it is output
+    //var LED = new Gpio(17, 'out') //use GPIO pin 4, and specify that it is output
+    var LED = new Gpio(23, 'out') //use GPIO pin 4, and specify that it is output
 
     log("after LED init - starting blink")
     var blinkInterval = setInterval(blinkLED, 250) //run the blinkLED function every 250ms
