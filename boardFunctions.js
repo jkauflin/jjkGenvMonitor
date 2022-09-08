@@ -73,18 +73,18 @@ Modification History
 2022-09-08 JJK  Back to johnny-five and arduino
 =============================================================================*/
 // Read environment variables from the .env file
-require('dotenv').config();
+require('dotenv').config()
 
-//const EventEmitter = require('events');
-const fetch = require('node-fetch');
-//import fetch from 'node-fetch';
-const fs = require('fs');
+//const EventEmitter = require('events')
+const fetch = require('node-fetch')
+//import fetch from 'node-fetch'
+const fs = require('fs')
 
 // Set up the configuration store and initial values
 //var store = require('json-fs-store')(process.env.STORE_DIR);
-var store = require('json-fs-store')("./");
-var storeId = 'storeid';
-var logArray = [];
+var store = require('json-fs-store')("./")
+var storeId = 'storeid'
+var logArray = []
 var initStoreRec = {
     id: storeId,                // unique identifier
     desc: 'Blanket Flower',     // description
@@ -106,48 +106,46 @@ var initStoreRec = {
     heatDurationMax: 2.5,       // minutes
     lightDuration: 18,          // hours
     waterDuration: 20           // seconds
-};
+}
 
 //logList: logArray
 
 // Structure to hold current configuration values
-var sr = initStoreRec;
+var sr = initStoreRec
 
 // Global variables
-const EMONCMS_INPUT_URL = process.env.EMONCMS_INPUT_URL;
-var emoncmsUrl = "";
-var metricJSON = "";
+const EMONCMS_INPUT_URL = process.env.EMONCMS_INPUT_URL
+var emoncmsUrl = ""
+var metricJSON = ""
 
-//var intervalSeconds = 30;
-//var intervalSeconds = 10;
-var intervalSeconds = 15;
-var metricInterval = intervalSeconds * 1000;
-var currTemperature = sr.targetTemperature;
-var TEMPATURE_MAX = sr.targetTemperature + 1.0;
-var TEMPATURE_MIN = sr.targetTemperature - 1.0;
-const minutesToMilliseconds = 60 * 1000;
-const secondsToMilliseconds = 1000;
+var intervalSeconds = 15
+var metricInterval = intervalSeconds * 1000
+var currTemperature = sr.targetTemperature
+var TEMPATURE_MAX = sr.targetTemperature + 1.0
+var TEMPATURE_MIN = sr.targetTemperature - 1.0
+const minutesToMilliseconds = 60 * 1000
+const secondsToMilliseconds = 1000
 
-var relays = null;
-const LIGHTS = 0;
-const WATER = 1;
-const AIR = 2;
-const HEAT = 3;
-const relayNames = ["lights", "water", "air",  "heat"];
-const relayMetricON = 71;
-const relayMetricOFF = relayMetricON-1;
-const relayMetricValues = [relayMetricOFF,relayMetricOFF,relayMetricOFF,relayMetricOFF];
+var relays = null
+const LIGHTS = 0
+const WATER = 1
+const AIR = 2
+const HEAT = 3
+const relayNames = ["lights", "water", "air",  "heat"]
+const relayMetricON = 71
+const relayMetricOFF = relayMetricON-1
+const relayMetricValues = [relayMetricOFF,relayMetricOFF,relayMetricOFF,relayMetricOFF]
 
-const OFF = 0;
-const ON = 1;
-var currAirVal = OFF;
-var currHeatVal = OFF;
-var currLightsVal = OFF;
-var date;
-var hours = 0;
-var airTimeout = 1.0;
-var heatTimeout = 1.0;
-var heatDurationMaxAdj = 0.5;
+const OFF = 0
+const ON = 1
+var currAirVal = OFF
+var currHeatVal = OFF
+var currLightsVal = OFF
+var date
+var hours = 0
+var airTimeout = 1.0
+var heatTimeout = 1.0
+var heatDurationMaxAdj = 0.5
 
 // Variables to hold sensor values
 /*
@@ -208,135 +206,131 @@ board.on("error", function (err) {
 // When the board is ready, create and intialize global component objects (to be used by functions)
 //-------------------------------------------------------------------------------------------------------
 board.on("ready", function () {
-    log("*** board ready ***");
+    log("*** board ready ***")
 
-    log("Initializing relays");
-        // If the board is exiting, turn all the relays off
-        this.on("exit", function () {
-            log("on EXIT");
-            turnRelaysOFF();
-        });
+    log("Initializing relays")
+    
+    // If the board is exiting, turn all the relays off
+    this.on("exit", function () {
+        log("on EXIT")
+        turnRelaysOFF()
+    })
 
-        // Handle a termination signal (from stopping the systemd service)
-        process.on('SIGTERM', function () {
-            log('on SIGTERM');
-            LED.unexport();
-            //turnRelaysOFF();
-        });
-        //[`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
-        //    process.on(eventType, cleanUpServer.bind(null, eventType));
-        //})
+    // Handle a termination signal (from stopping the systemd service)
+    process.on('SIGTERM', function () {
+        log('on SIGTERM')
+        turnRelaysOFF()
+    })
 
-        log("Initializing relays");
-        //relays = new five.Relays([10, 11, 12, 13]);
-        relays = new five.Relays([10]);
+    log("Initializing relays")
+    relays = new five.Relays([10, 11, 12, 13])
 
-        log("TEST turn light on")
-        setRelay(LIGHTS, ON);
+    log(">>> TEST turn light on")
+    setRelay(LIGHTS, ON)
         
-        // Start the function to toggle air ventilation ON and OFF
-        /*
-        log("Starting Air toggle interval");
-        setTimeout(toggleAir, 5000);
-        // Start the function to toggle heat ON and OFF
-        log("Starting Heat toggle interval");
-        setTimeout(toggleHeat, 6000);
-        */
+    // Start the function to toggle air ventilation ON and OFF
+    /*
+    log("Starting Air toggle interval")
+    setTimeout(toggleAir, 5000)
+    // Start the function to toggle heat ON and OFF
+    log("Starting Heat toggle interval")
+    setTimeout(toggleHeat, 6000)
+    */
 
-        // Start sending metrics 10 seconds after starting (so things are calm)
-        setTimeout(logMetric, 10000);
+    // Start sending metrics 10 seconds after starting (so things are calm)
+    setTimeout(logMetric, 10000)
 
-        log("End of board.on (initialize) event");
+    log("End of board.on (initialize) event")
     
 }); // board.on("ready", function() {
 
 function turnRelaysOFF() {
-    log("Setting relays OFF");
-    setRelay(LIGHTS, OFF);
-    setRelay(AIR, OFF);
-    setRelay(HEAT, OFF);
-    setRelay(WATER, OFF);
+    log("Setting relays OFF")
+    setRelay(LIGHTS, OFF)
+    setRelay(AIR, OFF)
+    setRelay(HEAT, OFF)
+    setRelay(WATER, OFF)
 }
 
 function setRelay(relayNum, relayVal) {
     if (relayVal) {
         // If value is 1 or true, set the relay to turn ON and let the electricity flow
-        //relays[relayNum].on();
-        relays[relayNum].close();
-        //log(relayNames[relayNum]+" ON close");
-        //relayMetricValues[relayNum] = relayMetricON + (relayNum * 2);
-        relayMetricValues[relayNum] = relayMetricON + relayNum;
+        //relays[relayNum].on()
+        relays[relayNum].close()
+        //log(relayNames[relayNum]+" ON close")
+        //relayMetricValues[relayNum] = relayMetricON + (relayNum * 2)
+        relayMetricValues[relayNum] = relayMetricON + relayNum
     } else {
         // If value is 0 or false, set the relay to turn OFF and stop the flow of electricity
-        //relays[relayNum].off();
-        relays[relayNum].open();
-        //log(relayNames[relayNum]+" OFF open");
-        relayMetricValues[relayNum] = relayMetricOFF;
+        //relays[relayNum].off()
+        relays[relayNum].open()
+        //log(relayNames[relayNum]+" OFF open")
+        relayMetricValues[relayNum] = relayMetricOFF
     }
 }
 
 // Function to toggle air ventilation ON and OFF
 function toggleAir() {
-    airTimeout = sr.airInterval;
+    airTimeout = sr.airInterval
 
     if (currAirVal == OFF) {
-        //log("Turning Air ON");
-        setRelay(AIR,ON);
-        currAirVal = ON;
-        airTimeout = sr.airDuration;
+        //log("Turning Air ON")
+        setRelay(AIR,ON)
+        currAirVal = ON
+        airTimeout = sr.airDuration
     } else {
-        //log("Turning Air OFF");
-        setRelay(AIR,OFF);
-        currAirVal = OFF;
-        airTimeout = sr.airInterval;
+        //log("Turning Air OFF")
+        setRelay(AIR,OFF)
+        currAirVal = OFF
+        airTimeout = sr.airInterval
     }
 
     // Check to turn the light on/off
-    date = new Date();
-    hours = date.getHours();
-    //log("lightDuration = "+sr.lightDuration+", hours = "+hours);
+    date = new Date()
+    hours = date.getHours()
+    //log("lightDuration = "+sr.lightDuration+", hours = "+hours)
     if (hours > (sr.lightDuration - 1)) {
         if (currLightsVal == ON) {
-            setRelay(LIGHTS,OFF);
-            currLightsVal = OFF;
-            heatDurationMaxAdj = 0.5;  // Add a little extra heat max when the lights are off
+            setRelay(LIGHTS,OFF)
+            currLightsVal = OFF
+            heatDurationMaxAdj = 0.5  // Add a little extra heat max when the lights are off
         }
     } else {
         if (currLightsVal == OFF) {
-            setRelay(LIGHTS,ON);
-            currLightsVal = ON;
-            heatDurationMaxAdj = 0.0;  // Don't add extra heat max when the lights are on
+            setRelay(LIGHTS,ON)
+            currLightsVal = ON
+            heatDurationMaxAdj = 0.0  // Don't add extra heat max when the lights are on
             // Take a selfie when you turn the lights on
-            //setTimeout(letMeTakeASelfie, 100);
+            //setTimeout(letMeTakeASelfie, 100)
 
             // Water the plants when the light come on
-            setTimeout(waterThePlants, 500);
+            setTimeout(waterThePlants, 500)
         }
     }
 
     // Recursively call the function with the current timeout value  
-    setTimeout(toggleAir,airTimeout * minutesToMilliseconds);
+    setTimeout(toggleAir,airTimeout * minutesToMilliseconds)
 
 } // function toggleAir() {
 
 // Function to toggle air ventilation ON and OFF
 function toggleHeat() {
-    heatTimeout = sr.heatInterval;
+    heatTimeout = sr.heatInterval
 
     if (currHeatVal == OFF) {
-        //log("Turning Heat ON");
-        setRelay(HEAT, ON);
-        currHeatVal = ON;
-        heatTimeout = sr.heatDuration;
+        //log("Turning Heat ON")
+        setRelay(HEAT, ON)
+        currHeatVal = ON
+        heatTimeout = sr.heatDuration
     } else {
-        //log("Turning Heat OFF");
-        setRelay(HEAT, OFF);
-        currHeatVal = OFF;
-        heatTimeout = sr.heatInterval;
+        //log("Turning Heat OFF")
+        setRelay(HEAT, OFF)
+        currHeatVal = OFF
+        heatTimeout = sr.heatInterval
     }
 
     // Recursively call the function with the current timeout value  
-    setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds);
+    setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds)
 
 } // function toggleHeat() {
 
@@ -355,7 +349,7 @@ function getTemperature() {
 // Send metric values to a website
 function logMetric() {
     // Set the current temperature from the one-wire overlay file
-    getTemperature();
+    getTemperature()
 
     metricJSON = "{" + "tempature:" + currTemperature
         + ",heatDuration:" + sr.heatDuration
@@ -364,11 +358,11 @@ function logMetric() {
         + "," + relayNames[2] + ":" + relayMetricValues[2]
         + "," + relayNames[3] + ":" + relayMetricValues[3]
         + "}";
-    emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON;
+    emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON
 
     // Use this if we need to limit the send to between the hours of 6 and 20
-    var date = new Date();
-    var hours = date.getHours();
+    var date = new Date()
+    var hours = date.getHours()
     //if (hours > 5 || hours < 3) {
         fetch(emoncmsUrl)
         .then(checkResponseStatus)
@@ -378,7 +372,7 @@ function logMetric() {
     //}
 
     // Set the next time the function will run
-    setTimeout(logMetric, metricInterval);
+    setTimeout(logMetric, metricInterval)
 }
 
 function checkResponseStatus(res) {
@@ -386,8 +380,8 @@ function checkResponseStatus(res) {
         //log(`Fetch reponse is OK: ${res.status} (${res.statusText})`);
         return res
     } else {
-        //throw new Error(`The HTTP status of the reponse: ${res.status} (${res.statusText})`);
-        log(`Fetch reponse is NOT OK: ${res.status} (${res.statusText})`);
+        //throw new Error(`The HTTP status of the reponse: ${res.status} (${res.statusText})`)
+        log(`Fetch reponse is NOT OK: ${res.status} (${res.statusText})`)
     }
 }
 
@@ -408,55 +402,55 @@ function letMeTakeASelfie() {
 }
 
 function waterThePlants() {
-    log("Watering the plants, waterDuration = "+sr.waterDuration);
-    setRelay(WATER,ON);
+    log("Watering the plants, waterDuration = "+sr.waterDuration)
+    setRelay(WATER,ON)
     setTimeout(() => {
-        log("Watering the plants OFF");
-        setRelay(WATER,OFF);
-    }, sr.waterDuration * secondsToMilliseconds);
+        log("Watering the plants OFF")
+        setRelay(WATER,OFF)
+    }, sr.waterDuration * secondsToMilliseconds)
 }
 
 function _waterOn(waterSeconds) {
     //log("Turning Water ON, seconds = " + waterSeconds);
-    setRelay(WATER, ON);
+    setRelay(WATER, ON)
     setTimeout(() => {
-        //log("Turning Water OFF");
-        setRelay(WATER, OFF);
-    }, waterSeconds * secondsToMilliseconds);
+        //log("Turning Water OFF")
+        setRelay(WATER, OFF)
+    }, waterSeconds * secondsToMilliseconds)
 }
 
 function getStoreRec() {
-    return sr;
+    return sr
 }
 
 function _saveStoreRec() {
-    sr.id = storeId;
-    //sr.logList = logArray;
-    //log('Save JSON config record to storage file');
+    sr.id = storeId
+    //sr.logList = logArray
+    //log('Save JSON config record to storage file')
     store.add(sr, function (err) {
         if (err) {
-            log("Error updating store rec, err = " + err);
+            log("Error updating store rec, err = " + err)
         }
     });
 }
 
 function updateConfig(inStoreRec) {
-    sr = inStoreRec;
-    log("updateConfig, targetTemperature = " + sr.targetTemperature);
-    TEMPATURE_MAX = sr.targetTemperature + 1.0;
-    TEMPATURE_MIN = sr.targetTemperature - 1.0;
-    _saveStoreRec();
+    sr = inStoreRec
+    log("updateConfig, targetTemperature = " + sr.targetTemperature)
+    TEMPATURE_MAX = sr.targetTemperature + 1.0
+    TEMPATURE_MIN = sr.targetTemperature - 1.0
+    _saveStoreRec()
 }
 
 function clearLog() {
-    logArray.length = 0;
-    _saveStoreRec();
+    logArray.length = 0
+    _saveStoreRec()
 }
 
 function water(inRec) {
-    log(`in water, inRec.waterSeconds = ${inRec.waterSeconds}`);
-    //_waterOn(inRec.waterSeconds);
-    return `Water turned on for ${inRec.waterSeconds} seconds`;
+    log(`in water, inRec.waterSeconds = ${inRec.waterSeconds}`)
+    //_waterOn(inRec.waterSeconds)
+    return `Water turned on for ${inRec.waterSeconds} seconds`
 }
 
 function paddy(num, padlen, padchar) {
@@ -468,14 +462,14 @@ function paddy(num, padlen, padchar) {
 //var bar = paddy(2, 4, '#'); // ###2
 
 function log(inStr) {
-    let td = new Date();
-    let tempMonth = td.getMonth() + 1;
-    let tempDay = td.getDate();
-    let formattedDate = td.getFullYear() + '-' + paddy(tempMonth,2) + '-' + paddy(tempDay,2);
-    var dateStr = `${formattedDate} ${paddy(td.getHours(),2)}:${paddy(td.getMinutes(),2)}:${paddy(td.getSeconds(),2)}.${td.getMilliseconds()}`;
-    console.log(dateStr + " " + inStr);
+    let td = new Date()
+    let tempMonth = td.getMonth() + 1
+    let tempDay = td.getDate()
+    let formattedDate = td.getFullYear() + '-' + paddy(tempMonth,2) + '-' + paddy(tempDay,2)
+    var dateStr = `${formattedDate} ${paddy(td.getHours(),2)}:${paddy(td.getMinutes(),2)}:${paddy(td.getSeconds(),2)}.${td.getMilliseconds()}`
+    console.log(dateStr + " " + inStr)
     //logArray.push(logStr);
-    //_saveStoreRec();
+    //_saveStoreRec()
 }
 
 module.exports = {
