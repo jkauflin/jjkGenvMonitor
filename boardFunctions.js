@@ -70,7 +70,10 @@ Modification History
                 from the Raspberry pi.  Also using the Pi overlay for 
                 1-wire control of the temperature sensor, and just reading
                 values from the overlay file
-2022-09-08 JJK  Back to johnny-five and arduino
+2022-09-08 JJK  Back to johnny-five and arduino.  Raspberry pi GPIO (3.3v)
+                does no have enough power to trigger the solid state relays
+                I am using.  Going back to johnny-five and arduino for 
+                controlling the relays (still using Pi for temperature)
 =============================================================================*/
 // Read environment variables from the .env file
 require('dotenv').config()
@@ -161,8 +164,8 @@ var arrayFull = false;
 */
 
 // Library to control the Arduino board
-var five = require("johnny-five");
-var board = null;
+var five = require("johnny-five")
+var board = null
 // Create Johnny-Five board object
 // When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
 // be sure to shut the REPL off!
@@ -175,7 +178,7 @@ try {
     })
 
     // Get values from the application storage record
-    log("===== Reading storage record =====");
+    log("===== Reading storage record =====")
     store.load(storeId, function(err, inStoreRec){
         if (err) {
             // Create one if it does not exist (with initial values)
@@ -191,14 +194,14 @@ try {
     });
 
 } catch (err) {
-    log('Error in main initialization, err = '+err);
-    console.error(err.stack);
+    log('Error in main initialization, err = '+err)
+    console.error(err.stack)
 }
 
 board.on("error", function (err) {
-    log("*** Error in Board ***");
-    console.error(err.stack);
-    boardReady = false;
+    log("*** Error in Board ***")
+    console.error(err.stack)
+    boardReady = false
 }); // board.on("error", function() {
 
 
@@ -208,8 +211,6 @@ board.on("error", function (err) {
 board.on("ready", function () {
     log("*** board ready ***")
 
-    log("Initializing relays")
-    
     // If the board is exiting, turn all the relays off
     this.on("exit", function () {
         log("on EXIT")
@@ -225,9 +226,6 @@ board.on("ready", function () {
     log("Initializing relays")
     relays = new five.Relays([10, 11, 12, 13])
 
-    log(">>> TEST turn light on")
-    setRelay(LIGHTS, ON)
-        
     // Start the function to toggle air ventilation ON and OFF
     /*
     log("Starting Air toggle interval")
@@ -341,7 +339,7 @@ function getTemperature() {
             log("Error in reading temperature file")
         } else {
             currTemperature = ((celsiusTemp/1000) * (9/5)) + 32
-            log(`currTemperature = ${currTemperature}`)
+            //log(`currTemperature = ${currTemperature}`)
         }
     });
 }
