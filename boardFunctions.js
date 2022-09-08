@@ -70,6 +70,7 @@ Modification History
                 from the Raspberry pi.  Also using the Pi overlay for 
                 1-wire control of the temperature sensor, and just reading
                 values from the overlay file
+2022-09-08 JJK  Back to johnny-five and arduino
 =============================================================================*/
 // Read environment variables from the .env file
 require('dotenv').config();
@@ -121,7 +122,6 @@ var metricJSON = "";
 //var intervalSeconds = 10;
 var intervalSeconds = 15;
 var metricInterval = intervalSeconds * 1000;
-var thermometer = null;
 var currTemperature = sr.targetTemperature;
 var TEMPATURE_MAX = sr.targetTemperature + 1.0;
 var TEMPATURE_MIN = sr.targetTemperature - 1.0;
@@ -150,6 +150,7 @@ var heatTimeout = 1.0;
 var heatDurationMaxAdj = 0.5;
 
 // Variables to hold sensor values
+/*
 var numReadings = 10;   // Total number of readings to average
 var readingsA0 = [];    // Array of readings
 var indexA0 = 0;        // the index of the current reading
@@ -159,9 +160,22 @@ for (var i = 0; i < numReadings; i++) {
     readingsA0[i] = 0;     
 }
 var arrayFull = false;
+*/
 
-
+// Library to control the Arduino board
+var five = require("johnny-five");
+var board = null;
+// Create Johnny-Five board object
+// When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
+// be sure to shut the REPL off!
 try {
+    log("===== Starting board initialization =====");
+    board = new five.Board({
+        repl: false,
+        debug: false
+        //    timeout: 12000
+    })
+
     // Get values from the application storage record
     log("===== Reading storage record =====");
     store.load(storeId, function(err, inStoreRec){
@@ -169,7 +183,7 @@ try {
             // Create one if it does not exist (with initial values)
             store.add(initStoreRec, function (err) {
                 if (err) {
-                    throw err;
+                    throw err
                 }
             });
         } else {
@@ -178,40 +192,31 @@ try {
         }
     });
 
-    log("===== Starting board initialization =====");
-    //-------------------------------------------------------------------------------------------------------
-    // When the board is ready, create and intialize global component objects (to be used by functions)
-    //-------------------------------------------------------------------------------------------------------
-    //board.on("ready", function () {
+} catch (err) {
+    log('Error in main initialization, err = '+err);
+    console.error(err.stack);
+}
 
-    getTemperature();
- 
-    var Gpio = require('onoff').Gpio //include onoff to interact with the GPIO
-    //var LED = new Gpio(17, 'out') //use GPIO pin 4, and specify that it is output
-    var LED = new Gpio(23, 'out') //use GPIO pin 4, and specify that it is output
+board.on("error", function (err) {
+    log("*** Error in Board ***");
+    console.error(err.stack);
+    boardReady = false;
+}); // board.on("error", function() {
 
-    log("after LED init - starting blink")
-    var blinkInterval = setInterval(blinkLED, 250) //run the blinkLED function every 250ms
 
-    function blinkLED() { //function to start blinking
-        if (LED.readSync() === 0) { //check the pin state, if the state is 0 (or off)
-            LED.writeSync(1) //set pin state to 1 (turn LED on)
-        } else {
-            LED.writeSync(0) //set pin state to 0 (turn LED off)
-        }
-    }
+//-------------------------------------------------------------------------------------------------------
+// When the board is ready, create and intialize global component objects (to be used by functions)
+//-------------------------------------------------------------------------------------------------------
+board.on("ready", function () {
+    log("*** board ready ***");
 
-    function endBlink() { //function to stop blinking
-        clearInterval(blinkInterval) // Stop blink intervals
-        LED.writeSync(0) // Turn LED off
-        LED.unexport() // Unexport GPIO to free resources
-    }
+    log("Initializing relays");
+        // If the board is exiting, turn all the relays off
+        this.on("exit", function () {
+            log("on EXIT");
+            turnRelaysOFF();
+        });
 
-    setTimeout(endBlink, 10000) //stop blinking after 5 seconds
-
-        //log("Initializing relays");
-        //relays = new five.Relays([10, 11, 12, 13]);
-    
         // Handle a termination signal (from stopping the systemd service)
         process.on('SIGTERM', function () {
             log('on SIGTERM');
@@ -221,8 +226,14 @@ try {
         //[`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
         //    process.on(eventType, cleanUpServer.bind(null, eventType));
         //})
-    
-    
+
+        log("Initializing relays");
+        //relays = new five.Relays([10, 11, 12, 13]);
+        relays = new five.Relays([10]);
+
+        log("TEST turn light on")
+        setRelay(LIGHTS, ON);
+        
         // Start the function to toggle air ventilation ON and OFF
         /*
         log("Starting Air toggle interval");
@@ -230,34 +241,14 @@ try {
         // Start the function to toggle heat ON and OFF
         log("Starting Heat toggle interval");
         setTimeout(toggleHeat, 6000);
-    
+        */
+
         // Start sending metrics 10 seconds after starting (so things are calm)
         setTimeout(logMetric, 10000);
-        */
 
         log("End of board.on (initialize) event");
     
-    //}); // board.on("ready", function() {
-    
-} catch (err) {
-    log('Error in main initialization, err = '+err);
-    console.error(err.stack);
-} finally {
-    // turn things off?
-}
-
-function getTemperature() {
-    log("in getTemperature")
-    const oneWireOverlayTemperatureFile = "/sys/bus/w1/devices/28-0416b3494bff/temperature"
-    fs.readFile(oneWireOverlayTemperatureFile, function (err, celsiusTemp) {
-        if (err) {
-            log("Error in reading temperature file")
-        } else {
-             currTemperature = ((celsiusTemp/1000) * (9/5)) + 32
-             log(`currTemperature = ${currTemperature}`)
-        }
-    });
-}
+}); // board.on("ready", function() {
 
 function turnRelaysOFF() {
     log("Setting relays OFF");
@@ -349,8 +340,23 @@ function toggleHeat() {
 
 } // function toggleHeat() {
 
+function getTemperature() {
+    const oneWireOverlayTemperatureFile = "/sys/bus/w1/devices/28-0416b3494bff/temperature"
+    fs.readFile(oneWireOverlayTemperatureFile, function (err, celsiusTemp) {
+        if (err) {
+            log("Error in reading temperature file")
+        } else {
+            currTemperature = ((celsiusTemp/1000) * (9/5)) + 32
+            log(`currTemperature = ${currTemperature}`)
+        }
+    });
+}
+    
 // Send metric values to a website
 function logMetric() {
+    // Set the current temperature from the one-wire overlay file
+    getTemperature();
+
     metricJSON = "{" + "tempature:" + currTemperature
         + ",heatDuration:" + sr.heatDuration
         + "," + relayNames[0] + ":" + relayMetricValues[0]
@@ -453,23 +459,20 @@ function water(inRec) {
     return `Water turned on for ${inRec.waterSeconds} seconds`;
 }
 
+function paddy(num, padlen, padchar) {
+    var pad_char = typeof padchar !== 'undefined' ? padchar : '0';
+    var pad = new Array(1 + padlen).join(pad_char);
+    return (pad + num).slice(-pad.length);
+}
+//var fu = paddy(14, 5); // 00014
+//var bar = paddy(2, 4, '#'); // ###2
 
 function log(inStr) {
-    //var logStr = dateTime.create().format('Y-m-d H:M:S') + " " + inStr;
-    var td = new Date();
-
-    var tempMonth = td.getMonth() + 1;
-    if (td.getMonth() < 9) {
-        tempMonth = '0' + (td.getMonth() + 1);
-    }
-    var tempDay = td.getDate();
-    if (td.getDate() < 10) {
-        tempDay = '0' + td.getDate();
-    }
-    var formattedDate = td.getFullYear() + '-' + tempMonth + '-' + tempDay;
-
-    //var dateStr = `${td.toDateString()} ${td.getHours()}:${td.getMinutes()}:${td.getSeconds()}.${td.getMilliseconds()}`;
-    var dateStr = `${formattedDate} ${td.getHours()}:${td.getMinutes()}:${td.getSeconds()}.${td.getMilliseconds()}`;
+    let td = new Date();
+    let tempMonth = td.getMonth() + 1;
+    let tempDay = td.getDate();
+    let formattedDate = td.getFullYear() + '-' + paddy(tempMonth,2) + '-' + paddy(tempDay,2);
+    var dateStr = `${formattedDate} ${paddy(td.getHours(),2)}:${paddy(td.getMinutes(),2)}:${paddy(td.getSeconds(),2)}.${td.getMilliseconds()}`;
     console.log(dateStr + " " + inStr);
     //logArray.push(logStr);
     //_saveStoreRec();
