@@ -18,6 +18,8 @@ Modification History
 2022-04-09 JJK  Hold off on ES6 for now, just implement bootstrap 5
 2022-05-16 JJK  Re-checked update functions using Fetch POST w-JSON object
 2022-09-06 JJK  Updated to use Raspberry Pi only without Arduino
+2022-09-24 JJK  Going back to Arduino for relay functions, getting back
+                into production
 =============================================================================*/
 
 var http = require('http');
@@ -80,15 +82,6 @@ app.post('/Water', function (req, res, next) {
     res.send(retMessage);
 });
 
-
-function log(inStr) {
-    //let logStr = dateTime.create().format('Y-m-d H:M:S') + " " + inStr;
-    let td = new Date();
-    let dateStr = `${td.toDateString()} ${td.getHours()}:${td.getMinutes()}:${td.getSeconds()}.${td.getMilliseconds()}`;
-    console.log(dateStr + " " + inStr);
-    //logArray.push(logStr);
-    //_saveStoreRec();
-}
 
 function paddy(num, padlen, padchar) {
     var pad_char = typeof padchar !== 'undefined' ? padchar : '0';

@@ -71,9 +71,10 @@ Modification History
                 1-wire control of the temperature sensor, and just reading
                 values from the overlay file
 2022-09-08 JJK  Back to johnny-five and arduino.  Raspberry pi GPIO (3.3v)
-                does no have enough power to trigger the solid state relays
-                I am using.  Going back to johnny-five and arduino for 
-                controlling the relays (still using Pi for temperature)
+                does no have enough power to trigger the larger solid state 
+                relays I am using.  Going back to johnny-five and arduino for 
+                controlling the relays (still using Pi for temperature sensor)
+2022-09-24 JJK  Working to get back into production
 =============================================================================*/
 // Read environment variables from the .env file
 require('dotenv').config()
@@ -121,7 +122,7 @@ const EMONCMS_INPUT_URL = process.env.EMONCMS_INPUT_URL
 var emoncmsUrl = ""
 var metricJSON = ""
 
-var intervalSeconds = 15
+var intervalSeconds = 10
 var metricInterval = intervalSeconds * 1000
 var currTemperature = sr.targetTemperature
 var TEMPATURE_MAX = sr.targetTemperature + 1.0
@@ -227,13 +228,11 @@ board.on("ready", function () {
     relays = new five.Relays([10, 11, 12, 13])
 
     // Start the function to toggle air ventilation ON and OFF
-    /*
     log("Starting Air toggle interval")
     setTimeout(toggleAir, 5000)
     // Start the function to toggle heat ON and OFF
     log("Starting Heat toggle interval")
     setTimeout(toggleHeat, 6000)
-    */
 
     // Start sending metrics 10 seconds after starting (so things are calm)
     setTimeout(logMetric, 10000)
