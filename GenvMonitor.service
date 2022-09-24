@@ -1,6 +1,8 @@
 # Example file for setting up the app as a linux service
 #
-# Copy service file to /etc/systemd/system/GenvMonitor.service
+# Copy service file to systemd folder
+# sudo cp GenvMonitor.service /etc/systemd/system
+# sudo nano /etc/systemd/system/GenvMonitor.service
 #
 # Add the following aliases to .bashrc to set up and check the service
 #alias logs='journalctl --no-page -u GenvMonitor'
