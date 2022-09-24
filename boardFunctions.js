@@ -338,7 +338,7 @@ function getTemperature() {
             log("Error in reading temperature file")
         } else {
             currTemperature = ((celsiusTemp/1000) * (9/5)) + 32
-            log(`currTemperature = ${currTemperature}`)
+            //log(`currTemperature = ${currTemperature}`)
         }
     });
 }
