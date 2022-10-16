@@ -365,7 +365,8 @@ function logMetric() {
         .then(checkResponseStatus)
         //.then(res => res.json())
         //.then(json => log(`json = ${json}`))
-        .catch(err => log("ERROR: "+err));
+        .catch(err => log("Fetch ERROR: "));
+        //.catch(err => log("ERROR: "+err));
     //}
 
     // Set the next time the function will run
@@ -399,10 +400,10 @@ function letMeTakeASelfie() {
 }
 
 function waterThePlants() {
-    log("Watering the plants, waterDuration = "+sr.waterDuration)
+    //log("Watering the plants, waterDuration = "+sr.waterDuration)
     setRelay(WATER,ON)
     setTimeout(() => {
-        log("Watering the plants OFF")
+        //log("Watering the plants OFF")
         setRelay(WATER,OFF)
     }, sr.waterDuration * secondsToMilliseconds)
 }
