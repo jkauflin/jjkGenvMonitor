@@ -1,6 +1,6 @@
 {
   "name": "jjkgenvmonitor",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Monitor temperature and control lights, air, and water in a grow environment",
   "main": "server.js",
   "scripts": {

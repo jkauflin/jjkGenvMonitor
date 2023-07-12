@@ -1,5 +1,5 @@
 /*==============================================================================
-(C) Copyright 2018,2021,2022 John J Kauflin, All rights reserved. 
+(C) Copyright 2018,2021,2022,2023 John J Kauflin, All rights reserved. 
 -----------------------------------------------------------------------------
 DESCRIPTION: NodeJS module to handle board functions.  Communicates with
              the Arduino Mega board using johnny-five library
@@ -75,6 +75,8 @@ Modification History
                 relays I am using.  Going back to johnny-five and arduino for 
                 controlling the relays (still using Pi for temperature sensor)
 2022-09-24 JJK  Working to get back into production
+2023-07-11 JJK  Adjusted storage record values to match important dates
+                for grow cycle and added auto-calculation of date values
 =============================================================================*/
 // Read environment variables from the .env file
 require('dotenv').config()
@@ -94,21 +96,19 @@ var initStoreRec = {
     desc: 'Blanket Flower',     // description
     daysToGerm: '7 to 15',
     daysToBloom: '90 to 180',
-    germinationStart: '2019-10-13', // date seeds were planted
-    germinationDate: '',        // date the seeds germinated or sprouted
-    estBloomDate: '2020-01-13', // 
-    bloomDate: '',              // 
+    germinationStart: '2023-07-11', // date seed germination was started
+    plantingDate: '',           // date the seeds germinated or sprouted
     harvestDate: '',            // harvest start date
     cureDate: '',               // curing start date
     productionDate: '',         // production complete date
     targetTemperature: 73,      // degrees fahrenheit
     airInterval: 1,             // minutes
     airDuration: 1,             // minutes
-    heatInterval: 2.5,            // minutes  (5/11/2021 went up to 2.5 to get down to 73 range)
-    heatDuration: 0.5,            // minutes  (5/11/2021 went down to 0.5 to get down to 73 range)
-    heatDurationMin: 0.5,         // minutes  (5/11/2021 went down to 0.5 to get down to 73 range)
+    heatInterval: 2.5,          // minutes  (5/11/2021 went up to 2.5 to get down to 73 range)
+    heatDuration: 0.5,          // minutes  (5/11/2021 went down to 0.5 to get down to 73 range)
+    heatDurationMin: 0.5,       // minutes  (5/11/2021 went down to 0.5 to get down to 73 range)
     heatDurationMax: 2.5,       // minutes
-    lightDuration: 18,          // hours
+    lightDuration: 16,          // hours
     waterDuration: 20           // seconds
 }
 
@@ -151,19 +151,6 @@ var airTimeout = 1.0
 var heatTimeout = 1.0
 var heatDurationMaxAdj = 0.5
 
-// Variables to hold sensor values
-/*
-var numReadings = 10;   // Total number of readings to average
-var readingsA0 = [];    // Array of readings
-var indexA0 = 0;        // the index of the current reading
-var totalA0 = 0;        // the running total
-// initialize all the readings to 0:
-for (var i = 0; i < numReadings; i++) {
-    readingsA0[i] = 0;     
-}
-var arrayFull = false;
-*/
-
 // Library to control the Arduino board
 var five = require("johnny-five")
 var board = null
@@ -205,7 +192,6 @@ board.on("error", function (err) {
     boardReady = false
 }); // board.on("error", function() {
 
-
 //-------------------------------------------------------------------------------------------------------
 // When the board is ready, create and intialize global component objects (to be used by functions)
 //-------------------------------------------------------------------------------------------------------
@@ -226,6 +212,7 @@ board.on("ready", function () {
 
     log("Initializing relays")
     relays = new five.Relays([10, 11, 12, 13])
+    // Ground is plugged into 14
 
     // Start the function to toggle air ventilation ON and OFF
     log("Starting Air toggle interval")
@@ -432,9 +419,27 @@ function _saveStoreRec() {
     });
 }
 
+function _addDays(inDate, days) {
+    var td = new Date(inDate)
+    td.setDate(td.getDate() + days)
+    let tempMonth = td.getMonth() + 1
+    let tempDay = td.getDate()
+    let outDate = td.getFullYear() + '-' + paddy(tempMonth,2) + '-' + paddy(tempDay,2)
+    return outDate;
+}
+
 function updateConfig(inStoreRec) {
+    let prevPlantingDate = sr.plantingDate
     sr = inStoreRec
-    log("updateConfig, targetTemperature = " + sr.targetTemperature)
+
+    // If the planting date changes, update the other dates based on the new date
+    if (sr.plantingDate != prevPlantingDate) {
+        sr.harvestDate = _addDays(sr.plantingDate,75)
+        sr.cureDate = _addDays(sr.harvestDate,14)
+        sr.productionDate = _addDays(sr.cureDate,14)
+    }
+
+    //log("updateConfig, targetTemperature = " + sr.targetTemperature)
     TEMPATURE_MAX = sr.targetTemperature + 1.0
     TEMPATURE_MIN = sr.targetTemperature - 1.0
     _saveStoreRec()

@@ -1,10 +1,10 @@
 /*==============================================================================
- * (C) Copyright 2017,2019,2021,2022 John J Kauflin, All rights reserved. 
+ * (C) Copyright 2017,2019,2021,2022,2023 John J Kauflin, All rights reserved.
  *----------------------------------------------------------------------------
  * DESCRIPTION: Client-side JS functions and logic for web app
  *----------------------------------------------------------------------------
  * Modification History
- * 2017-09-08 JJK 	Initial version 
+ * 2017-09-08 JJK 	Initial version
  * 2017-12-29 JJK	Initial controls and WebSocket communication
  * 2018-04-02 JJK   Added control to manually trigger watering
  * 2018-05-19 JJK   Added update of configuration store record values
@@ -17,6 +17,8 @@
  *                  instead of AJAX.  Removed old websocket stuff
  * 2022-05-31 JJK   Updated to use newest fetch ideas for lookup and update,
  *                  and converted to use straight javascript
+ * 2023-07-11 JJK   Got rid of util and converted util.getParamDatafromInputs
+ *                  to simple paramData object create from inputs
  *============================================================================*/
 var main = (function () {
     'use strict';
@@ -52,12 +54,28 @@ var main = (function () {
 
     function _update(event) {
         let url = 'UpdateConfig';
+        let paramData = {
+            desc: document.getElementById("desc").value,
+            daysToGerm: document.getElementById("daysToGerm").value,
+            daysToBloom: document.getElementById("daysToBloom").value,
+            germinationStart: document.getElementById("germinationStart").value,
+            plantingDate: document.getElementById("plantingDate").value,
+            harvestDate: document.getElementById("harvestDate").value,
+            cureDate: document.getElementById("cureDate").value,
+            productionDate: document.getElementById("productionDate").value,
+            targetTemperature: document.getElementById("targetTemperature").value,
+            airInterval: document.getElementById("airInterval").value,
+            airDuration: document.getElementById("airDuration").value,
+            heatInterval: document.getElementById("heatInterval").value,
+            heatDuration: document.getElementById("heatDuration").value,
+            heatDurationMin: document.getElementById("heatDurationMin").value,
+            heatDurationMax: document.getElementById("heatDurationMax").value,
+            lightDuration: document.getElementById("lightDuration").value,
+            waterDuration: document.getElementById("waterDuration").value}
         fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: util.getParamDatafromInputs('InputValues')
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(paramData)
         })
         .then(response => {
             if (!response.ok) {
@@ -80,17 +98,13 @@ var main = (function () {
     }
 
     function _water(event) {
-        var paramMap = null;
-        var paramMap = new Map();
-        paramMap.set('waterSeconds', document.getElementById("waterSeconds").value);
-
         let url = 'Water';
+        let paramData = {
+            waterSeconds: document.getElementById("waterSeconds").value}
         fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: util.getParamDatafromInputs(null,paramMap)
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(paramData)
         })
         .then(response => {
             if (!response.ok) {
@@ -113,14 +127,10 @@ var main = (function () {
             document.getElementById("daysToGerm").value = storeRec.daysToGerm;
             document.getElementById("daysToBloom").value = storeRec.daysToBloom;
             document.getElementById("germinationStart").value = storeRec.germinationStart;
-            document.getElementById("estBloomDate").value = storeRec.estBloomDate;
-            document.getElementById("bloomDate").value = storeRec.bloomDate;
-    
-            document.getElementById("germinationDate").value = storeRec.germinationDate;
+            document.getElementById("plantingDate").value = storeRec.plantingDate;
             document.getElementById("harvestDate").value = storeRec.harvestDate;
             document.getElementById("cureDate").value = storeRec.cureDate;
             document.getElementById("productionDate").value = storeRec.productionDate;
-    
             document.getElementById("targetTemperature").value = storeRec.targetTemperature;
             document.getElementById("airInterval").value = storeRec.airInterval;
             document.getElementById("airDuration").value = storeRec.airDuration;
