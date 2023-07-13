@@ -352,7 +352,7 @@ function logMetric() {
         .then(checkResponseStatus)
         //.then(res => res.json())
         //.then(json => log(`json = ${json}`))
-        .catch(err => log("Fetch ERROR: "));
+        //.catch(err => log("Fetch ERROR: "));
         //.catch(err => log("ERROR: "+err));
     //}
 
