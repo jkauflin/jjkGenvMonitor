@@ -451,8 +451,8 @@ function clearLog() {
 }
 
 function water(inRec) {
-    log(`in water, inRec.waterSeconds = ${inRec.waterSeconds}`)
-    //_waterOn(inRec.waterSeconds)
+    //log(`in water, inRec.waterSeconds = ${inRec.waterSeconds}`)
+    _waterOn(inRec.waterSeconds)
     return `Water turned on for ${inRec.waterSeconds} seconds`
 }
 
