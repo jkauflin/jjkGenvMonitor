@@ -77,6 +77,8 @@ Modification History
 2022-09-24 JJK  Working to get back into production
 2023-07-11 JJK  Adjusted storage record values to match important dates
                 for grow cycle and added auto-calculation of date values
+2023-09-05 JJK  Modified to water the plants when the lights are turned
+                off (in addition to when they turn on)
 =============================================================================*/
 // Read environment variables from the .env file
 require('dotenv').config()
@@ -101,13 +103,13 @@ var initStoreRec = {
     harvestDate: '',            // harvest start date
     cureDate: '',               // curing start date
     productionDate: '',         // production complete date
-    targetTemperature: 73,      // degrees fahrenheit
+    targetTemperature: 76,      // degrees fahrenheit
     airInterval: 1,             // minutes
     airDuration: 1,             // minutes
-    heatInterval: 2.5,          // minutes  (5/11/2021 went up to 2.5 to get down to 73 range)
-    heatDuration: 1.0,          // minutes  (5/11/2021 went down to 0.5 to get down to 73 range)
+    heatInterval: 2,            // minutes  (5/11/2021 went up to 2.5 to get down to 73 range)
+    heatDuration: 1.5,          // minutes  (5/11/2021 went down to 0.5 to get down to 73 range)
     heatDurationMin: 0.5,       // minutes  (5/11/2021 went down to 0.5 to get down to 73 range)
-    heatDurationMax: 2.5,       // minutes
+    heatDurationMax: 2,         // minutes
     lightDuration: 16,          // hours
     waterDuration: 20           // seconds
 }
@@ -278,6 +280,9 @@ function toggleAir() {
             setRelay(LIGHTS,OFF)
             currLightsVal = OFF
             heatDurationMaxAdj = 0.5  // Add a little extra heat max when the lights are off
+
+            // Water the plants when the light turn off
+            setTimeout(waterThePlants, 500)
         }
     } else {
         if (currLightsVal == OFF) {
@@ -299,6 +304,9 @@ function toggleAir() {
 
 // Function to toggle air ventilation ON and OFF
 function toggleHeat() {
+
+    // 9/5/2023 - if needed, look more dynamic adjustment of heat duration and interval to get to target temp
+
     heatTimeout = sr.heatInterval
 
     if (currHeatVal == OFF) {
@@ -387,7 +395,7 @@ function letMeTakeASelfie() {
 }
 
 function waterThePlants() {
-    //log("Watering the plants, waterDuration = "+sr.waterDuration)
+    log("Watering the plants, waterDuration = "+sr.waterDuration)
     setRelay(WATER,ON)
     setTimeout(() => {
         //log("Watering the plants OFF")
@@ -399,7 +407,7 @@ function _waterOn(waterSeconds) {
     log("Turning Water ON, seconds = " + waterSeconds);
     setRelay(WATER, ON)
     setTimeout(() => {
-        log("Turning Water OFF")
+        //log("Turning Water OFF")
         setRelay(WATER, OFF)
     }, waterSeconds * secondsToMilliseconds)
 }
