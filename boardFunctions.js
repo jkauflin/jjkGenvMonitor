@@ -396,10 +396,10 @@ function waterThePlants() {
 }
 
 function _waterOn(waterSeconds) {
-    //log("Turning Water ON, seconds = " + waterSeconds);
+    log("Turning Water ON, seconds = " + waterSeconds);
     setRelay(WATER, ON)
     setTimeout(() => {
-        //log("Turning Water OFF")
+        log("Turning Water OFF")
         setRelay(WATER, OFF)
     }, waterSeconds * secondsToMilliseconds)
 }
