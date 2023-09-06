@@ -228,7 +228,7 @@ board.on("ready", function () {
     setTimeout(logMetric, 10000)
 
     // Trigger the watering on the watering interval (using heatDurationMax for watering interval right now)
-    setTimeout(triggerWatering,heatDurationMax * hoursToMilliseconds)
+    setTimeout(triggerWatering,sr.heatDurationMax * hoursToMilliseconds)
 
     log("End of board.on (initialize) event")
     
@@ -240,7 +240,7 @@ function triggerWatering() {
     log(">>>>> Starting to water the plants")
 
     // Recursively call the function with the watering interval
-    setTimeout(triggerWatering,heatDurationMax * hoursToMilliseconds)
+    setTimeout(triggerWatering,sr.heatDurationMax * hoursToMilliseconds)
 }
 
 function turnRelaysOFF() {
