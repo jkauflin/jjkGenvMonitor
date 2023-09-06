@@ -77,8 +77,8 @@ Modification History
 2022-09-24 JJK  Working to get back into production
 2023-07-11 JJK  Adjusted storage record values to match important dates
                 for grow cycle and added auto-calculation of date values
-2023-09-05 JJK  Modified to water the plants when the lights are turned
-                off (in addition to when they turn on)
+2023-09-06 JJK  Use heatDurationMax for "watering interval" hours, and do
+                the watering on that interval
 =============================================================================*/
 // Read environment variables from the .env file
 require('dotenv').config()
@@ -130,6 +130,7 @@ var currTemperature = sr.targetTemperature
 var TEMPATURE_MAX = sr.targetTemperature + 1.0
 var TEMPATURE_MIN = sr.targetTemperature - 1.0
 const minutesToMilliseconds = 60 * 1000
+const hoursToMilliseconds = 60 * 60 * 1000
 const secondsToMilliseconds = 1000
 
 var relays = null
@@ -226,9 +227,21 @@ board.on("ready", function () {
     // Start sending metrics 10 seconds after starting (so things are calm)
     setTimeout(logMetric, 10000)
 
+    // Trigger the watering on the watering interval (using heatDurationMax for watering interval right now)
+    setTimeout(triggerWatering,heatDurationMax * hoursToMilliseconds)
+
     log("End of board.on (initialize) event")
     
 }); // board.on("ready", function() {
+
+function triggerWatering() {
+    // Water the plant for the set water duration seconds
+    //setTimeout(waterThePlants, 500)
+    log(">>>>> Starting to water the plants")
+
+    // Recursively call the function with the watering interval
+    setTimeout(triggerWatering,heatDurationMax * hoursToMilliseconds)
+}
 
 function turnRelaysOFF() {
     log("Setting relays OFF")
@@ -282,7 +295,7 @@ function toggleAir() {
             heatDurationMaxAdj = 0.5  // Add a little extra heat max when the lights are off
 
             // Water the plants when the light turn off
-            setTimeout(waterThePlants, 500)
+            //setTimeout(waterThePlants, 500)
         }
     } else {
         if (currLightsVal == OFF) {
@@ -293,7 +306,7 @@ function toggleAir() {
             //setTimeout(letMeTakeASelfie, 100)
 
             // Water the plants when the light come on
-            setTimeout(waterThePlants, 500)
+            //setTimeout(waterThePlants, 500)
         }
     }
 
@@ -355,19 +368,16 @@ function logMetric() {
     // Use this if we need to limit the send to between the hours of 6 and 20
     var date = new Date()
     var hours = date.getHours()
-    //if (hours > 5 || hours < 3) {
-        fetch(emoncmsUrl)
-        .then(checkResponseStatus)
-        //.then(res => res.json())
-        //.then(json => log(`json = ${json}`))
-        //.catch(err => log("Fetch ERROR: "));
-        .catch(err => log("ERROR: "+err));
-    //}
+
+    fetch(emoncmsUrl)
+    //.then(checkResponseStatus)
+    //.catch(err => log("ERROR: "+err));
 
     // Set the next time the function will run
     setTimeout(logMetric, metricInterval)
 }
 
+/*
 function checkResponseStatus(res) {
     if(res.ok){
         //log(`Fetch reponse is OK: ${res.status} (${res.statusText})`);
@@ -377,6 +387,7 @@ function checkResponseStatus(res) {
         log(`Fetch reponse is NOT OK: ${res.status} (${res.statusText})`)
     }
 }
+*/
 
 function letMeTakeASelfie() {
   /*
