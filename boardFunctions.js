@@ -236,7 +236,7 @@ board.on("ready", function () {
 
 function triggerWatering() {
     // Water the plant for the set water duration seconds
-    log(">>>>> Starting to water the plants")
+    log(">>> Starting to water the plants, interval hours = "+sr.heatDurationMax)
     setTimeout(waterThePlants, 500)
 
     // Recursively call the function with the watering interval
@@ -293,9 +293,6 @@ function toggleAir() {
             setRelay(LIGHTS,OFF)
             currLightsVal = OFF
             heatDurationMaxAdj = 0.5  // Add a little extra heat max when the lights are off
-
-            // Water the plants when the light turn off
-            //setTimeout(waterThePlants, 500)
         }
     } else {
         if (currLightsVal == OFF) {
@@ -304,9 +301,6 @@ function toggleAir() {
             heatDurationMaxAdj = 0.0  // Don't add extra heat max when the lights are on
             // Take a selfie when you turn the lights on
             //setTimeout(letMeTakeASelfie, 100)
-
-            // Water the plants when the light come on
-            //setTimeout(waterThePlants, 500)
         }
     }
 
@@ -370,14 +364,17 @@ function logMetric() {
     var hours = date.getHours()
 
     fetch(emoncmsUrl)
-    //.then(checkResponseStatus)
-    //.catch(err => log("ERROR: "+err));
+    .then(checkResponseStatus)
+    .catch(err => tempLogErr(err));
 
     // Set the next time the function will run
     setTimeout(logMetric, metricInterval)
 }
 
-/*
+function tempLogErr(err) {
+    log("ERROR: "+err)
+}
+
 function checkResponseStatus(res) {
     if(res.ok){
         //log(`Fetch reponse is OK: ${res.status} (${res.statusText})`);
@@ -387,7 +384,6 @@ function checkResponseStatus(res) {
         log(`Fetch reponse is NOT OK: ${res.status} (${res.statusText})`)
     }
 }
-*/
 
 function letMeTakeASelfie() {
   /*
