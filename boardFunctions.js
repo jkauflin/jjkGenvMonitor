@@ -236,8 +236,8 @@ board.on("ready", function () {
 
 function triggerWatering() {
     // Water the plant for the set water duration seconds
-    //setTimeout(waterThePlants, 500)
     log(">>>>> Starting to water the plants")
+    setTimeout(waterThePlants, 500)
 
     // Recursively call the function with the watering interval
     setTimeout(triggerWatering,sr.heatDurationMax * hoursToMilliseconds)
