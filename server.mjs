@@ -301,7 +301,7 @@ function toggleAir() {
     // Check to turn the light on/off
     date = new Date()
     hours = date.getHours()
-    //log("lightDuration = "+sr.lightDuration+", hours = "+hours)
+    //log("lightDuration = "+lightDuration+", hours = "+hours)
     if (hours > (lightDuration - 1)) {
         if (currLightsVal == ON) {
             setRelay(LIGHTS,OFF)
@@ -369,7 +369,7 @@ function logMetric() {
     getTemperature()
 
     metricJSON = "{" + "tempature:" + currTemperature
-        + ",heatDuration:" + sr.heatDuration
+        + ",heatDuration:" + heatDuration
         + "," + relayNames[0] + ":" + relayMetricValues[0]
         + "," + relayNames[1] + ":" + relayMetricValues[1]
         + "," + relayNames[2] + ":" + relayMetricValues[2]
