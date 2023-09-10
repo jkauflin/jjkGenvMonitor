@@ -111,12 +111,12 @@ const EMONCMS_INPUT_URL = process.env.EMONCMS_INPUT_URL
 var emoncmsUrl = ""
 var metricJSON = ""
 
-var configCheckInterval = 10 * 1000
-var metricInterval = 10 * 1000
 const minutesToMilliseconds = 60 * 1000
 const hoursToMilliseconds = 60 * 60 * 1000
 const secondsToMilliseconds = 1000
 
+var configCheckInterval = 10
+var metricInterval = 10
 var currTemperature = 76
 var TEMPATURE_MAX = currTemperature + 1.0
 var TEMPATURE_MIN = currTemperature - 1.0
@@ -150,7 +150,7 @@ var heatDurationMax = 0.0
 var heatDurationMaxAdj = 0.5
 
 var waterDuration = 0
-var waterInterval = 5 * hoursToMilliseconds
+var waterInterval = 5
 
 var board = null
 var relays = null
@@ -162,14 +162,14 @@ function triggerConfigQuery() {
     log("Triggering queryConfig, configCheckInterval = "+configCheckInterval)
 
     getConfig().then(sr => {
-        configCheckInterval = parseInt(sr.ConfigCheckInterval) * 1000
-        metricInterval = parseInt(sr.LogMetricInterval) * 1000
+        configCheckInterval = parseInt(sr.ConfigCheckInterval)
+        metricInterval = parseInt(sr.LogMetricInterval)
 
         TEMPATURE_MAX = parseInt(sr.TargetTemperature) + 1.0
         TEMPATURE_MIN = parseInt(sr.TargetTemperature) - 1.0
 
         waterDuration = parseInt(sr.WaterDuration)
-        waterInterval = parseInt(sr.WaterInterval) * hoursToMilliseconds
+        waterInterval = parseInt(sr.WaterInterval)
 
         airInterval = parseFloat(sr.AirInterval)
         airDuration = parseFloat(sr.AirDuration)
@@ -180,18 +180,11 @@ function triggerConfigQuery() {
 
         lightDuration = parseInt(sr.LightDuration)
 
-        /*
-        INSERT INTO `genvMonitorConfig` (`ConfigId`, `ConfigDesc`, `DaysToGerm`, `DaysToBloom`, `GerminationStart`, `PlantingDate`, `HarvestDate`, `CureDate`, `ProductionDate`, `TargetTemperature`, `AirInterval`, `AirDuration`, `HeatInterval`, `HeatDuration`, `HeatDurationMin`, `HeatDurationMax`, `LightDuration`, `WaterDuration`, `WaterInterval`) VALUES
-        (1, 'JJK #5', '2 days to germinate, 2 days for good tap root', '75 days from planting', 
-        '2023-09-02 00:00:00', '2023-09-05 00:00:00', '2023-11-18 00:00:00', '2023-12-01 00:00:00', '2023-12-14 00:00:00', 
-        '77.0', '1.0', '1.0', '2.0', '0.8', '0.5', '2.0', '16.0', '6.0', '5.0');
-        */
-
-        setTimeout(triggerConfigQuery, configCheckInterval)
+        setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
     })
     .catch(err => {
         //log("in Main, err = "+err)
-        setTimeout(triggerConfigQuery, configCheckInterval)
+        setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
     })
 }
 
@@ -247,7 +240,7 @@ board.on("ready", () => {
     setTimeout(logMetric, 10000)
 
     // Trigger the watering on the watering interval (using heatDurationMax for watering interval right now)
-    setTimeout(triggerWatering, waterInterval)
+    setTimeout(triggerWatering, waterInterval * hoursToMilliseconds)
 
     log("End of board.on (initialize) event")
 })
@@ -259,7 +252,7 @@ function triggerWatering() {
     setTimeout(waterThePlants, 500)
 
     // Recursively call the function with the watering interval
-    setTimeout(triggerWatering, waterInterval)
+    setTimeout(triggerWatering, waterInterval * hoursToMilliseconds)
 }
 
 function turnRelaysOFF() {
@@ -392,7 +385,7 @@ function logMetric() {
     .catch(err => tempLogErr(err));
 
     // Set the next time the function will run
-    setTimeout(logMetric, metricInterval)
+    setTimeout(logMetric, metricInterval * secondsToMilliseconds)
 }
 
 function tempLogErr(err) {

@@ -27,7 +27,7 @@ export async function getConfig() {
       conn = await pool.getConnection();
       var query = "SELECT * FROM genvMonitorConfig;"
       var rows = await conn.query(query);
-      if (rows.length < 10) {
+      if (rows.length < 1) {
           throw "No config rows found"
       }
 
