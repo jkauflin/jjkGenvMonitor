@@ -115,8 +115,8 @@ const minutesToMilliseconds = 60 * 1000
 const hoursToMilliseconds = 60 * 60 * 1000
 const secondsToMilliseconds = 1000
 
-var configCheckInterval = 10
-var metricInterval = 10
+var configCheckInterval = 20
+var metricInterval = 20
 var currTemperature = 76
 var TEMPATURE_MAX = currTemperature + 1.0
 var TEMPATURE_MIN = currTemperature - 1.0
@@ -353,12 +353,12 @@ function getTemperature() {
     */
     const oneWireOverlayTemperatureFile = "/sys/bus/w1/devices/28-0416b3494bff/temperature"
     //fs.readFile(oneWireOverlayTemperatureFile, function (err, celsiusTemp) {
-    fs.readFileSync(oneWireOverlayTemperatureFile, function (err, celsiusTemp) {
+    fs.readFile(oneWireOverlayTemperatureFile, function (err, celsiusTemp) {
         if (err) {
             log("Error in reading temperature file")
         } else {
             currTemperature = ((celsiusTemp/1000) * (9/5)) + 32
-            //log(`currTemperature = ${currTemperature}`)
+            log(`currTemperature = ${currTemperature}`)
         }
     })
 }
@@ -375,7 +375,7 @@ function logMetric() {
         + "," + relayNames[2] + ":" + relayMetricValues[2]
         + "," + relayNames[3] + ":" + relayMetricValues[3]
         + "}";
-    //log(`metricJSON = ${metricJSON}`)
+    log(`metricJSON = ${metricJSON}`)
     emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON
 
     // Use this if we need to limit the send to between the hours of 6 and 20
