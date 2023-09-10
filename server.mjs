@@ -159,7 +159,7 @@ log(">>> Starting server.mjs...")
 
 triggerConfigQuery()
 function triggerConfigQuery() {
-    log("Triggering queryConfig, configCheckInterval = "+configCheckInterval)
+    //log("Triggering queryConfig, configCheckInterval = "+configCheckInterval)
 
     getConfig().then(sr => {
         configCheckInterval = parseInt(sr.ConfigCheckInterval)
