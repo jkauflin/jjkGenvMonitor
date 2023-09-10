@@ -80,38 +80,32 @@ Modification History
 2023-09-08 JJK  Version 3 converting to ES6 modules and interacting with
                 a backend database instead of running a webserver and 
                 saving JSON in a file
+                (In one day I figured out all the ES6 problems that were
+                  bothering me - libraries written for CommonJS, importing
+                  from NPM libraries, and import from my modules)
 =============================================================================*/
 
 import 'dotenv/config'
+import fs, { readFileSync } from 'node:fs'
+import { syncBuiltinESMExports } from 'node:module'
+import { Buffer } from 'node:buffer'
+import fetch from 'node-fetch'
+import johnnyFivePkg from 'johnny-five'
 
-import fetch from 'node-fetch';
-//const { Board, Led } = require("johnny-five");
-//import {Board} from 'johnny-five';
+import {log} from './util.mjs'
+import {getConfig} from './dataRepository.mjs'
 
+const {Board,Led,Relays} = johnnyFivePkg
 
-//const mariadb = require('mariadb');
-import mariadb from 'mariadb';
-//const pool = mariadb.createPool({host: process.env.DB_HOST, user: process.env.DB_USER, connectionLimit: 5});
-const pool = mariadb.createPool({host: process.env.DB_HOST, user: process.env.DB_USER, connectionLimit: 5});
+// General handler for any uncaught exceptions
+process.on('uncaughtException', function (e) {
+  log("UncaughtException, error = " + e);
+  console.error(e.stack);
+  // Stop the process
+  // 2017-12-29 JJK - Don't stop for now, just log the error
+  //process.exit(1);
+});
 
-async function asyncFunction() {
-    let conn;
-    try {
-  
-      conn = await pool.getConnection();
-      const rows = await conn.query("SELECT 1 as val");
-      // rows: [ {val: 1}, meta: ... ]
-  
-      const res = await conn.query("INSERT INTO myTable value (?, ?)", [1, "mariadb"]);
-      // res: { affectedRows: 1, insertId: 1, warningStatus: 0 }
-  
-    } finally {
-      if (conn) conn.release(); //release to pool
-    }
-  }
-
-import johnnyFivePkg from 'johnny-five';
-const {Board,Led,Relays} = johnnyFivePkg;
 
 /*
 const board = new Board();
@@ -124,49 +118,390 @@ board.on("ready", () => {
 });
 */
 
-//const fs = require('fs')
-import fs, { readFileSync } from 'node:fs';
-import { syncBuiltinESMExports } from 'node:module';
-import { Buffer } from 'node:buffer';
+/*
 fs.readFileSync = () => Buffer.from('Hello, ESM');
 syncBuiltinESMExports();
 fs.readFileSync === readFileSync; 
+*/
 
+// Global variables
 const EMONCMS_INPUT_URL = process.env.EMONCMS_INPUT_URL
-const dbUser = process.env.TEST_DB_USER
+var emoncmsUrl = ""
+var metricJSON = ""
 
-// General handler for any uncaught exceptions
-process.on('uncaughtException', function (e) {
-    log("UncaughtException, error = " + e);
-    console.error(e.stack);
-    // Stop the process
-    // 2017-12-29 JJK - Don't stop for now, just log the error
-    //process.exit(1);
-});
-
-function paddy(num, padlen, padchar) {
-    var pad_char = typeof padchar !== 'undefined' ? padchar : '0';
-    var pad = new Array(1 + padlen).join(pad_char);
-    return (pad + num).slice(-pad.length);
-}
-//var fu = paddy(14, 5); // 00014
-//var bar = paddy(2, 4, '#'); // ###2
-
-function log(inStr) {
-    let td = new Date();
-    let tempMonth = td.getMonth() + 1;
-    let tempDay = td.getDate();
-    let formattedDate = td.getFullYear() + '-' + paddy(tempMonth,2) + '-' + paddy(tempDay,2);
-    var dateStr = `${formattedDate} ${paddy(td.getHours(),2)}:${paddy(td.getMinutes(),2)}:${paddy(td.getSeconds(),2)}.${td.getMilliseconds()}`;
-    console.log(dateStr + " " + inStr);
-}
+var configCheckInterval = 10 * 1000
+var metricInterval = 10 * 1000
+const minutesToMilliseconds = 60 * 1000
+const hoursToMilliseconds = 60 * 60 * 1000
+const secondsToMilliseconds = 1000
 
 /*
-    "express": "^4.18.1",
-    "json-fs-store": "^0.0.1",
-    "node-fetch": "^2.6.7",
-    "johnny-five": "^2.1.0"
+var currTemperature = sr.targetTemperature
+var TEMPATURE_MAX = sr.targetTemperature + 1.0
+var TEMPATURE_MIN = sr.targetTemperature - 1.0
 */
 
 log(">>> Starting server.mjs...")
-//log(`dbUser = ${dbUser}`)
+
+
+triggerConfigQuery()
+function triggerConfigQuery() {
+    log("Triggering queryConfig, configCheckInterval = "+configCheckInterval)
+
+    getConfig().then(sr => {
+        configCheckInterval = parseInt(sr.ConfigCheckInterval) * 1000
+        metricInterval = parseInt(sr.LogMetricInterval) * 1000
+
+        setTimeout(triggerConfigQuery, configCheckInterval)
+    })
+    .catch(err => {
+        //log("in Main, err = "+err)
+        setTimeout(triggerConfigQuery, configCheckInterval)
+    })
+
+    //ConfigCheckInterval  20
+    //LogMetricInterval    10
+
+}
+
+
+
+var relays = null
+const LIGHTS = 0
+const WATER = 1
+const AIR = 2
+const HEAT = 3
+const relayNames = ["lights", "water", "air",  "heat"]
+const relayMetricON = 71
+const relayMetricOFF = relayMetricON-1
+const relayMetricValues = [relayMetricOFF,relayMetricOFF,relayMetricOFF,relayMetricOFF]
+
+const OFF = 0
+const ON = 1
+var currAirVal = OFF
+var currHeatVal = OFF
+var currLightsVal = OFF
+var date
+var hours = 0
+var airTimeout = 1.0
+var heatTimeout = 1.0
+var heatDurationMaxAdj = 0.5
+
+// Library to control the Arduino board
+var five = require("johnny-five")
+var board = null
+// Create Johnny-Five board object
+// When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
+// be sure to shut the REPL off!
+try {
+    log("===== Starting board initialization =====");
+    board = new five.Board({
+        repl: false,
+        debug: false
+        //    timeout: 12000
+    })
+
+    // Get values from the application storage record
+    log("===== Reading storage record =====")
+    store.load(storeId, function(err, inStoreRec){
+        if (err) {
+            // Create one if it does not exist (with initial values)
+            store.add(initStoreRec, function (err) {
+                if (err) {
+                    throw err
+                }
+            });
+        } else {
+            // Get current values from the store record
+            sr = inStoreRec;
+        }
+    });
+
+} catch (err) {
+    log('Error in main initialization, err = '+err)
+    console.error(err.stack)
+}
+
+board.on("error", function (err) {
+    log("*** Error in Board ***")
+    console.error(err.stack)
+    boardReady = false
+}); // board.on("error", function() {
+
+//-------------------------------------------------------------------------------------------------------
+// When the board is ready, create and intialize global component objects (to be used by functions)
+//-------------------------------------------------------------------------------------------------------
+board.on("ready", function () {
+    log("*** board ready ***")
+
+    // If the board is exiting, turn all the relays off
+    this.on("exit", function () {
+        log("on EXIT")
+        turnRelaysOFF()
+    })
+
+    // Handle a termination signal (from stopping the systemd service)
+    process.on('SIGTERM', function () {
+        log('on SIGTERM')
+        turnRelaysOFF()
+    })
+
+    log("Initializing relays")
+    relays = new five.Relays([10, 11, 12, 13])
+    // Ground is plugged into 14
+
+    // Start the function to toggle air ventilation ON and OFF
+    log("Starting Air toggle interval")
+    setTimeout(toggleAir, 5000)
+    // Start the function to toggle heat ON and OFF
+    log("Starting Heat toggle interval")
+    setTimeout(toggleHeat, 6000)
+
+    // Start sending metrics 10 seconds after starting (so things are calm)
+    setTimeout(logMetric, 10000)
+
+    // Trigger the watering on the watering interval (using heatDurationMax for watering interval right now)
+    setTimeout(triggerWatering,sr.heatDurationMax * hoursToMilliseconds)
+
+    log("End of board.on (initialize) event")
+    
+}); // board.on("ready", function() {
+
+function triggerWatering() {
+    // Water the plant for the set water duration seconds
+    log(">>> Starting to water the plants, interval hours = "+sr.heatDurationMax)
+    setTimeout(waterThePlants, 500)
+
+    // Recursively call the function with the watering interval
+    setTimeout(triggerWatering,sr.heatDurationMax * hoursToMilliseconds)
+}
+
+function turnRelaysOFF() {
+    log("Setting relays OFF")
+    setRelay(LIGHTS, OFF)
+    setRelay(AIR, OFF)
+    setRelay(HEAT, OFF)
+    setRelay(WATER, OFF)
+}
+
+function setRelay(relayNum, relayVal) {
+    if (relayVal) {
+        // If value is 1 or true, set the relay to turn ON and let the electricity flow
+        //relays[relayNum].on()
+        relays[relayNum].close()
+        //log(relayNames[relayNum]+" ON close")
+        //relayMetricValues[relayNum] = relayMetricON + (relayNum * 2)
+        relayMetricValues[relayNum] = relayMetricON + relayNum
+    } else {
+        // If value is 0 or false, set the relay to turn OFF and stop the flow of electricity
+        //relays[relayNum].off()
+        relays[relayNum].open()
+        //log(relayNames[relayNum]+" OFF open")
+        relayMetricValues[relayNum] = relayMetricOFF
+    }
+}
+
+// Function to toggle air ventilation ON and OFF
+function toggleAir() {
+    airTimeout = sr.airInterval
+
+    if (currAirVal == OFF) {
+        //log("Turning Air ON")
+        setRelay(AIR,ON)
+        currAirVal = ON
+        airTimeout = sr.airDuration
+    } else {
+        //log("Turning Air OFF")
+        setRelay(AIR,OFF)
+        currAirVal = OFF
+        airTimeout = sr.airInterval
+    }
+
+    // Check to turn the light on/off
+    date = new Date()
+    hours = date.getHours()
+    //log("lightDuration = "+sr.lightDuration+", hours = "+hours)
+    if (hours > (sr.lightDuration - 1)) {
+        if (currLightsVal == ON) {
+            setRelay(LIGHTS,OFF)
+            currLightsVal = OFF
+            heatDurationMaxAdj = 0.5  // Add a little extra heat max when the lights are off
+        }
+    } else {
+        if (currLightsVal == OFF) {
+            setRelay(LIGHTS,ON)
+            currLightsVal = ON
+            heatDurationMaxAdj = 0.0  // Don't add extra heat max when the lights are on
+            // Take a selfie when you turn the lights on
+            //setTimeout(letMeTakeASelfie, 100)
+        }
+    }
+
+    // Recursively call the function with the current timeout value  
+    setTimeout(toggleAir,airTimeout * minutesToMilliseconds)
+
+} // function toggleAir() {
+
+// Function to toggle air ventilation ON and OFF
+function toggleHeat() {
+
+    // 9/5/2023 - if needed, look more dynamic adjustment of heat duration and interval to get to target temp
+
+    heatTimeout = sr.heatInterval
+
+    if (currHeatVal == OFF) {
+        //log("Turning Heat ON")
+        setRelay(HEAT, ON)
+        currHeatVal = ON
+        heatTimeout = sr.heatDuration
+    } else {
+        //log("Turning Heat OFF")
+        setRelay(HEAT, OFF)
+        currHeatVal = OFF
+        heatTimeout = sr.heatInterval
+    }
+
+    // Recursively call the function with the current timeout value  
+    setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds)
+
+} // function toggleHeat() {
+
+function getTemperature() {
+    const oneWireOverlayTemperatureFile = "/sys/bus/w1/devices/28-0416b3494bff/temperature"
+    fs.readFile(oneWireOverlayTemperatureFile, function (err, celsiusTemp) {
+        if (err) {
+            log("Error in reading temperature file")
+        } else {
+            currTemperature = ((celsiusTemp/1000) * (9/5)) + 32
+            //log(`currTemperature = ${currTemperature}`)
+        }
+    });
+}
+    
+// Send metric values to a website
+function logMetric() {
+    // Set the current temperature from the one-wire overlay file
+    getTemperature()
+
+    metricJSON = "{" + "tempature:" + currTemperature
+        + ",heatDuration:" + sr.heatDuration
+        + "," + relayNames[0] + ":" + relayMetricValues[0]
+        + "," + relayNames[1] + ":" + relayMetricValues[1]
+        + "," + relayNames[2] + ":" + relayMetricValues[2]
+        + "," + relayNames[3] + ":" + relayMetricValues[3]
+        + "}";
+    //log(`metricJSON = ${metricJSON}`)
+    emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON
+
+    // Use this if we need to limit the send to between the hours of 6 and 20
+    var date = new Date()
+    var hours = date.getHours()
+
+    fetch(emoncmsUrl)
+    .then(checkResponseStatus)
+    .catch(err => tempLogErr(err));
+
+    // Set the next time the function will run
+    setTimeout(logMetric, metricInterval)
+}
+
+function tempLogErr(err) {
+    log("ERROR: "+err)
+}
+
+function checkResponseStatus(res) {
+    if(res.ok){
+        //log(`Fetch reponse is OK: ${res.status} (${res.statusText})`);
+        return res
+    } else {
+        //throw new Error(`The HTTP status of the reponse: ${res.status} (${res.statusText})`)
+        log(`Fetch reponse is NOT OK: ${res.status} (${res.statusText})`)
+    }
+}
+
+function letMeTakeASelfie() {
+  /*
+  setTimeout(() => {
+    //console.log("Taking a selfie with fswebcam capture");
+    // figure out how to save a weekly picture
+    nodeWebcam.capture(process.env.IMAGES_DIR+"genvImage", nodewebcamOptions, function( err, data ) {
+      if (err != null) {
+        console.log("Error with webcam capture, err = "+err);
+      }
+      //var image = "<img src='" + data + "'>";
+      //setRelay(HEAT,OFF);
+    });
+  }, 100);
+  */
+}
+
+function waterThePlants() {
+    log("Watering the plants, waterDuration = "+sr.waterDuration)
+    setRelay(WATER,ON)
+    setTimeout(() => {
+        //log("Watering the plants OFF")
+        setRelay(WATER,OFF)
+    }, sr.waterDuration * secondsToMilliseconds)
+}
+
+function _waterOn(waterSeconds) {
+    log("Turning Water ON, seconds = " + waterSeconds);
+    setRelay(WATER, ON)
+    setTimeout(() => {
+        //log("Turning Water OFF")
+        setRelay(WATER, OFF)
+    }, waterSeconds * secondsToMilliseconds)
+}
+
+function getStoreRec() {
+    return sr
+}
+
+function _saveStoreRec() {
+    sr.id = storeId
+    //sr.logList = logArray
+    //log('Save JSON config record to storage file')
+    store.add(sr, function (err) {
+        if (err) {
+            log("Error updating store rec, err = " + err)
+        }
+    });
+}
+
+function _addDays(inDate, days) {
+    var td = new Date(inDate)
+    td.setDate(td.getDate() + days)
+    let tempMonth = td.getMonth() + 1
+    let tempDay = td.getDate()
+    let outDate = td.getFullYear() + '-' + paddy(tempMonth,2) + '-' + paddy(tempDay,2)
+    return outDate;
+}
+
+function updateConfig(inStoreRec) {
+    let prevPlantingDate = sr.plantingDate
+    sr = inStoreRec
+
+    // If the planting date changes, update the other dates based on the new date
+    if (sr.plantingDate != prevPlantingDate) {
+        sr.harvestDate = _addDays(sr.plantingDate,75)
+        sr.cureDate = _addDays(sr.harvestDate,14)
+        sr.productionDate = _addDays(sr.cureDate,14)
+    }
+
+    //log("updateConfig, targetTemperature = " + sr.targetTemperature)
+    TEMPATURE_MAX = sr.targetTemperature + 1.0
+    TEMPATURE_MIN = sr.targetTemperature - 1.0
+    _saveStoreRec()
+}
+
+function clearLog() {
+    logArray.length = 0
+    _saveStoreRec()
+}
+
+function water(inRec) {
+    //log(`in water, inRec.waterSeconds = ${inRec.waterSeconds}`)
+    _waterOn(inRec.waterSeconds)
+    return `Water turned on for ${inRec.waterSeconds} seconds`
+}
+
