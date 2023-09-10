@@ -215,10 +215,12 @@ board.on("ready", () => {
     log("*** board ready ***")
 
     // If the board is exiting, turn all the relays off
+    /*
     this.on("exit", function () {
         log("on EXIT")
         turnRelaysOFF()
     })
+    */
     // Handle a termination signal (from stopping the systemd service)
     process.on('SIGTERM', function () {
         log('on SIGTERM')
