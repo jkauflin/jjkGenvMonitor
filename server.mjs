@@ -161,6 +161,7 @@ triggerConfigQuery()
 function triggerConfigQuery() {
     //log("Triggering queryConfig, configCheckInterval = "+configCheckInterval)
 
+    /*
     getConfig().then(sr => {
         configCheckInterval = parseInt(sr.ConfigCheckInterval)
         metricInterval = parseInt(sr.LogMetricInterval)
@@ -186,6 +187,27 @@ function triggerConfigQuery() {
         //log("in Main, err = "+err)
         setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
     })
+    */
+
+        configCheckInterval = 45
+        metricInterval = 30
+
+        TEMPATURE_MAX = 76.0 + 1.0
+        TEMPATURE_MIN = 76.0 - 1.0
+
+        waterDuration = 5.0
+        waterInterval = 6.0
+
+        airInterval = 1.0
+        airDuration = 1.0
+        heatInterval = 2.0
+        heatDuration = 0.7
+        heatDurationMin = 0.5
+        heatDurationMax = 2.0
+
+        lightDuration = 16.0
+        
+    setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
 }
 
 // Create Johnny-Five board object
@@ -374,16 +396,18 @@ function logMetric() {
         + "," + relayNames[2] + ":" + relayMetricValues[2]
         + "," + relayNames[3] + ":" + relayMetricValues[3]
         + "}";
-    //log(`metricJSON = ${metricJSON}`)
+    log(`metricJSON = ${metricJSON}`)
     emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON
 
     // Use this if we need to limit the send to between the hours of 6 and 20
     var date = new Date()
     var hours = date.getHours()
 
+    /*
     fetch(emoncmsUrl)
     .then(checkResponseStatus)
     .catch(err => tempLogErr(err));
+    */
 
     // Set the next time the function will run
     setTimeout(logMetric, metricInterval * secondsToMilliseconds)
