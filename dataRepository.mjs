@@ -11,6 +11,7 @@ import 'dotenv/config'
 import mariadb from 'mariadb';
 import {log} from './util.mjs'
 
+/*
 const pool = mariadb.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER, 
@@ -19,24 +20,21 @@ const pool = mariadb.createPool({
   database: process.env.DB_NAME,
   dateStrings: true  
 });
+*/
 
 export async function getConfig(currTemperature) {
   let conn;
   try {
       // establish a connection to MariaDB
-      conn = await pool.getConnection();
-
-      /*
-      mariadb.createConnection({ 
-        user: 'root', 
-        password: 'pass', 
-        port: 3307,
-        database: 'db',
-        metaAsArray: false,
-        ssl: true,
+      //conn = await pool.getConnection();
+      conn = await mariadb.createConnection({ 
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER, 
+        password: process.env.DB_PASS, 
+        port: process.env.DB_PORT,
+        database: process.env.DB_NAME,
         dateStrings: true  
       });
-      */
 
       //const res = await conn.query("INSERT INTO myTable value (?, ?)", [1, "mariadb"]);
       const res = await conn.query("UPDATE genvMonitorConfig SET CurrTemperature = ?,LastUpdateTs=CURRENT_TIMESTAMP WHERE ConfigId = ?", [currTemperature,1]);
@@ -99,7 +97,16 @@ CREATE TABLE `genvMonitorConfig` (
 export async function completeRequest(returnMessage) {
   let conn;
   try {
-      conn = await pool.getConnection();
+      // conn = await pool.getConnection();
+      conn = await mariadb.createConnection({ 
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER, 
+        password: process.env.DB_PASS, 
+        port: process.env.DB_PORT,
+        database: process.env.DB_NAME,
+        dateStrings: true  
+      });
+
       const res = await conn.query("UPDATE genvMonitorConfig SET RequestCommand='',RequestValue='',ReturnMessage=?,LastUpdateTs=CURRENT_TIMESTAMP WHERE ConfigId = ?", 
         [returnMessage,1]);
       conn.end();
