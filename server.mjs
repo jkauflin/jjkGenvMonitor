@@ -173,9 +173,9 @@ heatDurationMin = 0.5
 heatDurationMax = 2.0
 lightDuration = 16.0
 
-triggerConfigQuery()
-function triggerConfigQuery() {
-    //log("Triggering queryConfig, configCheckInterval = "+configCheckInterval)
+initConfigQuery()
+function initConfigQuery() {
+    log("Initial Config Query")
 
     getConfig(currTemperature).then(sr => {
         configCheckInterval = parseInt(sr.ConfigCheckInterval)
@@ -195,25 +195,9 @@ function triggerConfigQuery() {
         heatDurationMax = parseFloat(sr.HeatDurationMax)
 
         lightDuration = parseInt(sr.LightDuration)
-
-        //------------------------------------------------------------------------------------
-        // Handle requests
-        //------------------------------------------------------------------------------------
-        if (sr.RequestCommand != null && sr.RequestCommand != "") {
-            let returnMessage = ""
-            if (sr.RequestCommand == "WaterOn") {
-                let waterSeconds = parseInt(sr.RequestValue)
-                _waterOn(waterSeconds)
-                returnMessage = "Water turned on for "+waterSeconds+" seconds"
-            }
-            completeRequest(returnMessage)
-        }
-
-        setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
     })
     .catch(err => {
         log("in triggerConfigQuery, err = "+err)
-        setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
     })
 }
 
@@ -265,6 +249,9 @@ board.on("ready", () => {
     log("Starting Heat toggle interval")
     setTimeout(toggleHeat, 6000)
 
+    log("Triggering Config Query")
+    setTimeout(triggerConfigQuery, 8000)
+
     // Start sending metrics 10 seconds after starting (so things are calm)
     setTimeout(logMetric, 10000)
 
@@ -273,6 +260,49 @@ board.on("ready", () => {
 
     log("End of board.on (initialize) event")
 })
+
+function triggerConfigQuery() {
+    //log("Triggering queryConfig, configCheckInterval = "+configCheckInterval)
+
+    getConfig(currTemperature).then(sr => {
+        configCheckInterval = parseInt(sr.ConfigCheckInterval)
+        metricInterval = parseInt(sr.LogMetricInterval)
+
+        TEMPATURE_MAX = parseInt(sr.TargetTemperature) + 1.0
+        TEMPATURE_MIN = parseInt(sr.TargetTemperature) - 1.0
+
+        waterDuration = parseInt(sr.WaterDuration)
+        waterInterval = parseInt(sr.WaterInterval)
+
+        airInterval = parseFloat(sr.AirInterval)
+        airDuration = parseFloat(sr.AirDuration)
+        heatInterval = parseFloat(sr.HeatInterval)
+        heatDuration = parseFloat(sr.HeatDuration)
+        heatDurationMin = parseFloat(sr.HeatDurationMin)
+        heatDurationMax = parseFloat(sr.HeatDurationMax)
+
+        lightDuration = parseInt(sr.LightDuration)
+
+        //------------------------------------------------------------------------------------
+        // Handle requests
+        //------------------------------------------------------------------------------------
+        if (sr.RequestCommand != null && sr.RequestCommand != "") {
+            let returnMessage = ""
+            if (sr.RequestCommand == "WaterOn") {
+                let waterSeconds = parseInt(sr.RequestValue)
+                _waterOn(waterSeconds)
+                returnMessage = "Water turned on for "+waterSeconds+" seconds"
+            }
+            completeRequest(returnMessage)
+        }
+
+        setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
+    })
+    .catch(err => {
+        log("in triggerConfigQuery, err = "+err)
+        setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
+    })
+}
 
 function triggerWatering() {
     // Water the plant for the set water duration seconds
