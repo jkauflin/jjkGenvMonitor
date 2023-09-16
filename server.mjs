@@ -83,6 +83,8 @@ Modification History
                 (In one day I figured out all the ES6 problems that were
                   bothering me - libraries written for CommonJS, importing
                   from NPM libraries, and import from my modules)
+2023-09-15 JJK  Modified to read and update backend database for config
+                values, and to handle WaterOn requests
 =============================================================================*/
 
 import 'dotenv/config'
@@ -157,12 +159,25 @@ var relays = null
 
 log(">>> Starting server.mjs...")
 
+configCheckInterval = 45
+metricInterval = 30
+TEMPATURE_MAX = 76.0 + 1.0
+TEMPATURE_MIN = 76.0 - 1.0
+waterDuration = 5.0
+waterInterval = 6.0
+airInterval = 1.0
+airDuration = 1.0
+heatInterval = 2.0
+heatDuration = 0.7
+heatDurationMin = 0.5
+heatDurationMax = 2.0
+lightDuration = 16.0
+
 triggerConfigQuery()
 function triggerConfigQuery() {
     //log("Triggering queryConfig, configCheckInterval = "+configCheckInterval)
 
-    /*
-    getConfig().then(sr => {
+    getConfig(currTemperature).then(sr => {
         configCheckInterval = parseInt(sr.ConfigCheckInterval)
         metricInterval = parseInt(sr.LogMetricInterval)
 
@@ -181,31 +196,25 @@ function triggerConfigQuery() {
 
         lightDuration = parseInt(sr.LightDuration)
 
+        //------------------------------------------------------------------------------------
+        // Handle requests
+        //------------------------------------------------------------------------------------
+        if (sr.RequestCommand != null && sr.RequestCommand != "") {
+            let returnMessage = ""
+            if (sr.RequestCommand == "WaterOn") {
+                let waterSeconds = parseInt(sr.RequestValue)
+                _waterOn(waterSeconds)
+                returnMessage = "Water turned on for "+waterSeconds+" seconds"
+            }
+            completeRequest(returnMessage)
+        }
+
         setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
     })
     .catch(err => {
-        //log("in Main, err = "+err)
+        log("in triggerConfigQuery, err = "+err)
         setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
     })
-    */
-
-        configCheckInterval = 45
-        metricInterval = 30
-
-        TEMPATURE_MAX = 76.0 + 1.0
-        TEMPATURE_MIN = 76.0 - 1.0
-
-        waterDuration = 5.0
-        waterInterval = 6.0
-
-        airInterval = 1.0
-        airDuration = 1.0
-        heatInterval = 2.0
-        heatDuration = 0.7
-        heatDurationMin = 0.5
-        heatDurationMax = 2.0
-
-        lightDuration = 16.0
         
     setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
 }
@@ -237,12 +246,10 @@ board.on("ready", () => {
     log("*** board ready ***")
 
     // If the board is exiting, turn all the relays off
-    /*
-    this.on("exit", function () {
-        log("on EXIT")
-        turnRelaysOFF()
-    })
-    */
+    //this.on("exit", function () {
+    //    log("on EXIT")
+    //    turnRelaysOFF()
+    //})
     // Handle a termination signal (from stopping the systemd service)
     process.on('SIGTERM', function () {
         log('on SIGTERM')
@@ -268,7 +275,6 @@ board.on("ready", () => {
 
     log("End of board.on (initialize) event")
 })
-
 
 function triggerWatering() {
     // Water the plant for the set water duration seconds
@@ -368,11 +374,6 @@ function toggleHeat() {
 } // function toggleHeat() {
 
 function getTemperature() {
-    /*
-    fs.readFileSync = () => Buffer.from('Hello, ESM');
-    syncBuiltinESMExports();
-    fs.readFileSync === readFileSync; 
-    */
     const oneWireOverlayTemperatureFile = "/sys/bus/w1/devices/28-0416b3494bff/temperature"
     fs.readFile(oneWireOverlayTemperatureFile, function (err, celsiusTemp) {
         if (err) {
@@ -396,18 +397,16 @@ function logMetric() {
         + "," + relayNames[2] + ":" + relayMetricValues[2]
         + "," + relayNames[3] + ":" + relayMetricValues[3]
         + "}";
-    log(`metricJSON = ${metricJSON}`)
+    //log(`metricJSON = ${metricJSON}`)
     emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON
 
     // Use this if we need to limit the send to between the hours of 6 and 20
     var date = new Date()
     var hours = date.getHours()
 
-    /*
     fetch(emoncmsUrl)
     .then(checkResponseStatus)
     .catch(err => tempLogErr(err));
-    */
 
     // Set the next time the function will run
     setTimeout(logMetric, metricInterval * secondsToMilliseconds)
@@ -488,9 +487,4 @@ function updateConfig(inStoreRec) {
     _saveStoreRec()
 }
 
-function water(inRec) {
-    //log(`in water, inRec.waterSeconds = ${inRec.waterSeconds}`)
-    _waterOn(inRec.waterSeconds)
-    return `Water turned on for ${inRec.waterSeconds} seconds`
-}
 */
