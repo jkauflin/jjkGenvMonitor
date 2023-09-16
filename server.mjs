@@ -159,8 +159,8 @@ var relays = null
 
 log(">>> Starting server.mjs...")
 
-configCheckInterval = 45
-metricInterval = 30
+configCheckInterval = 20
+metricInterval = 20
 TEMPATURE_MAX = 76.0 + 1.0
 TEMPATURE_MIN = 76.0 - 1.0
 waterDuration = 5.0
@@ -173,6 +173,7 @@ heatDurationMin = 0.5
 heatDurationMax = 2.0
 lightDuration = 16.0
 
+/*
 triggerConfigQuery()
 function triggerConfigQuery() {
     //log("Triggering queryConfig, configCheckInterval = "+configCheckInterval)
@@ -218,6 +219,7 @@ function triggerConfigQuery() {
         
     setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
 }
+*/
 
 // Create Johnny-Five board object
 // When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
