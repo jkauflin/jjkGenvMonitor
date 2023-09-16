@@ -117,8 +117,8 @@ const minutesToMilliseconds = 60 * 1000
 const hoursToMilliseconds = 60 * 60 * 1000
 const secondsToMilliseconds = 1000
 
-var configCheckInterval = 20
-var metricInterval = 20
+var configCheckInterval = 30
+var metricInterval = 30
 var currTemperature = 76
 var TEMPATURE_MAX = currTemperature + 1.0
 var TEMPATURE_MIN = currTemperature - 1.0
