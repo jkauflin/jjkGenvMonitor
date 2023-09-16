@@ -95,7 +95,7 @@ import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 
 import {log} from './util.mjs'
-import {getConfig} from './dataRepository.mjs'
+import {getConfig,completeRequest} from './dataRepository.mjs'
 
 const {Board,Led,Relays} = johnnyFivePkg
 
@@ -175,7 +175,7 @@ lightDuration = 16.0
 
 triggerConfigQuery()
 function triggerConfigQuery() {
-    log("Triggering queryConfig, configCheckInterval = "+configCheckInterval)
+    //log("Triggering queryConfig, configCheckInterval = "+configCheckInterval)
 
     getConfig(currTemperature).then(sr => {
         configCheckInterval = parseInt(sr.ConfigCheckInterval)
