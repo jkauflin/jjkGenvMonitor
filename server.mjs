@@ -173,10 +173,9 @@ heatDurationMin = 0.5
 heatDurationMax = 2.0
 lightDuration = 16.0
 
-/*
 triggerConfigQuery()
 function triggerConfigQuery() {
-    //log("Triggering queryConfig, configCheckInterval = "+configCheckInterval)
+    log("Triggering queryConfig, configCheckInterval = "+configCheckInterval)
 
     getConfig(currTemperature).then(sr => {
         configCheckInterval = parseInt(sr.ConfigCheckInterval)
@@ -216,10 +215,7 @@ function triggerConfigQuery() {
         log("in triggerConfigQuery, err = "+err)
         setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
     })
-        
-    setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
 }
-*/
 
 // Create Johnny-Five board object
 // When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
@@ -406,9 +402,9 @@ function logMetric() {
     var date = new Date()
     var hours = date.getHours()
 
-    fetch(emoncmsUrl)
-    .then(checkResponseStatus)
-    .catch(err => tempLogErr(err));
+    //fetch(emoncmsUrl)
+    //.then(checkResponseStatus)
+    //.catch(err => tempLogErr(err));
 
     // Set the next time the function will run
     setTimeout(logMetric, metricInterval * secondsToMilliseconds)
