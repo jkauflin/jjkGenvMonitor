@@ -26,6 +26,18 @@ export async function getConfig(currTemperature) {
       // establish a connection to MariaDB
       conn = await pool.getConnection();
 
+      /*
+      mariadb.createConnection({ 
+        user: 'root', 
+        password: 'pass', 
+        port: 3307,
+        database: 'db',
+        metaAsArray: false,
+        ssl: true,
+        dateStrings: true  
+      });
+      */
+
       //const res = await conn.query("INSERT INTO myTable value (?, ?)", [1, "mariadb"]);
       const res = await conn.query("UPDATE genvMonitorConfig SET CurrTemperature = ?,LastUpdateTs=CURRENT_TIMESTAMP WHERE ConfigId = ?", [currTemperature,1]);
 
@@ -64,6 +76,10 @@ CREATE TABLE `genvMonitorConfig` (
           throw "No config rows found"
       }
 
+      conn.end();
+      //if (conn) conn.release(); //release to pool
+      conn = null;
+
       return rows[0]
 
       /*
@@ -75,7 +91,8 @@ CREATE TABLE `genvMonitorConfig` (
   } catch (err) {
       throw err;
   } finally {
-      if (conn) conn.release(); //release to pool
+    if (conn) return conn.end();
+    //if (conn) conn.release(); //release to pool
   }
 }
 
@@ -85,11 +102,14 @@ export async function completeRequest(returnMessage) {
       conn = await pool.getConnection();
       const res = await conn.query("UPDATE genvMonitorConfig SET RequestCommand='',RequestValue='',ReturnMessage=?,LastUpdateTs=CURRENT_TIMESTAMP WHERE ConfigId = ?", 
         [returnMessage,1]);
+      conn.end();
+      conn = null;
 
   } catch (err) {
       throw err;
   } finally {
-      if (conn) conn.release(); //release to pool
+      if (conn) return conn.end();
+      //if (conn) conn.release(); //release to pool
   }
 
 }

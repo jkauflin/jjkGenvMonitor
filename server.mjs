@@ -460,31 +460,3 @@ function _waterOn(waterSeconds) {
     }, waterSeconds * secondsToMilliseconds)
 }
 
-/*
-function _addDays(inDate, days) {
-    var td = new Date(inDate)
-    td.setDate(td.getDate() + days)
-    let tempMonth = td.getMonth() + 1
-    let tempDay = td.getDate()
-    let outDate = td.getFullYear() + '-' + paddy(tempMonth,2) + '-' + paddy(tempDay,2)
-    return outDate;
-}
-
-function updateConfig(inStoreRec) {
-    let prevPlantingDate = sr.plantingDate
-    sr = inStoreRec
-
-    // If the planting date changes, update the other dates based on the new date
-    if (sr.plantingDate != prevPlantingDate) {
-        sr.harvestDate = _addDays(sr.plantingDate,75)
-        sr.cureDate = _addDays(sr.harvestDate,14)
-        sr.productionDate = _addDays(sr.cureDate,14)
-    }
-
-    //log("updateConfig, targetTemperature = " + sr.targetTemperature)
-    TEMPATURE_MAX = sr.targetTemperature + 1.0
-    TEMPATURE_MIN = sr.targetTemperature - 1.0
-    _saveStoreRec()
-}
-
-*/
