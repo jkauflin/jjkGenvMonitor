@@ -74,7 +74,7 @@ CREATE TABLE `genvMonitorConfig` (
           throw "No config rows found"
       }
 
-      conn.end();
+      conn.close();
       //if (conn) conn.release(); //release to pool
       conn = null;
 
@@ -89,7 +89,8 @@ CREATE TABLE `genvMonitorConfig` (
   } catch (err) {
       throw err;
   } finally {
-    if (conn) return conn.end();
+    if (conn) return conn.close();
+    //if (conn) return conn.end();
     //if (conn) conn.release(); //release to pool
   }
 }
@@ -109,14 +110,14 @@ export async function completeRequest(returnMessage) {
 
       const res = await conn.query("UPDATE genvMonitorConfig SET RequestCommand='',RequestValue='',ReturnMessage=?,LastUpdateTs=CURRENT_TIMESTAMP WHERE ConfigId = ?", 
         [returnMessage,1]);
-      conn.end();
+      conn.close();
       conn = null;
 
   } catch (err) {
       throw err;
   } finally {
-      if (conn) return conn.end();
-      //if (conn) conn.release(); //release to pool
+    if (conn) return conn.close();
+    //if (conn) conn.release(); //release to pool
   }
 
 }
