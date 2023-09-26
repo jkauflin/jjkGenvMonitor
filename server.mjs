@@ -106,7 +106,7 @@ var webcamOptions = {
     callbackReturn: "base64",
     verbose: false
 };
-letMeTakeASelfie()
+//etMeTakeASelfie()
 
 import {log} from './util.mjs'
 import {getConfig,completeRequest} from './dataRepository.mjs'
