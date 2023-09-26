@@ -472,7 +472,7 @@ function letMeTakeASelfie() {
 
     log("in letMeTakeASelfie")
 
-    webcam.capture( "test_picture", function( err, data ) {
+    webcam.capture( "test_picture", webcamOptions,function( err, data ) {
         // data
     } );
     /*    
