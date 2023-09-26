@@ -6,6 +6,7 @@ DESCRIPTION:  Module to take care of interactions with a database
 -----------------------------------------------------------------------------
 Modification History
 2023-09-08 JJK  Initial version
+2023-09-26 JJK	Added function to save image data in database
 =============================================================================*/
 import 'dotenv/config'
 import mariadb from 'mariadb';
@@ -62,6 +63,31 @@ export async function completeRequest(returnMessage) {
   
 		const res = await conn.query("UPDATE genvMonitorConfig SET RequestCommand='',RequestValue='',ReturnMessage=?,LastUpdateTs=CURRENT_TIMESTAMP WHERE ConfigId = ?", 
 		  [returnMessage,1])
+  
+	} catch (err) {
+		throw err
+	} finally {
+		if (conn) {
+			conn.close()
+		}
+	}
+  
+}
+
+export async function updImgData(base64ImgData) {
+	let conn;
+	try {
+		conn = await mariadb.createConnection({ 
+		  host: process.env.DB_HOST,
+		  user: process.env.DB_USER, 
+		  password: process.env.DB_PASS, 
+		  port: process.env.DB_PORT,
+		  database: process.env.DB_NAME,
+		  dateStrings: true  
+		});
+  
+		const res = await conn.query("UPDATE genvMonitorConfig SET TempImg=?,LastUpdateTs=CURRENT_TIMESTAMP WHERE ConfigId = ?", 
+		  [base64ImgData,1])
   
 	} catch (err) {
 		throw err

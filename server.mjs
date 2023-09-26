@@ -98,7 +98,7 @@ import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino bo
 import nodeWebcamPkg from 'enhanced-node-webcam'
 
 import {log} from './util.mjs'
-import {getConfig,completeRequest} from './dataRepository.mjs'
+import {getConfig,completeRequest,updImgData} from './dataRepository.mjs'
 
 const {Board,Led,Relays} = johnnyFivePkg
 
@@ -112,61 +112,6 @@ var webcamOptions = {
     verbose: false
 }
 var webcam = nodeWebcamPkg.create(webcamOptions)
-
-function letMeTakeASelfie() {
-    log("in letMeTakeASelfie")
-    webcam.capture("temp",function( err, data ) {
-        // data
-        log(">>>>> in capture")
-        if (err != null) {
-            console.log("Error with webcam capture, err = "+err)
-        } else {
-            //console.log("webcam data = "+data)
-        }
-    } );
-    /*    
-    webcam.capture( "test_picture", webcamOptions, function( err, data ) {
-        // data in base64
-        if (err != null) {
-            console.log("Error with webcam capture, err = "+err)
-        } else {
-            console.log("webcam data = "+data)
-        }
-    
-    });
-    */
-
-  /*
-
-  setTimeout(() => {
-    //console.log("Taking a selfie with fswebcam capture");
-    // figure out how to save a weekly picture
-    nodeWebcam.capture(process.env.IMAGES_DIR+"genvImage", nodewebcamOptions, function( err, data ) {
-      if (err != null) {
-        console.log("Error with webcam capture, err = "+err);
-      }
-      //var image = "<img src='" + data + "'>";
-
-  `img` LONGBLOB NOT NULL
-
- <img id="screen" src="data:image/jpg;base64,'.base64_encode($result['image']).'"/>';
-
-<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAM0AAAD
- NCAMAAAAsYgRbAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5c
- cllPAAAABJQTFRF3NSmzMewPxIG//ncJEJsldTou1jHgAAAARBJREFUeNrs2EEK
- gCAQBVDLuv+V20dENbMY831wKz4Y/VHb/5RGQ0NDQ0NDQ0NDQ0NDQ0NDQ
- 0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0PzMWtyaGhoaGhoaGhoaGhoaGhoxtb0QGho
- aGhoaGhoaGhoaGhoaMbRLEvv50VTQ9OTQ5OpyZ01GpM2g0bfmDQaL7S+ofFC6x
- v3ZpxJiywakzbvd9r3RWPS9I2+MWk0+kbf0Hih9Y17U0nTHibrDDQ0NDQ0NDQ0
- NDQ0NDQ0NTXbRSL/AK72o6GhoaGhoRlL8951vwsNDQ0NDQ1NDc0WyHtDTEhD
- Q0NDQ0NTS5MdGhoaGhoaGhoaGhoaGhoaGhoaGhoaGposzSHAAErMwwQ2HwRQ
- AAAAAElFTkSuQmCC" alt="beastie.png" /> 
-
-      //setRelay(HEAT,OFF);
-    });
-  }, 100);
-  */
-}
 
 
 // General handler for any uncaught exceptions
@@ -362,6 +307,9 @@ function triggerConfigQuery() {
                 let waterSeconds = parseInt(sr.RequestValue)
                 _waterOn(waterSeconds)
                 returnMessage = "Water turned on for "+waterSeconds+" seconds"
+            } else if (sr.RequestCommand == "Selfie") {
+                setTimeout(_letMeTakeASelfie, 2000)
+                returnMessage = "Selfie requested "
             }
             completeRequest(returnMessage)
         }
@@ -372,6 +320,18 @@ function triggerConfigQuery() {
         log("in triggerConfigQuery, err = "+err)
         setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
     })
+}
+
+function _letMeTakeASelfie() {
+    //log("in letMeTakeASelfie")
+    webcam.capture("temp",function( err, base64ImgData ) {
+        if (err != null) {
+            log("Error with webcam capture, err = "+err)
+        } else {
+            //console.log("webcam base64ImgData = "+base64ImgData)
+            updImgData(base64ImgData)
+        }
+    } );
 }
 
 function triggerWatering() {
