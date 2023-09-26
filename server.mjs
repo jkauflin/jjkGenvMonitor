@@ -470,7 +470,7 @@ function checkResponseStatus(res) {
 
 function letMeTakeASelfie() {
 
-    
+    log("in letMeTakeASelfie")
     webcam.capture( "test_picture", webcamOptions, function( err, data ) {
         // data in base64
         if (err != null) {
