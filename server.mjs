@@ -96,7 +96,12 @@ import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 
 import nodeWebcamPkg from 'enhanced-node-webcam'
-//var webcam = nodeWebcamPkg.create({})
+
+import {log} from './util.mjs'
+import {getConfig,completeRequest} from './dataRepository.mjs'
+
+const {Board,Led,Relays} = johnnyFivePkg
+
 var webcamOptions = {
     width: 1280,
     height: 720,
@@ -106,24 +111,17 @@ var webcamOptions = {
     callbackReturn: "base64",
     verbose: false
 }
-
-import {log} from './util.mjs'
-import {getConfig,completeRequest} from './dataRepository.mjs'
-
-const {Board,Led,Relays} = johnnyFivePkg
-
 var webcam = nodeWebcamPkg.create(webcamOptions)
 
-letMeTakeASelfie()
 function letMeTakeASelfie() {
     log("in letMeTakeASelfie")
-    webcam.capture( "test_picture",function( err, data ) {
+    webcam.capture("temp",function( err, data ) {
         // data
         log(">>>>> in capture")
         if (err != null) {
             console.log("Error with webcam capture, err = "+err)
         } else {
-            console.log("webcam data = "+data)
+            //console.log("webcam data = "+data)
         }
     } );
     /*    
