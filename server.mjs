@@ -105,14 +105,26 @@ var webcamOptions = {
     output: "jpeg",
     callbackReturn: "base64",
     verbose: false
-};
+}
+
+import {log} from './util.mjs'
+import {getConfig,completeRequest} from './dataRepository.mjs'
+
+const {Board,Led,Relays} = johnnyFivePkg
+
+var webcam = nodeWebcamPkg.create(webcamOptions)
+
 letMeTakeASelfie()
 function letMeTakeASelfie() {
-
     log("in letMeTakeASelfie")
-
-    nodeWebcamPkg.capture( "test_picture", webcamOptions,function( err, data ) {
+    webcam.capture( "test_picture",function( err, data ) {
         // data
+        log(">>>>> in capture")
+        if (err != null) {
+            console.log("Error with webcam capture, err = "+err)
+        } else {
+            console.log("webcam data = "+data)
+        }
     } );
     /*    
     webcam.capture( "test_picture", webcamOptions, function( err, data ) {
@@ -158,11 +170,6 @@ function letMeTakeASelfie() {
   */
 }
 
-
-import {log} from './util.mjs'
-import {getConfig,completeRequest} from './dataRepository.mjs'
-
-const {Board,Led,Relays} = johnnyFivePkg
 
 // General handler for any uncaught exceptions
 process.on('uncaughtException', function (e) {
