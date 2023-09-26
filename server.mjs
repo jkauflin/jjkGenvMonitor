@@ -96,7 +96,7 @@ import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 
 import nodeWebcamPkg from 'enhanced-node-webcam'
-var webcam = nodeWebcamPkg.create({})
+//var webcam = nodeWebcamPkg.create({})
 var webcamOptions = {
     width: 1280,
     height: 720,
@@ -106,7 +106,58 @@ var webcamOptions = {
     callbackReturn: "base64",
     verbose: false
 };
-//etMeTakeASelfie()
+letMeTakeASelfie()
+function letMeTakeASelfie() {
+
+    log("in letMeTakeASelfie")
+
+    nodeWebcamPkg.capture( "test_picture", webcamOptions,function( err, data ) {
+        // data
+    } );
+    /*    
+    webcam.capture( "test_picture", webcamOptions, function( err, data ) {
+        // data in base64
+        if (err != null) {
+            console.log("Error with webcam capture, err = "+err)
+        } else {
+            console.log("webcam data = "+data)
+        }
+    
+    });
+    */
+
+  /*
+
+  setTimeout(() => {
+    //console.log("Taking a selfie with fswebcam capture");
+    // figure out how to save a weekly picture
+    nodeWebcam.capture(process.env.IMAGES_DIR+"genvImage", nodewebcamOptions, function( err, data ) {
+      if (err != null) {
+        console.log("Error with webcam capture, err = "+err);
+      }
+      //var image = "<img src='" + data + "'>";
+
+  `img` LONGBLOB NOT NULL
+
+ <img id="screen" src="data:image/jpg;base64,'.base64_encode($result['image']).'"/>';
+
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAM0AAAD
+ NCAMAAAAsYgRbAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5c
+ cllPAAAABJQTFRF3NSmzMewPxIG//ncJEJsldTou1jHgAAAARBJREFUeNrs2EEK
+ gCAQBVDLuv+V20dENbMY831wKz4Y/VHb/5RGQ0NDQ0NDQ0NDQ0NDQ0NDQ
+ 0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0PzMWtyaGhoaGhoaGhoaGhoaGhoxtb0QGho
+ aGhoaGhoaGhoaGhoaMbRLEvv50VTQ9OTQ5OpyZ01GpM2g0bfmDQaL7S+ofFC6x
+ v3ZpxJiywakzbvd9r3RWPS9I2+MWk0+kbf0Hih9Y17U0nTHibrDDQ0NDQ0NDQ0
+ NDQ0NDQ0NTXbRSL/AK72o6GhoaGhoRlL8951vwsNDQ0NDQ1NDc0WyHtDTEhD
+ Q0NDQ0NTS5MdGhoaGhoaGhoaGhoaGhoaGhoaGhoaGposzSHAAErMwwQ2HwRQ
+ AAAAAElFTkSuQmCC" alt="beastie.png" /> 
+
+      //setRelay(HEAT,OFF);
+    });
+  }, 100);
+  */
+}
+
 
 import {log} from './util.mjs'
 import {getConfig,completeRequest} from './dataRepository.mjs'
@@ -468,56 +519,6 @@ function checkResponseStatus(res) {
     }
 }
 
-function letMeTakeASelfie() {
-
-    log("in letMeTakeASelfie")
-
-    webcam.capture( "test_picture", webcamOptions,function( err, data ) {
-        // data
-    } );
-    /*    
-    webcam.capture( "test_picture", webcamOptions, function( err, data ) {
-        // data in base64
-        if (err != null) {
-            console.log("Error with webcam capture, err = "+err)
-        } else {
-            console.log("webcam data = "+data)
-        }
-    
-    });
-    */
-
-  /*
-
-  setTimeout(() => {
-    //console.log("Taking a selfie with fswebcam capture");
-    // figure out how to save a weekly picture
-    nodeWebcam.capture(process.env.IMAGES_DIR+"genvImage", nodewebcamOptions, function( err, data ) {
-      if (err != null) {
-        console.log("Error with webcam capture, err = "+err);
-      }
-      //var image = "<img src='" + data + "'>";
-
-  `img` LONGBLOB NOT NULL
-
- <img id="screen" src="data:image/jpg;base64,'.base64_encode($result['image']).'"/>';
-
-<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAM0AAAD
- NCAMAAAAsYgRbAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5c
- cllPAAAABJQTFRF3NSmzMewPxIG//ncJEJsldTou1jHgAAAARBJREFUeNrs2EEK
- gCAQBVDLuv+V20dENbMY831wKz4Y/VHb/5RGQ0NDQ0NDQ0NDQ0NDQ0NDQ
- 0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0PzMWtyaGhoaGhoaGhoaGhoaGhoxtb0QGho
- aGhoaGhoaGhoaGhoaMbRLEvv50VTQ9OTQ5OpyZ01GpM2g0bfmDQaL7S+ofFC6x
- v3ZpxJiywakzbvd9r3RWPS9I2+MWk0+kbf0Hih9Y17U0nTHibrDDQ0NDQ0NDQ0
- NDQ0NDQ0NTXbRSL/AK72o6GhoaGhoRlL8951vwsNDQ0NDQ1NDc0WyHtDTEhD
- Q0NDQ0NTS5MdGhoaGhoaGhoaGhoaGhoaGhoaGhoaGposzSHAAErMwwQ2HwRQ
- AAAAAElFTkSuQmCC" alt="beastie.png" /> 
-
-      //setRelay(HEAT,OFF);
-    });
-  }, 100);
-  */
-}
 
 function waterThePlants() {
     log("Watering the plants, waterDuration = "+waterDuration)
