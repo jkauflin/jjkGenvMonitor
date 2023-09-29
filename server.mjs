@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 DESCRIPTION: Main nodejs server to run the web and control functions for
                 the grow environment monitor
+
                 DESCRIPTION: NodeJS module to handle board functions.  Communicates with
              the Arduino Mega board using johnny-five library
 
@@ -94,9 +95,7 @@ import { syncBuiltinESMExports } from 'node:module'
 import { Buffer } from 'node:buffer'
 import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
-
 import nodeWebcamPkg from 'enhanced-node-webcam'
-
 import {log} from './util.mjs'
 import {getConfig,completeRequest,updImgData} from './dataRepository.mjs'
 
@@ -278,7 +277,7 @@ board.on("ready", () => {
 
 function triggerConfigQuery() {
     //log("Triggering queryConfig, configCheckInterval = "+configCheckInterval)
-
+    // Get values from the database
     getConfig(currTemperature).then(sr => {
         configCheckInterval = parseInt(sr.ConfigCheckInterval)
         metricInterval = parseInt(sr.LogMetricInterval)
@@ -399,8 +398,6 @@ function toggleAir() {
             setRelay(LIGHTS,ON)
             currLightsVal = ON
             heatDurationMaxAdj = 0.0  // Don't add extra heat max when the lights are on
-            // Take a selfie when you turn the lights on
-            //setTimeout(letMeTakeASelfie, 100)
         }
     }
 
@@ -462,6 +459,7 @@ function logMetric() {
     var date = new Date()
     var hours = date.getHours()
 
+    // https call to send metric data to emoncms (CURRENTLY shut off - just updating temperature in server DB)
     //fetch(emoncmsUrl)
     //.then(checkResponseStatus)
     //.catch(err => tempLogErr(err));
@@ -484,7 +482,6 @@ function checkResponseStatus(res) {
     }
 }
 
-
 function waterThePlants() {
     log("Watering the plants, waterDuration = "+waterDuration)
     setRelay(WATER,ON)
@@ -502,4 +499,3 @@ function _waterOn(waterSeconds) {
         setRelay(WATER, OFF)
     }, waterSeconds * secondsToMilliseconds)
 }
-
