@@ -86,13 +86,12 @@ export async function insertImage(base64ImgData) {
 		  dateStrings: true  
 		});
   
-		const res = await conn.query("INSERT INTO genvMonitorImg (ImgData) VALUES (?) ", 
-		  [base64ImgData,1])
-  
+		await conn.query("INSERT INTO genvMonitorImg (ImgData) VALUES (?) ", [base64ImgData,1])
+
+		// Purge images beyond a maximum number
 		let rows = await conn.query("SELECT ImgId FROM genvMonitorImg ORDER BY ImgId DESC LIMIT 1;")
 		let lastImgId = rows[0].ImgId
-
-		let maxImages = 2
+		let maxImages = 100
 		await conn.query("DELETE FROM genvMonitorImg WHERE ImgId <= ? ", lastImgId - maxImages)
 
 	} catch (err) {

@@ -298,9 +298,9 @@ function triggerConfigQuery() {
 
         lightDuration = parseInt(sr.LightDuration)
 
-        setTimeout(_letMeTakeASelfie, 2000)
-        // Selfie
+        // Take a selfie when the lights are ON
         if (currLightsVal == ON) {
+            setTimeout(_letMeTakeASelfie, 2000)
         }
 
         //------------------------------------------------------------------------------------
@@ -313,12 +313,7 @@ function triggerConfigQuery() {
                 _waterOn(waterSeconds)
                 returnMessage = "Water turned on for "+waterSeconds+" seconds"
             } 
-            /*
-            else if (sr.RequestCommand == "Selfie") {
-                setTimeout(_letMeTakeASelfie, 2000)
-                returnMessage = "Selfie requested "
-            }
-            */
+
             completeRequest(returnMessage)
         }
 
@@ -337,7 +332,6 @@ function _letMeTakeASelfie() {
             log("Error with webcam capture, err = "+err)
         } else {
             //console.log("webcam base64ImgData = "+base64ImgData)
-            //updImgData(base64ImgData)
             insertImage(base64ImgData)
         }
     } );
