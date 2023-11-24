@@ -118,7 +118,7 @@ export async function insertImage(base64ImgData) {
   
 		var query = "SELECT ImgId FROM genvMonitorImg ORDER BY ImgId DESC LIMIT 1;"
 		var rows = await conn.query(query)
-		log("Last ImgId = "+rows[0].ImgId)
+		console.log("Last ImgId = "+rows[0].ImgId)
 
 	} catch (err) {
 		throw err
