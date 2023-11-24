@@ -93,7 +93,7 @@ export async function insertImage(base64ImgData) {
 		let lastImgId = rows[0].ImgId
 
 		let maxImages = 2
-		await conn.query("DELETE FROM genvMonitorImg WHERE ImgId =< ? ", lastImgId - maxImages)
+		await conn.query("DELETE FROM genvMonitorImg WHERE ImgId <= ? ", lastImgId - maxImages)
 
 	} catch (err) {
 		throw err
