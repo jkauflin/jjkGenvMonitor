@@ -116,6 +116,10 @@ export async function insertImage(base64ImgData) {
 		const res = await conn.query("INSERT INTO genvMonitorImg (ImgData) VALUES (?) ", 
 		  [base64ImgData,1])
   
+		var query = "SELECT ImgId FROM genvMonitorImg ORDER BY ImgId DESC LIMIT 1;"
+		var rows = await conn.query(query)
+		log("Last ImgId = "+rows[0].ImgId)
+
 	} catch (err) {
 		throw err
 	} finally {
