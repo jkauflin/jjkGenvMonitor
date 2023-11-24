@@ -116,9 +116,11 @@ export async function insertImage(base64ImgData) {
 		const res = await conn.query("INSERT INTO genvMonitorImg (ImgData) VALUES (?) ", 
 		  [base64ImgData,1])
   
-		var query = "SELECT ImgId FROM genvMonitorImg ORDER BY ImgId DESC LIMIT 1;"
-		var rows = await conn.query(query)
-		console.log("Last ImgId = "+rows[0].ImgId)
+		let rows = await conn.query("SELECT ImgId FROM genvMonitorImg ORDER BY ImgId DESC LIMIT 1;")
+		let lastImgId = rows[0].ImgId
+
+		let maxImages = 2
+		await conn.query("DELETE FROM genvMonitorImg WHERE ImgId < ? ", lastImgId - maxImages)
 
 	} catch (err) {
 		throw err
