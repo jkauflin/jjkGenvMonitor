@@ -87,6 +87,7 @@ Modification History
 2023-09-15 JJK  Modified to read and update backend database for config
                 values, and to handle WaterOn requests
 2023-09-24 JJK  Added webcam functionality
+2023-11-24 JJK  Modified to save multiple webcam pictures in a new table
 =============================================================================*/
 
 import 'dotenv/config'
@@ -97,7 +98,7 @@ import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 import nodeWebcamPkg from 'enhanced-node-webcam'
 import {log} from './util.mjs'
-import {getConfig,completeRequest,updImgData} from './dataRepository.mjs'
+import {getConfig,completeRequest,insertImage} from './dataRepository.mjs'
 
 const {Board,Led,Relays} = johnnyFivePkg
 
@@ -297,6 +298,11 @@ function triggerConfigQuery() {
 
         lightDuration = parseInt(sr.LightDuration)
 
+        setTimeout(_letMeTakeASelfie, 2000)
+        // Selfie
+        if (currLightsVal == ON) {
+        }
+
         //------------------------------------------------------------------------------------
         // Handle requests
         //------------------------------------------------------------------------------------
@@ -306,10 +312,13 @@ function triggerConfigQuery() {
                 let waterSeconds = parseInt(sr.RequestValue)
                 _waterOn(waterSeconds)
                 returnMessage = "Water turned on for "+waterSeconds+" seconds"
-            } else if (sr.RequestCommand == "Selfie") {
+            } 
+            /*
+            else if (sr.RequestCommand == "Selfie") {
                 setTimeout(_letMeTakeASelfie, 2000)
                 returnMessage = "Selfie requested "
             }
+            */
             completeRequest(returnMessage)
         }
 
@@ -328,7 +337,8 @@ function _letMeTakeASelfie() {
             log("Error with webcam capture, err = "+err)
         } else {
             //console.log("webcam base64ImgData = "+base64ImgData)
-            updImgData(base64ImgData)
+            //updImgData(base64ImgData)
+            insertImage(base64ImgData)
         }
     } );
 }
