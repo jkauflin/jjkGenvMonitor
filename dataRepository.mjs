@@ -74,33 +74,6 @@ export async function completeRequest(returnMessage) {
   
 }
 
-/*
-export async function updImgData(base64ImgData) {
-	let conn;
-	try {
-		conn = await mariadb.createConnection({ 
-		  host: process.env.DB_HOST,
-		  user: process.env.DB_USER, 
-		  password: process.env.DB_PASS, 
-		  port: process.env.DB_PORT,
-		  database: process.env.DB_NAME,
-		  dateStrings: true  
-		});
-  
-		const res = await conn.query("UPDATE genvMonitorConfig SET TempImg=?,LastUpdateTs=CURRENT_TIMESTAMP WHERE ConfigId = ?", 
-		  [base64ImgData,1])
-  
-	} catch (err) {
-		throw err
-	} finally {
-		if (conn) {
-			conn.close()
-		}
-	}
-  
-}
-*/
-
 export async function insertImage(base64ImgData) {
 	let conn;
 	try {
@@ -120,7 +93,7 @@ export async function insertImage(base64ImgData) {
 		let lastImgId = rows[0].ImgId
 
 		let maxImages = 2
-		await conn.query("DELETE FROM genvMonitorImg WHERE ImgId < ? ", lastImgId - maxImages)
+		await conn.query("DELETE FROM genvMonitorImg WHERE ImgId =< ? ", lastImgId - maxImages)
 
 	} catch (err) {
 		throw err
