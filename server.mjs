@@ -88,6 +88,8 @@ Modification History
                 values, and to handle WaterOn requests
 2023-09-24 JJK  Added webcam functionality
 2023-11-24 JJK  Modified to save multiple webcam pictures in a new table
+2023-11-25 JJK  Modified to use LogMetricInterval as the minutes interval
+                for taking and saving a Selfie
 =============================================================================*/
 
 import 'dotenv/config'
@@ -175,7 +177,7 @@ var relays = null
 log(">>> Starting server.mjs...")
 
 configCheckInterval = 20
-metricInterval = 20
+metricInterval = 30
 TEMPATURE_MAX = 76.0 + 1.0
 TEMPATURE_MIN = 76.0 - 1.0
 waterDuration = 5.0
@@ -267,6 +269,9 @@ board.on("ready", () => {
     log("Triggering Config Query")
     setTimeout(triggerConfigQuery, 8000)
 
+    log("Triggering Selfie interval")
+    setTimeout(triggerSelfie, 9000)
+
     // Start sending metrics 10 seconds after starting (so things are calm)
     setTimeout(logMetric, 10000)
 
@@ -297,11 +302,6 @@ function triggerConfigQuery() {
         heatDurationMax = parseFloat(sr.HeatDurationMax)
 
         lightDuration = parseInt(sr.LightDuration)
-
-        // Take a selfie when the lights are ON
-        if (currLightsVal == ON) {
-            setTimeout(_letMeTakeASelfie, 2000)
-        }
 
         //------------------------------------------------------------------------------------
         // Handle requests
@@ -336,6 +336,18 @@ function _letMeTakeASelfie() {
         }
     } );
 }
+
+// Function to take a selfie image and store in database
+function triggerSelfie() {
+    // Take a selfie when the lights are ON
+    if (currLightsVal == ON) {
+        _letMeTakeASelfie()
+    }
+
+    // Set the next time the function will run
+    setTimeout(triggerSelfie, metricInterval * minutesToMilliseconds)
+}
+
 
 function triggerWatering() {
     // Water the plant for the set water duration seconds
