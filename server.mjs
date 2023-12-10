@@ -152,7 +152,7 @@ var configCheckInterval = 30
 //var metricInterval = 30
 var metricInterval = 15
 var currTemperature = 76
-var targetTemperature = 76
+var targetTemperature = 72
 var TEMPATURE_MAX = targetTemperature + 0.5
 var TEMPATURE_MIN = targetTemperature - 0.5
 
@@ -277,8 +277,9 @@ function triggerConfigQuery() {
         configCheckInterval = parseInt(sr.ConfigCheckInterval)
         metricInterval = parseInt(sr.LogMetricInterval)
 
-        TEMPATURE_MAX = parseInt(sr.TargetTemperature) + 0.5
-        TEMPATURE_MIN = parseInt(sr.TargetTemperature) - 0.5
+        targetTemperature = parseInt(sr.TargetTemperature)
+        TEMPATURE_MAX = targetTemperature + 0.5
+        TEMPATURE_MIN = targetTemperature - 0.5
 
         waterDuration = parseInt(sr.WaterDuration)
         waterInterval = parseInt(sr.WaterInterval)
