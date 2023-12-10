@@ -189,6 +189,7 @@ function initConfigQuery() {
         targetTemperature = parseInt(sr.TargetTemperature)
         TEMPATURE_MAX = targetTemperature + 0.5
         TEMPATURE_MIN = targetTemperature - 0.5
+        log(`after getConfig, target:${targetTemperature}`)
 
         waterDuration = parseInt(sr.WaterDuration)
         waterInterval = parseInt(sr.WaterInterval)
