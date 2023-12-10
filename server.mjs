@@ -151,8 +151,8 @@ var currLightsVal = OFF
 var configCheckInterval = 30
 //var metricInterval = 30
 var metricInterval = 15
-var currTemperature = 76
-var targetTemperature = 74
+var currTemperature = 75
+var targetTemperature = 75
 var TEMPATURE_MAX = targetTemperature + 0.5
 var TEMPATURE_MIN = targetTemperature - 0.5
 
@@ -265,7 +265,7 @@ board.on("ready", () => {
     //setTimeout(triggerSelfie, 9000)
 
     // Start sending metrics 10 seconds after starting (so things are calm)
-    //setTimeout(logMetric, 10000)
+    setTimeout(logMetric, 10000)
 
     // Trigger the watering on the watering interval (using heatDurationMax for watering interval right now)
     setTimeout(triggerWatering, waterInterval * hoursToMilliseconds)
