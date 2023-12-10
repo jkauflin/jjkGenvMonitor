@@ -244,7 +244,7 @@ board.on("ready", () => {
     //setTimeout(triggerConfigQuery, 8000)
 
     //log("Triggering Selfie interval")
-    //setTimeout(triggerSelfie, 9000)
+    setTimeout(triggerSelfie, 9000)
 
     // Start sending metrics 10 seconds after starting (so things are calm)
     setTimeout(logMetric, 10000)
@@ -296,7 +296,7 @@ function triggerConfigQuery() {
 }
 
 function _letMeTakeASelfie() {
-    //log("in letMeTakeASelfie")
+    log("in letMeTakeASelfie")
     webcam.capture("temp",function( err, base64ImgData ) {
         if (err != null) {
             log("Error with webcam capture, err = "+err)
@@ -408,7 +408,7 @@ function toggleHeat() {
             heatIntervalAdjustment = heatAdjustmentMax
         }
     }
-    if (currTemperature < (targetTemperature - 0.5)) {
+    if (currTemperature < (targetTemperature - 0.6)) {
         heatDurationAdjustment = targetTemperature - currTemperature
         if (heatDurationAdjustment > heatAdjustmentMax) {
             heatDurationAdjustment = heatAdjustmentMax
