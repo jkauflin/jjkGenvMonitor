@@ -177,7 +177,7 @@ function initConfigQuery() {
         metricInterval = parseInt(sr.LogMetricInterval)
 
         targetTemperature = parseInt(sr.TargetTemperature)
-        log(`>>> after getConfig, target:${targetTemperature}`)
+        //log(`>>> after getConfig, target:${targetTemperature}`)
 
         waterDuration = parseInt(sr.WaterDuration)
         waterInterval = parseInt(sr.WaterInterval)
@@ -240,8 +240,8 @@ board.on("ready", () => {
     log("Starting Heat toggle interval")
     setTimeout(toggleHeat, 6000)
 
-    //log("Triggering Config Query")
-    //setTimeout(triggerConfigQuery, 8000)
+    log("Triggering Config Query")
+    setTimeout(triggerConfigQuery, 8000)
 
     //log("Triggering Selfie interval")
     setTimeout(triggerSelfie, 9000)
@@ -296,7 +296,7 @@ function triggerConfigQuery() {
 }
 
 function _letMeTakeASelfie() {
-    log("in letMeTakeASelfie")
+    //log("in letMeTakeASelfie")
     webcam.capture("temp",function( err, base64ImgData ) {
         if (err != null) {
             log("Error with webcam capture, err = "+err)
@@ -377,15 +377,11 @@ function toggleAir() {
         if (currLightsVal == ON) {
             setRelay(LIGHTS,OFF)
             currLightsVal = OFF
-
-            //heatDurationMaxAdj = 0.5  // Add a little extra heat max when the lights are off
         }
     } else {
         if (currLightsVal == OFF) {
             setRelay(LIGHTS,ON)
             currLightsVal = ON
-
-            //heatDurationMaxAdj = 0.0  // Don't add extra heat max when the lights are on
         }
     }
 
@@ -408,7 +404,7 @@ function toggleHeat() {
             heatIntervalAdjustment = heatAdjustmentMax
         }
     }
-    if (currTemperature < (targetTemperature - 0.6)) {
+    if (currTemperature < (targetTemperature - 0.5)) {
         heatDurationAdjustment = targetTemperature - currTemperature
         if (heatDurationAdjustment > heatAdjustmentMax) {
             heatDurationAdjustment = heatAdjustmentMax
@@ -416,18 +412,18 @@ function toggleHeat() {
     }
 
     if (currHeatVal == OFF) {
-        log("Turning Heat ON")
+        //log("Turning Heat ON")
         setRelay(HEAT, ON)
         currHeatVal = ON
         heatTimeout += heatDurationAdjustment
     } else {
-        log("Turning Heat OFF")
+        //log("Turning Heat OFF")
         setRelay(HEAT, OFF)
         currHeatVal = OFF
         heatTimeout += heatIntervalAdjustment
     }
 
-    log(`target:${targetTemperature}, curr:${currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
+    //log(`target:${targetTemperature}, curr:${currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
 
     // Recursively call the function with the current timeout value  
     setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds)
@@ -489,7 +485,7 @@ function checkResponseStatus(res) {
 }
 
 function waterThePlants() {
-    log("Watering the plants, waterDuration = "+waterDuration)
+    //log("Watering the plants, waterDuration = "+waterDuration)
     setRelay(WATER,ON)
     setTimeout(() => {
         //log("Watering the plants OFF")
@@ -498,7 +494,7 @@ function waterThePlants() {
 }
 
 function _waterOn(waterSeconds) {
-    log("Turning Water ON, seconds = " + waterSeconds);
+    //log("Turning Water ON, seconds = " + waterSeconds);
     setRelay(WATER, ON)
     setTimeout(() => {
         //log("Turning Water OFF")
