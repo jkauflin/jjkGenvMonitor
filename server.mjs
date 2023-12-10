@@ -90,6 +90,9 @@ Modification History
 2023-11-24 JJK  Modified to save multiple webcam pictures in a new table
 2023-11-25 JJK  Modified to use LogMetricInterval as the minutes interval
                 for taking and saving a Selfie
+2023-12-10 JJK  Turning on metrics logging again and working on better 
+                automated adjustment of heat times to keep close to 
+                target temperature
 =============================================================================*/
 
 import 'dotenv/config'
@@ -126,19 +129,9 @@ process.on('uncaughtException', function (e) {
 });
 
 // Global variables
-const EMONCMS_INPUT_URL = process.env.EMONCMS_INPUT_URL
-var emoncmsUrl = ""
-var metricJSON = ""
-
 const minutesToMilliseconds = 60 * 1000
 const hoursToMilliseconds = 60 * 60 * 1000
 const secondsToMilliseconds = 1000
-
-var configCheckInterval = 30
-var metricInterval = 30
-var currTemperature = 76
-var TEMPATURE_MAX = currTemperature + 1.0
-var TEMPATURE_MIN = currTemperature - 1.0
 
 const LIGHTS = 0
 const WATER = 1
@@ -154,41 +147,36 @@ const ON = 1
 var currAirVal = OFF
 var currHeatVal = OFF
 var currLightsVal = OFF
-var date
-var hours = 0
+
+var configCheckInterval = 30
+//var metricInterval = 30
+var metricInterval = 15
+var currTemperature = 76
+var targetTemperature = 76
+var TEMPATURE_MAX = targetTemperature + 0.5
+var TEMPATURE_MIN = targetTemperature - 0.5
+
 var airTimeout = 1.0
 var heatTimeout = 1.0
+var lightDuration = 18
+var airInterval = 1.0
+var airDuration = 1.0
+var heatInterval = 1.5
+var heatDuration = 1.5
 
-var lightDuration = 0
-var airInterval = 0.0
-var airDuration = 0.0
-var heatInterval = 0.0
-var heatDuration = 0.0
-var heatDurationMin = 0.0
-var heatDurationMax = 0.0
+var heatDurationMin = 0.5
+var heatDurationMax = 2.0
 var heatDurationMaxAdj = 0.5
 
-var waterDuration = 0
-var waterInterval = 5
+
+var waterDuration = 4.0
+var waterInterval = 12.0
 
 var board = null
 var relays = null
 
 log(">>> Starting server.mjs...")
 
-configCheckInterval = 20
-metricInterval = 30
-TEMPATURE_MAX = 76.0 + 1.0
-TEMPATURE_MIN = 76.0 - 1.0
-waterDuration = 5.0
-waterInterval = 6.0
-airInterval = 1.0
-airDuration = 1.0
-heatInterval = 2.0
-heatDuration = 0.7
-heatDurationMin = 0.5
-heatDurationMax = 2.0
-lightDuration = 16.0
 
 initConfigQuery()
 function initConfigQuery() {
@@ -198,8 +186,9 @@ function initConfigQuery() {
         configCheckInterval = parseInt(sr.ConfigCheckInterval)
         metricInterval = parseInt(sr.LogMetricInterval)
 
-        TEMPATURE_MAX = parseInt(sr.TargetTemperature) + 1.0
-        TEMPATURE_MIN = parseInt(sr.TargetTemperature) - 1.0
+        targetTemperature = parseInt(sr.TargetTemperature)
+        TEMPATURE_MAX = targetTemperature + 0.5
+        TEMPATURE_MIN = targetTemperature - 0.5
 
         waterDuration = parseInt(sr.WaterDuration)
         waterInterval = parseInt(sr.WaterInterval)
@@ -288,8 +277,8 @@ function triggerConfigQuery() {
         configCheckInterval = parseInt(sr.ConfigCheckInterval)
         metricInterval = parseInt(sr.LogMetricInterval)
 
-        TEMPATURE_MAX = parseInt(sr.TargetTemperature) + 1.0
-        TEMPATURE_MIN = parseInt(sr.TargetTemperature) - 1.0
+        TEMPATURE_MAX = parseInt(sr.TargetTemperature) + 0.5
+        TEMPATURE_MIN = parseInt(sr.TargetTemperature) - 0.5
 
         waterDuration = parseInt(sr.WaterDuration)
         waterInterval = parseInt(sr.WaterInterval)
@@ -303,6 +292,8 @@ function triggerConfigQuery() {
 
         lightDuration = parseInt(sr.LightDuration)
 
+        // >>>>>>>>>>> check for changes and reset the timeout???
+
         //------------------------------------------------------------------------------------
         // Handle requests
         //------------------------------------------------------------------------------------
@@ -313,6 +304,7 @@ function triggerConfigQuery() {
                 _waterOn(waterSeconds)
                 returnMessage = "Water turned on for "+waterSeconds+" seconds"
             } 
+            // >>>>>> put selfie request back in????
 
             completeRequest(returnMessage)
         }
@@ -400,20 +392,22 @@ function toggleAir() {
     }
 
     // Check to turn the light on/off
-    date = new Date()
-    hours = date.getHours()
+    let date = new Date()
+    let hours = date.getHours()
     //log("lightDuration = "+lightDuration+", hours = "+hours)
     if (hours > (lightDuration - 1)) {
         if (currLightsVal == ON) {
             setRelay(LIGHTS,OFF)
             currLightsVal = OFF
-            heatDurationMaxAdj = 0.5  // Add a little extra heat max when the lights are off
+
+            //heatDurationMaxAdj = 0.5  // Add a little extra heat max when the lights are off
         }
     } else {
         if (currLightsVal == OFF) {
             setRelay(LIGHTS,ON)
             currLightsVal = ON
-            heatDurationMaxAdj = 0.0  // Don't add extra heat max when the lights are on
+
+            //heatDurationMaxAdj = 0.0  // Don't add extra heat max when the lights are on
         }
     }
 
@@ -427,17 +421,37 @@ function toggleHeat() {
     // 9/5/2023 - if needed, look more dynamic adjustment of heat duration and interval to get to target temp
     heatTimeout = heatInterval
 
+    let heatDurationAdjustment = 0.0
+    let heatIntervalAdjustment = 0.0
+    let heatAdjustmentMax = 0.5
+
+    // Check the temperature and adjust the timeout values
+    if (currTemperature > (targetTemperature + 0.1)) {
+        heatIntervalAdjustment = currTemperature - targetTemperature
+        if (heatIntervalAdjustment > heatAdjustmentMax) {
+            heatIntervalAdjustment = heatAdjustmentMax
+        }
+    }
+    if (currTemperature < (targetTemperature - 0.1)) {
+        heatDurationAdjustment = targetTemperature - currTemperature
+        if (heatDurationAdjustment > heatAdjustmentMax) {
+            heatDurationAdjustment = heatAdjustmentMax
+        }
+    }
+
     if (currHeatVal == OFF) {
-        //log("Turning Heat ON")
+        log("Turning Heat ON")
         setRelay(HEAT, ON)
         currHeatVal = ON
-        heatTimeout = heatDuration
+        heatTimeout += heatDurationAdjustment
     } else {
-        //log("Turning Heat OFF")
+        log("Turning Heat OFF")
         setRelay(HEAT, OFF)
         currHeatVal = OFF
-        heatTimeout = heatInterval
+        heatTimeout += heatIntervalAdjustment
     }
+
+    log(`target:${targetTemperature}, curr:${currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
 
     // Recursively call the function with the current timeout value  
     setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds)
@@ -461,7 +475,7 @@ function logMetric() {
     // Set the current temperature from the one-wire overlay file
     getTemperature()
 
-    metricJSON = "{" + "tempature:" + currTemperature
+    let metricJSON = "{" + "tempature:" + currTemperature
         + ",heatDuration:" + heatDuration
         + "," + relayNames[0] + ":" + relayMetricValues[0]
         + "," + relayNames[1] + ":" + relayMetricValues[1]
@@ -469,11 +483,11 @@ function logMetric() {
         + "," + relayNames[3] + ":" + relayMetricValues[3]
         + "}";
     //log(`metricJSON = ${metricJSON}`)
-    emoncmsUrl = EMONCMS_INPUT_URL + "&json=" + metricJSON
+    let emoncmsUrl = process.env.EMONCMS_INPUT_URL + "&json=" + metricJSON
 
     // Use this if we need to limit the send to between the hours of 6 and 20
-    var date = new Date()
-    var hours = date.getHours()
+    let date = new Date()
+    let hours = date.getHours()
 
     // https call to send metric data to emoncms (CURRENTLY shut off - just updating temperature in server DB)
     //fetch(emoncmsUrl)
