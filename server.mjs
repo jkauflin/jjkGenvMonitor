@@ -149,12 +149,9 @@ var currHeatVal = OFF
 var currLightsVal = OFF
 
 var configCheckInterval = 30
-//var metricInterval = 30
-var metricInterval = 15
-var currTemperature = 77
-var targetTemperature = 77
-var TEMPATURE_MAX = targetTemperature + 0.5
-var TEMPATURE_MIN = targetTemperature - 0.5
+var metricInterval = 30
+var currTemperature = 76
+var targetTemperature = 76
 
 var airTimeout = 1.0
 var heatTimeout = 1.0
@@ -163,12 +160,6 @@ var airInterval = 1.0
 var airDuration = 1.0
 var heatInterval = 1.5
 var heatDuration = 1.5
-
-var heatDurationMin = 0.5
-var heatDurationMax = 2.0
-var heatDurationMaxAdj = 0.5
-
-
 var waterDuration = 4.0
 var waterInterval = 12.0
 
@@ -177,8 +168,7 @@ var relays = null
 
 log(">>> Starting server.mjs...")
 
-
-//initConfigQuery()
+initConfigQuery()
 function initConfigQuery() {
     log("Initial Config Query")
 
@@ -187,20 +177,14 @@ function initConfigQuery() {
         metricInterval = parseInt(sr.LogMetricInterval)
 
         targetTemperature = parseInt(sr.TargetTemperature)
-        TEMPATURE_MAX = targetTemperature + 0.5
-        TEMPATURE_MIN = targetTemperature - 0.5
-        log(`after getConfig, target:${targetTemperature}`)
+        log(`>>> after getConfig, target:${targetTemperature}`)
 
         waterDuration = parseInt(sr.WaterDuration)
         waterInterval = parseInt(sr.WaterInterval)
-
         airInterval = parseFloat(sr.AirInterval)
         airDuration = parseFloat(sr.AirDuration)
         heatInterval = parseFloat(sr.HeatInterval)
         heatDuration = parseFloat(sr.HeatDuration)
-        heatDurationMin = parseFloat(sr.HeatDurationMin)
-        heatDurationMax = parseFloat(sr.HeatDurationMax)
-
         lightDuration = parseInt(sr.LightDuration)
     })
     .catch(err => {
@@ -277,21 +261,13 @@ function triggerConfigQuery() {
     getConfig(currTemperature).then(sr => {
         configCheckInterval = parseInt(sr.ConfigCheckInterval)
         metricInterval = parseInt(sr.LogMetricInterval)
-
         targetTemperature = parseInt(sr.TargetTemperature)
-        TEMPATURE_MAX = targetTemperature + 0.5
-        TEMPATURE_MIN = targetTemperature - 0.5
-
         waterDuration = parseInt(sr.WaterDuration)
         waterInterval = parseInt(sr.WaterInterval)
-
         airInterval = parseFloat(sr.AirInterval)
         airDuration = parseFloat(sr.AirDuration)
         heatInterval = parseFloat(sr.HeatInterval)
         heatDuration = parseFloat(sr.HeatDuration)
-        heatDurationMin = parseFloat(sr.HeatDurationMin)
-        heatDurationMax = parseFloat(sr.HeatDurationMax)
-
         lightDuration = parseInt(sr.LightDuration)
 
         // >>>>>>>>>>> check for changes and reset the timeout???
@@ -420,9 +396,7 @@ function toggleAir() {
 
 // Function to toggle air ventilation ON and OFF
 function toggleHeat() {
-    // 9/5/2023 - if needed, look more dynamic adjustment of heat duration and interval to get to target temp
     heatTimeout = heatInterval
-
     let heatDurationAdjustment = 0.0
     let heatIntervalAdjustment = 0.0
     let heatAdjustmentMax = 0.7
