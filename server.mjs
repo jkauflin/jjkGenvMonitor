@@ -186,7 +186,7 @@ function initConfigQuery() {
         configCheckInterval = parseInt(sr.ConfigCheckInterval)
         metricInterval = parseInt(sr.LogMetricInterval)
 
-        targetTemperature = parseInt(sr.TargetTemperature)
+        //targetTemperature = parseInt(sr.TargetTemperature)
         TEMPATURE_MAX = targetTemperature + 0.5
         TEMPATURE_MIN = targetTemperature - 0.5
 
@@ -277,7 +277,7 @@ function triggerConfigQuery() {
         configCheckInterval = parseInt(sr.ConfigCheckInterval)
         metricInterval = parseInt(sr.LogMetricInterval)
 
-        targetTemperature = parseInt(sr.TargetTemperature)
+        //targetTemperature = parseInt(sr.TargetTemperature)
         TEMPATURE_MAX = targetTemperature + 0.5
         TEMPATURE_MIN = targetTemperature - 0.5
 
