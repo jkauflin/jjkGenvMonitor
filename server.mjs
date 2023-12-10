@@ -151,8 +151,8 @@ var currLightsVal = OFF
 var configCheckInterval = 30
 //var metricInterval = 30
 var metricInterval = 15
-var currTemperature = 76
-var targetTemperature = 76
+var currTemperature = 77
+var targetTemperature = 77
 var TEMPATURE_MAX = targetTemperature + 0.5
 var TEMPATURE_MIN = targetTemperature - 0.5
 
