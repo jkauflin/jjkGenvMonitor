@@ -161,8 +161,10 @@ var heatTimeout = 1.0
 var lightDuration = 18
 var airInterval = 1.0
 var airDuration = 1.0
-var heatInterval = 1.5
-var heatDuration = 1.5
+//var heatInterval = 1.5
+var heatInterval = 1.0
+//var heatDuration = 1.5
+var heatDuration = 1.0
 
 var heatDurationMin = 0.5
 var heatDurationMax = 2.0
@@ -178,7 +180,7 @@ var relays = null
 log(">>> Starting server.mjs...")
 
 
-initConfigQuery()
+//initConfigQuery()
 function initConfigQuery() {
     log("Initial Config Query")
 
@@ -256,14 +258,14 @@ board.on("ready", () => {
     log("Starting Heat toggle interval")
     setTimeout(toggleHeat, 6000)
 
-    log("Triggering Config Query")
-    setTimeout(triggerConfigQuery, 8000)
+    //log("Triggering Config Query")
+    //setTimeout(triggerConfigQuery, 8000)
 
     //log("Triggering Selfie interval")
     //setTimeout(triggerSelfie, 9000)
 
     // Start sending metrics 10 seconds after starting (so things are calm)
-    setTimeout(logMetric, 10000)
+    //setTimeout(logMetric, 10000)
 
     // Trigger the watering on the watering interval (using heatDurationMax for watering interval right now)
     setTimeout(triggerWatering, waterInterval * hoursToMilliseconds)
