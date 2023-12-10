@@ -151,8 +151,8 @@ var currLightsVal = OFF
 var configCheckInterval = 30
 //var metricInterval = 30
 var metricInterval = 15
-var currTemperature = 72
-var targetTemperature = 72
+var currTemperature = 76
+var targetTemperature = 76
 var TEMPATURE_MAX = targetTemperature + 0.5
 var TEMPATURE_MIN = targetTemperature - 0.5
 
@@ -161,10 +161,8 @@ var heatTimeout = 1.0
 var lightDuration = 18
 var airInterval = 1.0
 var airDuration = 1.0
-//var heatInterval = 1.5
-var heatInterval = 1.0
-//var heatDuration = 1.5
-var heatDuration = 1.0
+var heatInterval = 1.5
+var heatDuration = 1.5
 
 var heatDurationMin = 0.5
 var heatDurationMax = 2.0
@@ -430,13 +428,13 @@ function toggleHeat() {
     let heatAdjustmentMax = 0.5
 
     // Check the temperature and adjust the timeout values
-    if (currTemperature > (targetTemperature + 0.1)) {
+    if (currTemperature > (targetTemperature + 0.2)) {
         heatIntervalAdjustment = currTemperature - targetTemperature
         if (heatIntervalAdjustment > heatAdjustmentMax) {
             heatIntervalAdjustment = heatAdjustmentMax
         }
     }
-    if (currTemperature < (targetTemperature - 0.1)) {
+    if (currTemperature < (targetTemperature - 0.2)) {
         heatDurationAdjustment = targetTemperature - currTemperature
         if (heatDurationAdjustment > heatAdjustmentMax) {
             heatDurationAdjustment = heatAdjustmentMax
