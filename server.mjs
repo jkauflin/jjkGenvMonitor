@@ -259,8 +259,8 @@ board.on("ready", () => {
     log("Triggering Config Query")
     setTimeout(triggerConfigQuery, 8000)
 
-    log("Triggering Selfie interval")
-    setTimeout(triggerSelfie, 9000)
+    //log("Triggering Selfie interval")
+    //setTimeout(triggerSelfie, 9000)
 
     // Start sending metrics 10 seconds after starting (so things are calm)
     setTimeout(logMetric, 10000)
