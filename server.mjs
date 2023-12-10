@@ -425,16 +425,16 @@ function toggleHeat() {
 
     let heatDurationAdjustment = 0.0
     let heatIntervalAdjustment = 0.0
-    let heatAdjustmentMax = 0.8
+    let heatAdjustmentMax = 0.7
 
     // Check the temperature and adjust the timeout values
-    if (currTemperature > (targetTemperature + 0.2)) {
+    if (currTemperature > (targetTemperature + 0.3)) {
         heatIntervalAdjustment = currTemperature - targetTemperature
         if (heatIntervalAdjustment > heatAdjustmentMax) {
             heatIntervalAdjustment = heatAdjustmentMax
         }
     }
-    if (currTemperature < (targetTemperature - 0.2)) {
+    if (currTemperature < (targetTemperature - 0.3)) {
         heatDurationAdjustment = targetTemperature - currTemperature
         if (heatDurationAdjustment > heatAdjustmentMax) {
             heatDurationAdjustment = heatAdjustmentMax
