@@ -240,14 +240,15 @@ board.on("ready", () => {
     log("Triggering Config Query")
     setTimeout(triggerConfigQuery, 8000)
 
-    //log("Triggering Selfie interval")
-    setTimeout(triggerSelfie, 9000)
-
     // Start sending metrics 10 seconds after starting (so things are calm)
     setTimeout(logMetric, 10000)
 
     // Trigger the watering on the watering interval (using heatDurationMax for watering interval right now)
     setTimeout(triggerWatering, waterInterval * hoursToMilliseconds)
+
+    log("Triggering Selfie interval")
+    setTimeout(triggerSelfie, 9000)
+    _letMeTakeASelfie()
 
     log("End of board.on (initialize) event")
 })
@@ -288,12 +289,23 @@ function triggerConfigQuery() {
     })
     .catch(err => {
         log("in triggerConfigQuery, err = "+err)
+        /*
+triggerConfigQuery, err = SqlError: (conn=-1, no: 45012, SQLState: 08S01) Connection timeout: failed to create socket after 1001ms
+        */
         setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
     })
 }
 
 function _letMeTakeASelfie() {
     //log("in letMeTakeASelfie")
+    let lightsWereOFF = false
+    if (currLightsVal == OFF) {
+        lightsWereOFF = true
+        // If the light were off, turn them on for the Selfie
+        setRelay(LIGHTS,ON)
+        currLightsVal = ON
+    }
+
     webcam.capture("temp",function( err, base64ImgData ) {
         if (err != null) {
             log("Error with webcam capture, err = "+err)
@@ -302,14 +314,18 @@ function _letMeTakeASelfie() {
             insertImage(base64ImgData)
         }
     } );
+
+    // If the light were OFF, turn them back off
+    if (lightsWereOFF) {
+        setRelay(LIGHTS,OFF)
+        currLightsVal = OFF
+    }
+
 }
 
 // Function to take a selfie image and store in database
 function triggerSelfie() {
-    // Take a selfie when the lights are ON
-    if (currLightsVal == ON) {
-        _letMeTakeASelfie()
-    }
+    _letMeTakeASelfie()
 
     // Set the next time the function will run
     setTimeout(triggerSelfie, metricInterval * minutesToMilliseconds)
