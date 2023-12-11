@@ -90,9 +90,8 @@ Modification History
 2023-11-24 JJK  Modified to save multiple webcam pictures in a new table
 2023-11-25 JJK  Modified to use LogMetricInterval as the minutes interval
                 for taking and saving a Selfie
-2023-12-10 JJK  Turning on metrics logging again and working on better 
-                automated adjustment of heat times to keep close to 
-                target temperature
+2023-12-10 JJK  Working on better automated adjustment of heat times to keep 
+                close to target temperature
 =============================================================================*/
 
 import 'dotenv/config'
@@ -150,8 +149,8 @@ var currLightsVal = OFF
 
 var configCheckInterval = 30
 var metricInterval = 30
-var currTemperature = 76
-var targetTemperature = 76
+var currTemperature = 77
+var targetTemperature = 77
 
 var airTimeout = 1.0
 var heatTimeout = 1.0
@@ -175,10 +174,8 @@ function initConfigQuery() {
     getConfig(currTemperature).then(sr => {
         configCheckInterval = parseInt(sr.ConfigCheckInterval)
         metricInterval = parseInt(sr.LogMetricInterval)
-
         targetTemperature = parseInt(sr.TargetTemperature)
         //log(`>>> after getConfig, target:${targetTemperature}`)
-
         waterDuration = parseInt(sr.WaterDuration)
         waterInterval = parseInt(sr.WaterInterval)
         airInterval = parseFloat(sr.AirInterval)
@@ -395,7 +392,7 @@ function toggleHeat() {
     heatTimeout = heatInterval
     let heatDurationAdjustment = 0.0
     let heatIntervalAdjustment = 0.0
-    let heatAdjustmentMax = 0.7
+    let heatAdjustmentMax = 0.6
 
     // Check the temperature and adjust the timeout values
     if (currTemperature > (targetTemperature + 0.5)) {
@@ -423,7 +420,7 @@ function toggleHeat() {
         heatTimeout += heatIntervalAdjustment
     }
 
-    //log(`target:${targetTemperature}, curr:${currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
+    log(`Heat:${currHeatVal} , target:${targetTemperature}, curr:${currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
 
     // Recursively call the function with the current timeout value  
     setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds)
