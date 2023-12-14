@@ -153,7 +153,6 @@ var currTemperature = 77
 var targetTemperature = 77
 
 var airTimeout = 1.0
-var heatTimeout = 1.0
 var lightDuration = 18
 var airInterval = 1.0
 var airDuration = 1.0
@@ -307,6 +306,12 @@ function _letMeTakeASelfie() {
     }
 
     webcam.capture("temp",function( err, base64ImgData ) {
+        // If the light were OFF, turn them back off
+        if (lightsWereOFF) {
+            setRelay(LIGHTS,OFF)
+            currLightsVal = OFF
+        }
+
         if (err != null) {
             log("Error with webcam capture, err = "+err)
         } else {
@@ -314,13 +319,6 @@ function _letMeTakeASelfie() {
             insertImage(base64ImgData)
         }
     } );
-
-    // If the light were OFF, turn them back off
-    if (lightsWereOFF) {
-        setRelay(LIGHTS,OFF)
-        currLightsVal = OFF
-    }
-
 }
 
 // Function to take a selfie image and store in database
@@ -405,7 +403,7 @@ function toggleAir() {
 
 // Function to toggle air ventilation ON and OFF
 function toggleHeat() {
-    heatTimeout = heatInterval
+    let heatTimeout = 1.0
     let heatDurationAdjustment = 0.0
     let heatIntervalAdjustment = 0.0
     let heatAdjustmentMax = 0.6
@@ -428,12 +426,12 @@ function toggleHeat() {
         //log("Turning Heat ON")
         setRelay(HEAT, ON)
         currHeatVal = ON
-        heatTimeout += heatDurationAdjustment
+        heatTimeout =  heatDuration + heatDurationAdjustment
     } else {
         //log("Turning Heat OFF")
         setRelay(HEAT, OFF)
         currHeatVal = OFF
-        heatTimeout += heatIntervalAdjustment
+        heatTimeout = heatInterval + heatIntervalAdjustment
     }
 
     log(`Heat:${currHeatVal} , target:${targetTemperature}, curr:${currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
