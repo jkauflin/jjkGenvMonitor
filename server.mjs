@@ -1,11 +1,9 @@
 /*==============================================================================
-(C) Copyright 2018,2019,2022,2023 John J Kauflin, All rights reserved. 
+(C) Copyright 2018,2019,2022,2023,2024 John J Kauflin, All rights reserved. 
 -----------------------------------------------------------------------------
-DESCRIPTION: Main nodejs server to run the web and control functions for
-                the grow environment monitor
-
-                DESCRIPTION: NodeJS module to handle board functions.  Communicates with
-             the Arduino Mega board using johnny-five library
+DESCRIPTION: NodeJS module to handle board functions.  Communicates with
+             the Arduino Mega board using johnny-five library.  Gets
+             configuration values gives updates to a server database
 
 -----------------------------------------------------------------------------
 Modification History
@@ -92,9 +90,14 @@ Modification History
                 for taking and saving a Selfie
 2023-12-10 JJK  Working on better automated adjustment of heat times to keep 
                 close to target temperature
+2024-01-03 JJK  Automated heat adjustment working well - turning log off.
+                Implementing function to reboot the system after doing the
+                scheduled watering (we'll see if that works ok and helps
+                make the system more stable for longer periods of time)
 =============================================================================*/
 
 import 'dotenv/config'
+import {exec} from 'child_process'          // Class to execute Linux commands
 import fs, { readFileSync } from 'node:fs'
 import { syncBuiltinESMExports } from 'node:module'
 import { Buffer } from 'node:buffer'
@@ -120,11 +123,11 @@ var webcam = nodeWebcamPkg.create(webcamOptions)
 
 // General handler for any uncaught exceptions
 process.on('uncaughtException', function (e) {
-  log("UncaughtException, error = " + e);
-  console.error(e.stack);
-  // Stop the process
-  // 2017-12-29 JJK - Don't stop for now, just log the error
-  //process.exit(1);
+    log("UncaughtException, error = " + e);
+    console.error(e.stack);
+    // Try rebooting the system if there is an uncaught error
+    turnRelaysOFF()
+    setTimeout(rebootSystem, 5000)
 });
 
 // Global variables
@@ -434,7 +437,7 @@ function toggleHeat() {
         heatTimeout = heatInterval + heatIntervalAdjustment
     }
 
-    log(`Heat:${currHeatVal} , target:${targetTemperature}, curr:${currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
+    //log(`Heat:${currHeatVal} , target:${targetTemperature}, curr:${currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
 
     // Recursively call the function with the current timeout value  
     setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds)
@@ -496,11 +499,16 @@ function checkResponseStatus(res) {
 }
 
 function waterThePlants() {
-    //log("Watering the plants, waterDuration = "+waterDuration)
+    log(">>> Watering the plants, waterDuration = "+waterDuration)
     setRelay(WATER,ON)
     setTimeout(() => {
-        //log("Watering the plants OFF")
+        log("Watering the plants OFF")
         setRelay(WATER,OFF)
+
+        // Reboot the system 5 seconds after turning off the water
+        turnRelaysOFF()
+        setTimeout(rebootSystem, 5000)
+
     }, waterDuration * secondsToMilliseconds)
 }
 
@@ -512,3 +520,15 @@ function _waterOn(waterSeconds) {
         setRelay(WATER, OFF)
     }, waterSeconds * secondsToMilliseconds)
 }
+
+function rebootSystem() {
+    log("***** Re-booting the System with sudo reboot ");
+    let linuxCmd = 'sudo reboot'
+    exec(linuxCmd, (err, stdout, stderr) => {
+        log("AFTER exec sudo reboot")
+        if (err) {
+            console.error("Error during reboot command: "+err)
+        }
+    })
+}
+
