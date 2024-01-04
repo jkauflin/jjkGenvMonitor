@@ -94,6 +94,9 @@ Modification History
                 Implementing function to reboot the system after doing the
                 scheduled watering (we'll see if that works ok and helps
                 make the system more stable for longer periods of time)
+2024-01-04 JJK  Reboot reported an error after but worked ok on the 
+                UncaughtException.  Updating to use local device datetime
+                when updating backend server
 =============================================================================*/
 
 import 'dotenv/config'
@@ -123,12 +126,12 @@ var webcam = nodeWebcamPkg.create(webcamOptions)
 
 // General handler for any uncaught exceptions
 process.on('uncaughtException', function (e) {
-    log("UncaughtException, error = " + e);
-    console.error(e.stack);
+    log("UncaughtException, error = " + e)
+    console.error(e.stack)
     // Try rebooting the system if there is an uncaught error
     turnRelaysOFF()
     setTimeout(rebootSystem, 5000)
-});
+})
 
 // Global variables
 const minutesToMilliseconds = 60 * 1000
@@ -290,10 +293,7 @@ function triggerConfigQuery() {
         setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
     })
     .catch(err => {
-        log("in triggerConfigQuery, err = "+err)
-        /*
-triggerConfigQuery, err = SqlError: (conn=-1, no: 45012, SQLState: 08S01) Connection timeout: failed to create socket after 1001ms
-        */
+        console.log("in triggerConfigQuery, "+err)
         setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
     })
 }
@@ -505,6 +505,7 @@ function waterThePlants() {
         log("Watering the plants OFF")
         setRelay(WATER,OFF)
 
+        log(">>> Triggering REBOOT after watering")
         // Reboot the system 5 seconds after turning off the water
         turnRelaysOFF()
         setTimeout(rebootSystem, 5000)
@@ -525,7 +526,7 @@ function rebootSystem() {
     log("***** Re-booting the System with sudo reboot ");
     let linuxCmd = 'sudo reboot'
     exec(linuxCmd, (err, stdout, stderr) => {
-        log("AFTER exec sudo reboot")
+        log("AFTER exec "+linuxCmd)
         if (err) {
             console.error("Error during reboot command: "+err)
         }

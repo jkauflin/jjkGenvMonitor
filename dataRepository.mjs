@@ -10,6 +10,7 @@ Modification History
 =============================================================================*/
 import 'dotenv/config'
 import mariadb from 'mariadb';
+import {log,getDateStr} from './util.mjs'
 
 export async function getConfig(currTemperature) {
 	let conn
@@ -59,7 +60,7 @@ export async function completeRequest(returnMessage) {
 		  port: process.env.DB_PORT,
 		  database: process.env.DB_NAME,
 		  dateStrings: true  
-		});
+		})
   
 		const res = await conn.query("UPDATE genvMonitorConfig SET RequestCommand='',RequestValue='',ReturnMessage=?,LastUpdateTs=CURRENT_TIMESTAMP WHERE ConfigId = ?", 
 		  [returnMessage,1])
@@ -84,9 +85,10 @@ export async function insertImage(base64ImgData) {
 		  port: process.env.DB_PORT,
 		  database: process.env.DB_NAME,
 		  dateStrings: true  
-		});
+		})
   
-		await conn.query("INSERT INTO genvMonitorImg (ImgData) VALUES (?) ", [base64ImgData,1])
+		let tempDateStr = getDateStr()
+		await conn.query("INSERT INTO genvMonitorImg (LastChangeTs,ImgData) VALUES (?,?) ", [tempDateStr,base64ImgData])
 
 		// Purge images beyond a maximum number
 		let rows = await conn.query("SELECT ImgId FROM genvMonitorImg ORDER BY ImgId DESC LIMIT 1;")
