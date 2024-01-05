@@ -129,7 +129,6 @@ process.on('uncaughtException', function (e) {
     log("UncaughtException, error = " + e)
     console.error(e.stack)
     // Try rebooting the system if there is an uncaught error
-    turnRelaysOFF()
     setTimeout(rebootSystem, 5000)
 })
 
@@ -163,7 +162,7 @@ var lightDuration = 18
 var airInterval = 1.0
 var airDuration = 1.0
 var heatInterval = 1.5
-var heatDuration = 1.5
+var heatDuration = 1.8
 var waterDuration = 4.0
 var waterInterval = 12.0
 
@@ -300,6 +299,7 @@ function triggerConfigQuery() {
 
 function _letMeTakeASelfie() {
     //log("in letMeTakeASelfie")
+    /*
     let lightsWereOFF = false
     if (currLightsVal == OFF) {
         lightsWereOFF = true
@@ -307,21 +307,31 @@ function _letMeTakeASelfie() {
         setRelay(LIGHTS,ON)
         currLightsVal = ON
     }
+                // If the light were OFF, turn them back off
+            if (lightsWereOFF) {
+                setRelay(LIGHTS,OFF)
+                currLightsVal = OFF
+            }
+    */
+    if (currLightsVal == ON) {
+        webcam.capture("temp",function(err, base64ImgData) {
+            if (err != null) {
+                log("Error with webcam capture, "+err)
+            } else {
+                //console.log("webcam base64ImgData = "+base64ImgData)
+                insertImage(base64ImgData)
+                /*
+                insertImage(base64ImgData).then(
+                    console.log("in _letMeTakeASelfie, SUCCESSfully inserted image in DB")
+                    )
+                    .catch(err => {
+                    console.log("in _letMeTakeASelfie, "+err)
+                })
+                */
+            }
+        })
 
-    webcam.capture("temp",function( err, base64ImgData ) {
-        // If the light were OFF, turn them back off
-        if (lightsWereOFF) {
-            setRelay(LIGHTS,OFF)
-            currLightsVal = OFF
-        }
-
-        if (err != null) {
-            log("Error with webcam capture, err = "+err)
-        } else {
-            //console.log("webcam base64ImgData = "+base64ImgData)
-            insertImage(base64ImgData)
-        }
-    } );
+    }
 }
 
 // Function to take a selfie image and store in database
@@ -507,7 +517,6 @@ function waterThePlants() {
 
         log(">>> Triggering REBOOT after watering")
         // Reboot the system 5 seconds after turning off the water
-        turnRelaysOFF()
         setTimeout(rebootSystem, 5000)
 
     }, waterDuration * secondsToMilliseconds)

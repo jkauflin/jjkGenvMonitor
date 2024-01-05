@@ -7,6 +7,8 @@ DESCRIPTION:  Module to take care of interactions with a database
 Modification History
 2023-09-08 JJK  Initial version
 2023-09-26 JJK	Added function to save image data in database
+2024-01-05 JJK	Modified to update datetime in image insert and not throw
+				errors
 =============================================================================*/
 import 'dotenv/config'
 import mariadb from 'mariadb';
@@ -96,8 +98,12 @@ export async function insertImage(base64ImgData) {
 		let maxImages = 100
 		await conn.query("DELETE FROM genvMonitorImg WHERE ImgId <= ? ", lastImgId - maxImages)
 
+		console.log("in insertImage, SUCCESSfully inserted image in DB")
+
 	} catch (err) {
-		throw err
+		//throw err
+		// Just log the error instead of throwing for now
+		console.log("in insertImage, "+err)
 	} finally {
 		if (conn) {
 			conn.close()
