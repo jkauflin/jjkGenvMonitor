@@ -98,7 +98,7 @@ export async function insertImage(base64ImgData) {
 		let maxImages = 100
 		await conn.query("DELETE FROM genvMonitorImg WHERE ImgId <= ? ", lastImgId - maxImages)
 
-		console.log("in insertImage, SUCCESSfully inserted image in DB")
+		//console.log("in insertImage, SUCCESSfully inserted image in DB")
 
 	} catch (err) {
 		//throw err

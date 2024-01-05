@@ -13,7 +13,7 @@
 #alias reloads='sudo systemctl daemon-reload'
 
 [Unit]
-Description=Energy Monitor service
+Description=Grow Environment Monitor service
 # Wait for the network before starting
 Wants=network-online.target
 After=network-online.target
