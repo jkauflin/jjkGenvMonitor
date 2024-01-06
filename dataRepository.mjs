@@ -7,8 +7,9 @@ DESCRIPTION:  Module to take care of interactions with a database
 Modification History
 2023-09-08 JJK  Initial version
 2023-09-26 JJK	Added function to save image data in database
-2024-01-05 JJK	Modified to update datetime in image insert and not throw
-				errors
+2024-01-05 JJK	Modified to update datetime in image insert
+2024-01-06 JJK  Modified the DB functions to stop throwing errors (if the
+                calling code is not going to do anything different)
 =============================================================================*/
 import 'dotenv/config'
 import mariadb from 'mariadb';
@@ -42,7 +43,9 @@ export async function getConfig(currTemperature) {
 		sr = rows[0]
   
 	} catch (err) {
-		throw err;
+		//throw err;
+		// Just log the error instead of throwing for now
+		console.log("in getConfig, "+err)
 	} finally {
 	  	if (conn) {
 			conn.close()
@@ -68,13 +71,14 @@ export async function completeRequest(returnMessage) {
 		  [returnMessage,1])
   
 	} catch (err) {
-		throw err
+		//throw err
+		// Just log the error instead of throwing for now
+		console.log("in completeRequest, "+err)
 	} finally {
 		if (conn) {
 			conn.close()
 		}
 	}
-  
 }
 
 export async function insertImage(base64ImgData) {
@@ -109,5 +113,4 @@ export async function insertImage(base64ImgData) {
 			conn.close()
 		}
 	}
-  
 }

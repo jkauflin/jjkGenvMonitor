@@ -97,6 +97,8 @@ Modification History
 2024-01-04 JJK  Reboot reported an error after but worked ok on the 
                 UncaughtException.  Updating to use local device datetime
                 when updating backend server
+2024-01-06 JJK  Modified the DB functions to stop throwing errors (if the
+                calling code is not going to do anything different)
 =============================================================================*/
 
 import 'dotenv/config'
@@ -187,9 +189,6 @@ function initConfigQuery() {
         heatInterval = parseFloat(sr.HeatInterval)
         heatDuration = parseFloat(sr.HeatDuration)
         lightDuration = parseInt(sr.LightDuration)
-    })
-    .catch(err => {
-        log("in triggerConfigQuery, err = "+err)
     })
 }
 
@@ -289,10 +288,6 @@ function triggerConfigQuery() {
             completeRequest(returnMessage)
         }
 
-        setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
-    })
-    .catch(err => {
-        console.log("in triggerConfigQuery, "+err)
         setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
     })
 }
