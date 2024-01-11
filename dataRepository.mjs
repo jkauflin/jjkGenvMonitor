@@ -17,7 +17,7 @@ import {log,getDateStr} from './util.mjs'
 
 export async function getConfig(currTemperature) {
 	let conn
-	let sr
+	let sr = null
 	try {
 		// establish a connection to MariaDB
 		//conn = await pool.getConnection();
@@ -99,7 +99,7 @@ export async function insertImage(base64ImgData) {
 		// Purge images beyond a maximum number
 		let rows = await conn.query("SELECT ImgId FROM genvMonitorImg ORDER BY ImgId DESC LIMIT 1;")
 		let lastImgId = rows[0].ImgId
-		let maxImages = 100
+		let maxImages = 5000
 		await conn.query("DELETE FROM genvMonitorImg WHERE ImgId <= ? ", lastImgId - maxImages)
 
 		//console.log("in insertImage, SUCCESSfully inserted image in DB")

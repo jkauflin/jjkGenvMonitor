@@ -260,32 +260,34 @@ function triggerConfigQuery() {
     //log("Triggering queryConfig, configCheckInterval = "+configCheckInterval)
     // Get values from the database
     getConfig(currTemperature).then(sr => {
-        configCheckInterval = parseInt(sr.ConfigCheckInterval)
-        metricInterval = parseInt(sr.LogMetricInterval)
-        targetTemperature = parseInt(sr.TargetTemperature)
-        waterDuration = parseInt(sr.WaterDuration)
-        waterInterval = parseInt(sr.WaterInterval)
-        airInterval = parseFloat(sr.AirInterval)
-        airDuration = parseFloat(sr.AirDuration)
-        heatInterval = parseFloat(sr.HeatInterval)
-        heatDuration = parseFloat(sr.HeatDuration)
-        lightDuration = parseInt(sr.LightDuration)
-
-        // >>>>>>>>>>> check for changes and reset the timeout???
-
-        //------------------------------------------------------------------------------------
-        // Handle requests
-        //------------------------------------------------------------------------------------
-        if (sr.RequestCommand != null && sr.RequestCommand != "") {
-            let returnMessage = ""
-            if (sr.RequestCommand == "WaterOn") {
-                let waterSeconds = parseInt(sr.RequestValue)
-                _waterOn(waterSeconds)
-                returnMessage = "Water turned on for "+waterSeconds+" seconds"
-            } 
-            // >>>>>> put selfie request back in????
-
-            completeRequest(returnMessage)
+        if (sr != null) {
+            configCheckInterval = parseInt(sr.ConfigCheckInterval)
+            metricInterval = parseInt(sr.LogMetricInterval)
+            targetTemperature = parseInt(sr.TargetTemperature)
+            waterDuration = parseInt(sr.WaterDuration)
+            waterInterval = parseInt(sr.WaterInterval)
+            airInterval = parseFloat(sr.AirInterval)
+            airDuration = parseFloat(sr.AirDuration)
+            heatInterval = parseFloat(sr.HeatInterval)
+            heatDuration = parseFloat(sr.HeatDuration)
+            lightDuration = parseInt(sr.LightDuration)
+    
+            // >>>>>>>>>>> check for changes and reset the timeout???
+    
+            //------------------------------------------------------------------------------------
+            // Handle requests
+            //------------------------------------------------------------------------------------
+            if (sr.RequestCommand != null && sr.RequestCommand != "") {
+                let returnMessage = ""
+                if (sr.RequestCommand == "WaterOn") {
+                    let waterSeconds = parseInt(sr.RequestValue)
+                    _waterOn(waterSeconds)
+                    returnMessage = "Water turned on for "+waterSeconds+" seconds"
+                } 
+                // >>>>>> put selfie request back in????
+    
+                completeRequest(returnMessage)
+            }
         }
 
         setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
