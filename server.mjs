@@ -314,20 +314,23 @@ function _letMeTakeASelfie() {
         webcam.capture("temp",function(err, base64ImgData) {
             if (err != null) {
                 log("Error with webcam capture, "+err)
+
+                webcam = nodeWebcamPkg.create(webcamOptions)
+                webcam.capture("temp",function(err, base64ImgData) {
+                    if (err != null) {
+                        log("2nd Try - Error with webcam capture, "+err)
+                    } else {
+                        //console.log("webcam base64ImgData = "+base64ImgData)
+                        insertImage(base64ImgData)
+                        webcam.clear()
+                    }
+                })
             } else {
                 //console.log("webcam base64ImgData = "+base64ImgData)
                 insertImage(base64ImgData)
-                /*
-                insertImage(base64ImgData).then(
-                    console.log("in _letMeTakeASelfie, SUCCESSfully inserted image in DB")
-                    )
-                    .catch(err => {
-                    console.log("in _letMeTakeASelfie, "+err)
-                })
-                */
+                webcam.clear()
             }
         })
-
     }
 }
 
