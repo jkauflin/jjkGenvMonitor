@@ -99,6 +99,7 @@ Modification History
                 when updating backend server
 2024-01-06 JJK  Modified the DB functions to stop throwing errors (if the
                 calling code is not going to do anything different)
+2024-01-16 JJK  Added selfie re-try if webcam not found
 =============================================================================*/
 
 import 'dotenv/config'
@@ -314,17 +315,8 @@ function _letMeTakeASelfie() {
         webcam.capture("temp",function(err, base64ImgData) {
             if (err != null) {
                 log("Error with webcam capture, "+err)
-
-                webcam = nodeWebcamPkg.create(webcamOptions)
-                webcam.capture("temp",function(err, base64ImgData) {
-                    if (err != null) {
-                        log("2nd Try - Error with webcam capture, "+err)
-                    } else {
-                        //console.log("webcam base64ImgData = "+base64ImgData)
-                        insertImage(base64ImgData)
-                        webcam.clear()
-                    }
-                })
+                // Re-try once after 20 seconds
+                setTimeout(_selfieRetry, 20000)
             } else {
                 //console.log("webcam base64ImgData = "+base64ImgData)
                 insertImage(base64ImgData)
@@ -332,6 +324,19 @@ function _letMeTakeASelfie() {
             }
         })
     }
+}
+
+function _selfieRetry() {
+    webcam = nodeWebcamPkg.create(webcamOptions)
+    webcam.capture("temp",function(err, base64ImgData) {
+        if (err != null) {
+            log("2nd Selfie Try - Error with webcam capture, "+err)
+        } else {
+            //console.log("webcam base64ImgData = "+base64ImgData)
+            insertImage(base64ImgData)
+            webcam.clear()
+        }
+    })
 }
 
 // Function to take a selfie image and store in database
