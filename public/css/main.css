@@ -1,10 +1,25 @@
 /* Turn off the outline on clicks to brand anchors */
-/*
 li {
 	list-style-type: none;
 }
+
+a {
+	outline: 0;
+	text-decoration:none;
+	}
 a:link {
 	outline: 0;
-	text-decoration:none; 
+	text-decoration:none;
 }
-*/
+a:visited {
+	outline: 0;
+	text-decoration:none;
+}
+a:hover {
+	outline: 0;
+	text-decoration:none;
+}
+a:active {
+	outline: 0;
+	text-decoration:none;
+}

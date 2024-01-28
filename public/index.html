@@ -8,159 +8,182 @@
     <title>GenvMonitor</title>
     <link rel="icon" href="favicon.ico?ver=1.002">
     <!-- Bootstrap core CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"
-    integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous" />
-    <!-- *** Implement if you need any user defined CSS styling ***
-    <link rel="stylesheet" href="css/main.css?ver=4.008">
-    -->
+        integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous" />
+    <link rel="stylesheet" href="css/main.css?ver=5.000">
 </head>
 
 <body>
 
 <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
-    <a class="navbar-brand p-2" data-toggle="modal" href="#">Environment Monitor</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <!-- Navbar links -->
-    <div class="collapse navbar-collapse" id="collapsibleNavbar">
-        <ul class="nav navbar-nav ml-auto">
-            <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#HomePage">
-                <i class="fa fa-home" ></i> Home</a></li>
-        </ul>
-    </div>
+    <div class="navbar-brand p-2">Genv Monitor Admin (local)</div>
 </nav>
 
-<div class="container-fluid">
-    <div class="tab-content">
-        <div class="tab-pane show active" id="HomePage">
-
-            <form id="InputValues" action="#">
-                <div class="row">
-                    <div class="col p-0">
-                        <div class="form-floating m-1">
-                            <input id="targetTemperature" type="number" class="form-control">
-                            <label for="targetTemperature">Target temp</label>
-                        </div>
-                        <div class="form-floating m-1">
-                            <input id="airInterval" type="number" class="form-control">
-                            <label for="airInterval">Air interval</label>
-                        </div>
-                        <div class="form-floating m-1">
-                            <input id="airDuration" type="number" class="form-control">
-                            <label for="airDuration">Air duration</label>
-                        </div>
-                        <button id="UpdateButton" type="button" class="btn btn-primary m-2 float-end">Update</button>
-                    </div>
-
-                    <div class="col p-0">
-                        <div class="form-floating m-1">
-                            <input id="heatInterval" type="number" class="form-control">
-                            <label for="heatInterval">Heat interval</label>
-                        </div>
-                        <div class="form-floating m-1">
-                            <input id="heatDuration" type="number" class="form-control">
-                            <label for="heatDuration">Heat duration</label>
-                        </div>
-                        <div class="form-floating m-1">
-                            <input id="heatDurationMin" type="number" class="form-control">
-                            <label for="heatDurationMin">Heat dur Min</label>
-                        </div>
-                        <div class="form-floating m-1">
-                            <input id="heatDurationMax" type="number" class="form-control">
-                            <label for="heatDurationMax">Watr int hrs</label>
-                            <!--
-                            <label for="heatDurationMax">Heat dur Max</label>
-                            -->
-                        </div>
-                    </div>
-
-                    <div class="col p-0">
-                        <div class="form-floating m-1">
-                            <input id="lightDuration" type="number" class="form-control">
-                            <label for="lightDuration">Light duration</label>
-                        </div>
-                        <div class="form-floating m-1">
-                            <input id="waterDuration" type="number" class="form-control">
-                            <label for="waterDuration">Water dur</label>
-                        </div>
-                        <div class="form-floating m-1">
-                            <input id="waterSeconds" type="number" class="form-control">
-                            <label for="waterSeconds">Water secs</label>
-                        </div>
-                        <button id="WaterButton" type="button" class="btn btn-warning m-2">Water</button>
-                    </div>
-                </div><!-- end of row -->
-
-                <div class="row">
-                    <div class="col p-0">
-                        <div class="form-floating m-1">
-                            <input id="desc" type="text" class="form-control">
-                            <label for="desc">Description</label>
-                        </div>
-                        <div class="form-floating m-1">
-                            <input id="germinationStart" type="date" class="form-control">
-                            <label for="germinationStart">Germination start</label>
-                        </div>
-                        <div class="form-floating m-1">
-                            <input id="plantingDate" type="date" class="form-control">
-                            <label for="plantingDate">Planting date</label>
-                        </div>
-                        <div class="form-floating m-1">
-                            <input id="harvestDate" type="date" class="form-control">
-                            <label for="harvestDate">Harvest start</label>
-                        </div>
-                    </div>
-                    <div class="col p-0">
-                        <div class="form-floating m-1">
-                            <input id="daysToBloom" type="text" class="form-control">
-                            <label for="daysToBloom">Days to bloom</label>
-                        </div>
-                        <div class="form-floating m-1">
-                            <input id="daysToGerm" type="text" class="form-control">
-                            <label for="daysToGerm">Days to germinate</label>
-                        </div>
-                        <div class="form-floating m-1">
-                            <input id="cureDate" type="date" class="form-control">
-                            <label for="cureDate">Cure start</label>
-                        </div>
-                        <div class="form-floating m-1">
-                            <input id="productionDate" type="date" class="form-control">
-                            <label for="productionDate">Production date</label>
-                        </div>
-                    </div>
-                </div><!-- end of row -->
-            </form>
-
+<form id="InputValues" action="#">
+    <div class="row">
+        <div class="col p-0">
+            <div class="form-floating m-1">
+                <input id="targetTemperature" type="number" class="form-control">
+                <label for="targetTemperature">Target Temp</label>
+            </div>
+            <div class="form-floating m-1">
+                <input id="currTemperature" type="number" class="form-control">
+                <label for="currTemperature">Curr Temp</label>
+            </div>
+            <div class="form-floating m-1">
+                <input id="lightDuration" type="number" class="form-control">
+                <label for="lightDuration">Light duration</label>
+            </div>
             <!--
-            <div class="row m-2">
-                <h6>Log messages:</h6>
-                <table id="LogMessageDisplay" class="table table-condensed table-striped">
-                    <tbody>
-                    </tbody>
-                </table>
+            <div class="form-floating m-1">
+                <input id="airInterval" type="number" class="form-control">
+                <label for="airInterval">Air interval</label>
+            </div>
+            <div class="form-floating m-1">
+                <input id="airDuration" type="number" class="form-control">
+                <label for="airDuration">Air duration</label>
+            </div>
+            <div class="form-floating m-1">
+                <input id="heatDurationMin" type="number" class="form-control">
+                <label for="heatDurationMin">Heat dur Min</label>
+            </div>
+            <div class="form-floating m-1">
+                <input id="heatDurationMax" type="number" class="form-control">
+                <label for="heatDurationMax">Watr int hrs</label>
             </div>
             -->
+            <button id="GetDataButton" type="button" class="btn btn-success m-2 float-end">Get Data</button>
+        </div>
 
-            <div id="UpdateDisplay" class="m-2"></div>
+        <div class="col p-0">
+            <div class="form-floating m-1">
+                <input id="heatInterval" type="number" class="form-control">
+                <label for="heatInterval">Heat interval</label>
+            </div>
+            <div class="form-floating m-1">
+                <input id="heatDuration" type="number" class="form-control">
+                <label for="heatDuration">Heat duration</label>
+            </div>
+            <div class="form-floating m-1">
+                <input id="configCheckInterval" type="number" class="form-control">
+                <label for="configCheckInterval">Check Interval</label>
+            </div>
+            <button id="UpdateButton" type="button" class="btn btn-primary m-2">Update</button>
+        </div>
 
-        </div><!-- end of Home tab -->
+        <div class="col p-0">
+            <div class="form-floating m-1">
+                <input id="waterInterval" type="number" class="form-control">
+                <label for="waterInterval">Watr int hrs</label>
+            </div>
+            <div class="form-floating m-1">
+                <input id="waterDuration" type="number" class="form-control">
+                <label for="waterDuration">Water dur</label>
+            </div>
+            <div class="form-floating m-1">
+                <input id="waterSeconds" type="number" class="form-control">
+                <label for="waterSeconds">Water secs</label>
+            </div>
+            <button id="WaterButton" type="button" class="btn btn-warning mx-1">
+                <i class="fa fa-tint fa-2x"></i>
+            </button>
+            <button id="GetSelfieButton" type="button" class="btn  ">
+                <i class="fa fa-picture-o fa-3x"></i>
+            </button>
+        </div>
+    </div><!-- end of row -->
 
-    </div><!-- end of main tab content -->
-</div><!-- end of main container -->
+    <div class="row">
+        <div class="col-5 p-0">
+            <!--
+            <div class="form-floating m-1">
+                <input id="configDesc" type="text" class="form-control">
+                <label for="configDesc">Description</label>
+            </div>
+            <div class="form-floating m-1">
+                <input id="plantingDate" type="date" class="form-control">
+                <label for="plantingDate">Planting date</label>
+            </div>
+            <div class="form-floating m-1">
+                <input id="returnMessage" type="text" class="form-control" disabled>
+                <label for="returnMessage">Return Message</label>
+            </div>
+            -->
+        </div>
+        <div class="col-7 p-0">
+            <!--
+            <div class="form-floating m-1">
+                <input id="frameIntervalInput" type="number" class="form-control">
+                <label for="frameIntervalInput">Frame Interval ms</label>
+            </div>
+            -->
+            <div class="form-floating m-0">
+                <!--
+                <button id="GetImagesButton" type="button" class="btn my-2">
+                    <i class="fa fa-picture-o fa-3x"></i>
+                </button>
+                <button id="ImgBackwardButton" type="button" class="btn my-2" disabled>
+                    <i class="fa fa-step-backward"></i>
+                </button>
+                <button id="ImgPlayButton" type="button" class="btn my-2" disabled>
+                    <i class="fa fa-play"></i>
+                </button>
+                <button id="ImgStopButton" type="button" class="btn my-2" disabled>
+                    <i class="fa fa-stop"></i>
+                </button>
+                <button id="ImgForwardButton" type="button" class="btn my-2" disabled>
+                    <i class="fa fa-step-forward"></i>
+                </button>
+                -->
+            </div>
+        </div>
+    </div><!-- end of row -->
 
+    <img id="ImgDisplay" class="img-fluid rounded" width="90%" src=""/>
+    <div id="UpdateDisplay" class="my-2 mx-1"></div>
+
+    <div class="row">
+        <div class="col p-0">
+            <div class="form-floating m-1">
+                <input id="germinationStart" type="date" class="form-control">
+                <label for="germinationStart">Germination start</label>
+            </div>
+            <div class="form-floating m-1">
+                <input id="daysToGerm" type="text" class="form-control">
+                <label for="daysToGerm">Days to germinate</label>
+            </div>
+            <div class="form-floating m-1">
+                <input id="harvestDate" type="date" class="form-control" disabled>
+                <label for="harvestDate">Harvest start</label>
+            </div>
+        </div>
+        <div class="col p-0">
+            <div class="form-floating m-1">
+                <input id="daysToBloom" type="number" class="form-control">
+                <label for="daysToBloom">Days to bloom</label>
+            </div>
+            <div class="form-floating m-1">
+                <input id="cureDate" type="date" class="form-control" disabled>
+                <label for="cureDate">Cure start</label>
+            </div>
+            <div class="form-floating m-1">
+                <input id="productionDate" type="date" class="form-control" disabled>
+                <label for="productionDate">Production date</label>
+            </div>
+        </div>
+    </div><!-- end of row -->
+</form>
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <!-- JavaScript Bundle with Popper -->
     <!-- Bootstrap 5 JavaScript Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
 
-    <script src="js/main.js?ver=1.200"></script>
+    <script src="js/main.js" type="module"></script>
 
 </body>
 </html>

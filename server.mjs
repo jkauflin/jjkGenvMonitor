@@ -100,6 +100,12 @@ Modification History
 2024-01-06 JJK  Modified the DB functions to stop throwing errors (if the
                 calling code is not going to do anything different)
 2024-01-16 JJK  Added selfie re-try if webcam not found
+2024-01-27 JJK  Re-adding Express web server for local admin web page, 
+                which I will use in addition to back-end server DB 
+                interactions, but for things that require immediate
+                response, monitoring, or actions
+2024-01-28 JJK  Implemented autoSetParams with logic for setting light
+                and water timing based on days from planting
 =============================================================================*/
 
 import 'dotenv/config'
@@ -110,8 +116,11 @@ import { Buffer } from 'node:buffer'
 import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 import nodeWebcamPkg from 'enhanced-node-webcam'
-import {log} from './util.mjs'
+import {log,daysFromDate} from './util.mjs'
 import {getConfig,completeRequest,insertImage} from './dataRepository.mjs'
+import express from 'express';
+
+const app = express();
 
 const {Board,Led,Relays} = johnnyFivePkg
 
@@ -155,19 +164,19 @@ var currAirVal = OFF
 var currHeatVal = OFF
 var currLightsVal = OFF
 
-var configCheckInterval = 30
+var configCheckInterval = 300
 var metricInterval = 30
 var currTemperature = 77
 var targetTemperature = 77
 
 var airTimeout = 1.0
-var lightDuration = 18
 var airInterval = 1.0
 var airDuration = 1.0
-var heatInterval = 1.5
-var heatDuration = 1.8
-var waterDuration = 4.0
-var waterInterval = 12.0
+var heatInterval = 1.4
+var heatDuration = 2.0
+var waterDuration = 5.0
+var waterInterval = 4.0
+var lightDuration = 20.0
 
 var board = null
 var relays = null
@@ -183,14 +192,49 @@ function initConfigQuery() {
         metricInterval = parseInt(sr.LogMetricInterval)
         targetTemperature = parseInt(sr.TargetTemperature)
         //log(`>>> after getConfig, target:${targetTemperature}`)
-        waterDuration = parseInt(sr.WaterDuration)
-        waterInterval = parseInt(sr.WaterInterval)
         airInterval = parseFloat(sr.AirInterval)
         airDuration = parseFloat(sr.AirDuration)
         heatInterval = parseFloat(sr.HeatInterval)
         heatDuration = parseFloat(sr.HeatDuration)
-        lightDuration = parseInt(sr.LightDuration)
+
+        //lightDuration = parseInt(sr.LightDuration)
+        //waterDuration = parseInt(sr.WaterDuration)
+        //waterInterval = parseInt(sr.WaterInterval)
+
+        autoSetParams(sr.PlantingDate)
     })
+}
+
+function autoSetParams(startDate) {
+    let days = daysFromDate(startDate)
+    //log("Days from PlantingDate = "+days)
+
+    lightDuration = 18.0
+    if (days > 3) {
+        lightDuration = 20.0
+    }
+
+    waterDuration = 5.0
+    waterInterval = 4.0
+
+    if (days > 20) {
+        waterDuration = 16.0
+        waterInterval = 32.0
+        // *** And add bottom
+    } else if (days > 10) {
+        waterDuration = 12.0
+        waterInterval = 30.0
+    } else if (days > 6) {
+        waterDuration = 7.0
+        waterInterval = 24.0
+    } else if (days > 5) {
+        waterDuration = 6.0
+        waterInterval = 12.0
+    } else if (days > 3) {
+        waterInterval = 8.0
+    } else if (days > 1) {
+        waterInterval = 6.0
+    }
 }
 
 // Create Johnny-Five board object
@@ -265,13 +309,17 @@ function triggerConfigQuery() {
             configCheckInterval = parseInt(sr.ConfigCheckInterval)
             metricInterval = parseInt(sr.LogMetricInterval)
             targetTemperature = parseInt(sr.TargetTemperature)
-            waterDuration = parseInt(sr.WaterDuration)
-            waterInterval = parseInt(sr.WaterInterval)
             airInterval = parseFloat(sr.AirInterval)
             airDuration = parseFloat(sr.AirDuration)
             heatInterval = parseFloat(sr.HeatInterval)
             heatDuration = parseFloat(sr.HeatDuration)
-            lightDuration = parseInt(sr.LightDuration)
+
+            //lightDuration = parseInt(sr.LightDuration)
+            //waterDuration = parseInt(sr.WaterDuration)
+            //waterInterval = parseInt(sr.WaterInterval)
+
+            autoSetParams(sr.PlantingDate)
+
     
             // >>>>>>>>>>> check for changes and reset the timeout???
     
@@ -314,7 +362,7 @@ function _letMeTakeASelfie() {
     if (currLightsVal == ON) {
         webcam.capture("temp",function(err, base64ImgData) {
             if (err != null) {
-                log("Error with webcam capture, "+err)
+                //log("Error with webcam capture, "+err)
                 // Re-try once after 20 seconds
                 setTimeout(_selfieRetry, 20000)
             } else {
@@ -546,4 +594,36 @@ function rebootSystem() {
         }
     })
 }
+
+app.use(express.static('public'))
+app.use(express.json())
+app.listen(3035, function(err){
+    if (err) console.log("*** Error in web server setup")
+    console.log("Web Server listening on Port 3035");
+})
+
+app.get('/genvGetInfo', function routeHandler(req, res) {
+    getConfig(currTemperature).then(sr => {
+        res.json(sr)
+    })
+})
+
+app.get('/genvGetSelfie', function routeHandler(req, res) {
+    webcam = nodeWebcamPkg.create(webcamOptions)
+    webcam.capture("temp",function(err, base64ImgData) {
+        if (err != null) {
+            res.status(400).send()
+        } else {
+            res.send(base64ImgData)
+            webcam.clear()
+        }
+    })
+})
+
+app.post('/genvWaterOn', function routeHandler(req, res) {
+    let waterSecs = parseInt(req.body.waterSeconds)
+    _waterOn(waterSecs) 
+    res.send(`Water turned ON for ${waterSecs} seconds`)
+})
+
 
