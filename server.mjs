@@ -117,7 +117,7 @@ import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 import nodeWebcamPkg from 'enhanced-node-webcam'
 import {log,daysFromDate} from './util.mjs'
-import {getConfig,completeRequest,insertImage} from './dataRepository.mjs'
+import {getConfig,updateParams,completeRequest,insertImage} from './dataRepository.mjs'
 import express from 'express';
 
 const app = express();
@@ -241,6 +241,8 @@ function autoSetParams(startDate) {
     } else if (days > 1) {
         waterInterval = 6.0
     }
+
+    updateParams(lightDuration,waterDuration,waterInterval)
 }
 
 // Create Johnny-Five board object

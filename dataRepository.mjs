@@ -55,6 +55,32 @@ export async function getConfig(currTemperature) {
 	return sr;
 }
 
+export async function updateParams(lightDuration,waterDuration,waterInterval) {
+	let conn;
+	try {
+		conn = await mariadb.createConnection({ 
+		  host: process.env.DB_HOST,
+		  user: process.env.DB_USER, 
+		  password: process.env.DB_PASS, 
+		  port: process.env.DB_PORT,
+		  database: process.env.DB_NAME,
+		  dateStrings: true  
+		})
+  
+		const res = await conn.query("UPDATE genvMonitorConfig SET LightDuration=?,WaterDuration=?,WaterInterval=?,LastUpdateTs=CURRENT_TIMESTAMP WHERE ConfigId = ?", 
+		  [lightDuration,waterDuration,waterInterval,1])
+  
+	} catch (err) {
+		//throw err
+		// Just log the error instead of throwing for now
+		console.log("in updateParams, "+err)
+	} finally {
+		if (conn) {
+			conn.close()
+		}
+	}
+}
+
 export async function completeRequest(returnMessage) {
 	let conn;
 	try {
