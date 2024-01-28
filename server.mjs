@@ -217,15 +217,21 @@ function autoSetParams(startDate) {
     waterDuration = 5.0
     waterInterval = 4.0
 
-    if (days > 20) {
-        waterDuration = 16.0
+    if (days > 40) {
+        waterDuration = 24.0
         waterInterval = 32.0
+    } else if (days > 30) {
+        waterDuration = 22.0
+        waterInterval = 32.0
+    } else if (days > 20) {
+        waterDuration = 20.0
+        waterInterval = 30.0
         // *** And add bottom
     } else if (days > 10) {
-        waterDuration = 12.0
+        waterDuration = 16.0
         waterInterval = 30.0
     } else if (days > 6) {
-        waterDuration = 7.0
+        waterDuration = 8.0
         waterInterval = 24.0
     } else if (days > 5) {
         waterDuration = 6.0
