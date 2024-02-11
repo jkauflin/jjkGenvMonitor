@@ -35,14 +35,14 @@ Modification History
                 Removed moisture sensor (wasn't really giving good info)
 2018-04-06 JJK  Re-working metrics logging to give consistent values to
                 web ecomcms.
-2018-04-07 JJK  Added adjustment to airDuration based on tempature (if it
+2018-04-07 JJK  Added adjustment to cr.airDuration based on tempature (if it
                 drops below 70 increase duration)
 2018-04-14 JJK  Added toggleHeat and separate from air ventilation
 2018-04-15 JJK  Modified to turn heat on when air goes off
 2018-04-22 JJK  Working well with the Pi - check selfie and water timing
 2018-05-14 JJK  Added store to save application configuration values
 2018-05-18 JJK  Modified to accept configuration updates from web client
-2018-06-18 JJK  Added lightDuration to store rec
+2018-06-18 JJK  Added cr.lightDuration to store rec
 2018-08-19 JJK  Turned off camera, added important dates and description
 2018-09-30 JJK  Turned metrics back on to track tempature
 2019-09-08 JJK  Upgraded to Raspbian Buster and NodeJS v10
@@ -73,7 +73,7 @@ Modification History
 2022-09-24 JJK  Working to get back into production
 2023-07-11 JJK  Adjusted storage record values to match important dates
                 for grow cycle and added auto-calculation of date values
-2023-09-06 JJK  Use heatDurationMax for "watering interval" hours, and do
+2023-09-06 JJK  Use cr.heatDurationMax for "watering interval" hours, and do
                 the watering on that interval
 -----------------------------------------------------------------------------
 2023-09-08 JJK  Version 3 converting to ES6 modules and interacting with
@@ -106,6 +106,8 @@ Modification History
                 response, monitoring, or actions
 2024-01-28 JJK  Implemented autoSetParams with logic for setting light
                 and water timing based on days from planting
+2024-02-07 JJK  Implemented use of Config Record (cr) structure to keep
+                local variables
 =============================================================================*/
 
 import 'dotenv/config'
@@ -117,7 +119,7 @@ import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 import nodeWebcamPkg from 'enhanced-node-webcam'
 import {log,daysFromDate} from './util.mjs'
-import {getConfig,updateParams,completeRequest,insertImage} from './dataRepository.mjs'
+import {getConfig,updateParams,completeRequest,insertImage,saveImageToFile} from './dataRepository.mjs'
 import express from 'express';
 
 const app = express();
@@ -134,7 +136,6 @@ var webcamOptions = {
     verbose: false
 }
 var webcam = nodeWebcamPkg.create(webcamOptions)
-
 
 // General handler for any uncaught exceptions
 process.on('uncaughtException', function (e) {
@@ -164,19 +165,31 @@ var currAirVal = OFF
 var currHeatVal = OFF
 var currLightsVal = OFF
 
-var configCheckInterval = 300
-var metricInterval = 30
-var currTemperature = 77
-var targetTemperature = 77
-
-var airTimeout = 1.0
-var airInterval = 1.0
-var airDuration = 1.0
-var heatInterval = 1.4
-var heatDuration = 2.0
-var waterDuration = 5.0
-var waterInterval = 4.0
-var lightDuration = 20.0
+// Configuration parameters for operations (also stored in server database)
+var cr = {
+    configDesc: 'Description',
+    daysToGerm: '2 to 7 days to crack open, 1 or 2 for tap root',
+    daysToBloom: 75,
+    germinationStart: '2000-01-01',
+    plantingDate: '2000-01-01',
+    harvestDate: '2000-01-01',
+    cureDate: '2000-01-01',
+    productionDate: '2000-01-01',
+    configCheckInterval: 500,
+    logMetricInterval: 30,
+    currTemperature: 77,
+    targetTemperature: 77,
+    airInterval: 1.0,
+    airDuration: 1.0,
+    heatInterval: 1.4,
+    heatDuration: 1.8,
+    waterInterval: 4.0,
+    waterDuration: 5.0,
+    lightDuration: 20.0,
+	lastUpdateTs: '2000-01-01 01:01:01',
+    lastWaterTs: '2000-01-01 01:01:01',
+    lastWaterSecs: 10
+}
 
 var board = null
 var relays = null
@@ -186,22 +199,9 @@ log(">>> Starting server.mjs...")
 initConfigQuery()
 function initConfigQuery() {
     log("Initial Config Query")
-
-    getConfig(currTemperature).then(sr => {
-        configCheckInterval = parseInt(sr.ConfigCheckInterval)
-        metricInterval = parseInt(sr.LogMetricInterval)
-        targetTemperature = parseInt(sr.TargetTemperature)
-        //log(`>>> after getConfig, target:${targetTemperature}`)
-        airInterval = parseFloat(sr.AirInterval)
-        airDuration = parseFloat(sr.AirDuration)
-        heatInterval = parseFloat(sr.HeatInterval)
-        heatDuration = parseFloat(sr.HeatDuration)
-
-        //lightDuration = parseInt(sr.LightDuration)
-        //waterDuration = parseInt(sr.WaterDuration)
-        //waterInterval = parseInt(sr.WaterInterval)
-
-        autoSetParams(sr.PlantingDate)
+    getConfig(cr).then(outCR => {
+        cr = outCR
+        autoSetParams(cr.plantingDate)
     })
 }
 
@@ -209,40 +209,40 @@ function autoSetParams(startDate) {
     let days = daysFromDate(startDate)
     //log("Days from PlantingDate = "+days)
 
-    lightDuration = 18.0
+    cr.lightDuration = 18.0
     if (days > 3) {
-        lightDuration = 20.0
+        cr.lightDuration = 20.0
     }
 
-    waterDuration = 5.0
-    waterInterval = 4.0
+    cr.waterDuration = 5.0
+    cr.waterInterval = 4.0
 
     if (days > 40) {
-        waterDuration = 24.0
-        waterInterval = 32.0
+        cr.waterDuration = 26.0
+        cr.waterInterval = 30.0
     } else if (days > 30) {
-        waterDuration = 22.0
-        waterInterval = 32.0
+        cr.waterDuration = 24.0
+        cr.waterInterval = 30.0
     } else if (days > 20) {
-        waterDuration = 20.0
-        waterInterval = 30.0
+        cr.waterDuration = 20.0
+        cr.waterInterval = 30.0
         // *** And add bottom
     } else if (days > 10) {
-        waterDuration = 16.0
-        waterInterval = 30.0
+        cr.waterDuration = 16.0
+        cr.waterInterval = 30.0
     } else if (days > 6) {
-        waterDuration = 8.0
-        waterInterval = 24.0
+        cr.waterDuration = 8.0
+        cr.waterInterval = 24.0
     } else if (days > 5) {
-        waterDuration = 6.0
-        waterInterval = 12.0
+        cr.waterDuration = 6.0
+        cr.waterInterval = 12.0
     } else if (days > 3) {
-        waterInterval = 8.0
+        cr.waterInterval = 8.0
     } else if (days > 1) {
-        waterInterval = 6.0
+        cr.waterInterval = 6.0
     }
 
-    updateParams(lightDuration,waterDuration,waterInterval)
+    //updateParams(cr.lightDuration,cr.waterDuration,cr.waterInterval)
 }
 
 // Create Johnny-Five board object
@@ -299,8 +299,8 @@ board.on("ready", () => {
     // Start sending metrics 10 seconds after starting (so things are calm)
     setTimeout(logMetric, 10000)
 
-    // Trigger the watering on the watering interval (using heatDurationMax for watering interval right now)
-    setTimeout(triggerWatering, waterInterval * hoursToMilliseconds)
+    // Trigger the watering on the watering interval (using cr.heatDurationMax for watering interval right now)
+    setTimeout(triggerWatering, cr.waterInterval * hoursToMilliseconds)
 
     log("Triggering Selfie interval")
     setTimeout(triggerSelfie, 9000)
@@ -310,21 +310,22 @@ board.on("ready", () => {
 })
 
 function triggerConfigQuery() {
-    //log("Triggering queryConfig, configCheckInterval = "+configCheckInterval)
+    /*
+    //log("Triggering queryConfig, cr.configCheckInterval = "+cr.configCheckInterval)
     // Get values from the database
-    getConfig(currTemperature).then(sr => {
+    getConfig(cr).then(sr => {
         if (sr != null) {
-            configCheckInterval = parseInt(sr.ConfigCheckInterval)
-            metricInterval = parseInt(sr.LogMetricInterval)
-            targetTemperature = parseInt(sr.TargetTemperature)
-            airInterval = parseFloat(sr.AirInterval)
-            airDuration = parseFloat(sr.AirDuration)
-            heatInterval = parseFloat(sr.HeatInterval)
-            heatDuration = parseFloat(sr.HeatDuration)
+            cr.configCheckInterval = parseInt(sr.ConfigCheckInterval)
+            cr.logMetricInterval = parseInt(sr.LogMetricInterval)
+            cr.targetTemperature = parseInt(sr.TargetTemperature)
+            cr.airInterval = parseFloat(sr.AirInterval)
+            cr.airDuration = parseFloat(sr.AirDuration)
+            cr.heatInterval = parseFloat(sr.HeatInterval)
+            cr.heatDuration = parseFloat(sr.HeatDuration)
 
-            //lightDuration = parseInt(sr.LightDuration)
-            //waterDuration = parseInt(sr.WaterDuration)
-            //waterInterval = parseInt(sr.WaterInterval)
+            //cr.lightDuration = parseInt(sr.LightDuration)
+            //cr.waterDuration = parseInt(sr.WaterDuration)
+            //cr.waterInterval = parseInt(sr.WaterInterval)
 
             autoSetParams(sr.PlantingDate)
 
@@ -347,8 +348,9 @@ function triggerConfigQuery() {
             }
         }
 
-        setTimeout(triggerConfigQuery, configCheckInterval * secondsToMilliseconds)
+        setTimeout(triggerConfigQuery, cr.configCheckInterval * secondsToMilliseconds)
     })
+    */
 }
 
 function _letMeTakeASelfie() {
@@ -400,7 +402,7 @@ function triggerSelfie() {
     _letMeTakeASelfie()
 
     // Set the next time the function will run
-    setTimeout(triggerSelfie, metricInterval * minutesToMilliseconds)
+    setTimeout(triggerSelfie, cr.logMetricInterval * minutesToMilliseconds)
 }
 
 
@@ -410,7 +412,7 @@ function triggerWatering() {
     setTimeout(waterThePlants, 500)
 
     // Recursively call the function with the watering interval
-    setTimeout(triggerWatering, waterInterval * hoursToMilliseconds)
+    setTimeout(triggerWatering, cr.waterInterval * hoursToMilliseconds)
 }
 
 function turnRelaysOFF() {
@@ -440,25 +442,25 @@ function setRelay(relayNum, relayVal) {
 
 // Function to toggle air ventilation ON and OFF
 function toggleAir() {
-    airTimeout = airInterval
+    let airTimeout = cr.airInterval
 
     if (currAirVal == OFF) {
         //log("Turning Air ON")
         setRelay(AIR,ON)
         currAirVal = ON
-        airTimeout = airDuration
+        airTimeout = cr.airDuration
     } else {
         //log("Turning Air OFF")
         setRelay(AIR,OFF)
         currAirVal = OFF
-        airTimeout = airInterval
+        airTimeout = cr.airInterval
     }
 
     // Check to turn the light on/off
     let date = new Date()
     let hours = date.getHours()
-    //log("lightDuration = "+lightDuration+", hours = "+hours)
-    if (hours > (lightDuration - 1)) {
+    //log("cr.lightDuration = "+cr.lightDuration+", hours = "+hours)
+    if (hours > (cr.lightDuration - 1)) {
         if (currLightsVal == ON) {
             setRelay(LIGHTS,OFF)
             currLightsVal = OFF
@@ -483,14 +485,14 @@ function toggleHeat() {
     let heatAdjustmentMax = 0.6
 
     // Check the temperature and adjust the timeout values
-    if (currTemperature > (targetTemperature + 0.5)) {
-        heatIntervalAdjustment = currTemperature - targetTemperature
+    if (cr.currTemperature > (cr.targetTemperature + 0.5)) {
+        heatIntervalAdjustment = cr.currTemperature - cr.targetTemperature
         if (heatIntervalAdjustment > heatAdjustmentMax) {
             heatIntervalAdjustment = heatAdjustmentMax
         }
     }
-    if (currTemperature < (targetTemperature - 0.5)) {
-        heatDurationAdjustment = targetTemperature - currTemperature
+    if (cr.currTemperature < (cr.targetTemperature - 0.5)) {
+        heatDurationAdjustment = cr.targetTemperature - cr.currTemperature
         if (heatDurationAdjustment > heatAdjustmentMax) {
             heatDurationAdjustment = heatAdjustmentMax
         }
@@ -500,15 +502,15 @@ function toggleHeat() {
         //log("Turning Heat ON")
         setRelay(HEAT, ON)
         currHeatVal = ON
-        heatTimeout =  heatDuration + heatDurationAdjustment
+        heatTimeout =  cr.heatDuration + heatDurationAdjustment
     } else {
         //log("Turning Heat OFF")
         setRelay(HEAT, OFF)
         currHeatVal = OFF
-        heatTimeout = heatInterval + heatIntervalAdjustment
+        heatTimeout = cr.heatInterval + heatIntervalAdjustment
     }
 
-    //log(`Heat:${currHeatVal} , target:${targetTemperature}, curr:${currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
+    //log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
 
     // Recursively call the function with the current timeout value  
     setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds)
@@ -521,8 +523,8 @@ function getTemperature() {
         if (err) {
             log("Error in reading temperature file")
         } else {
-            currTemperature = ((celsiusTemp/1000) * (9/5)) + 32
-            //log(`currTemperature = ${currTemperature}`)
+            cr.currTemperature = ((celsiusTemp/1000) * (9/5)) + 32
+            //log(`cr.currTemperature = ${cr.currTemperature}`)
         }
     })
 }
@@ -532,8 +534,8 @@ function logMetric() {
     // Set the current temperature from the one-wire overlay file
     getTemperature()
 
-    let metricJSON = "{" + "tempature:" + currTemperature
-        + ",heatDuration:" + heatDuration
+    let metricJSON = "{" + "tempature:" + cr.currTemperature
+        + ",cr.heatDuration:" + cr.heatDuration
         + "," + relayNames[0] + ":" + relayMetricValues[0]
         + "," + relayNames[1] + ":" + relayMetricValues[1]
         + "," + relayNames[2] + ":" + relayMetricValues[2]
@@ -552,7 +554,7 @@ function logMetric() {
     //.catch(err => tempLogErr(err));
 
     // Set the next time the function will run
-    setTimeout(logMetric, metricInterval * secondsToMilliseconds)
+    setTimeout(logMetric, cr.logMetricInterval * secondsToMilliseconds)
 }
 
 function tempLogErr(err) {
@@ -570,7 +572,7 @@ function checkResponseStatus(res) {
 }
 
 function waterThePlants() {
-    log(">>> Watering the plants, waterDuration = "+waterDuration)
+    log(">>> Watering the plants, cr.waterDuration = "+cr.waterDuration)
     setRelay(WATER,ON)
     setTimeout(() => {
         log("Watering the plants OFF")
@@ -580,7 +582,7 @@ function waterThePlants() {
         // Reboot the system 5 seconds after turning off the water
         setTimeout(rebootSystem, 5000)
 
-    }, waterDuration * secondsToMilliseconds)
+    }, cr.waterDuration * secondsToMilliseconds)
 }
 
 function _waterOn(waterSeconds) {
@@ -610,13 +612,12 @@ app.listen(3035, function(err){
     console.log("Web Server listening on Port 3035");
 })
 
-app.get('/genvGetInfo', function routeHandler(req, res) {
-    getConfig(currTemperature).then(sr => {
-        res.json(sr)
-    })
+app.get('/getConfigRec', function routeHandler(req, res) {
+    res.json(cr)
 })
 
 app.get('/genvGetSelfie', function routeHandler(req, res) {
+    /*
     webcam = nodeWebcamPkg.create(webcamOptions)
     webcam.capture("temp",function(err, base64ImgData) {
         if (err != null) {
@@ -626,6 +627,10 @@ app.get('/genvGetSelfie', function routeHandler(req, res) {
             webcam.clear()
         }
     })
+    */
+    // get images and save to disk
+    saveImageToFile()
+    res.send()
 })
 
 app.post('/genvWaterOn', function routeHandler(req, res) {
