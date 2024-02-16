@@ -274,7 +274,7 @@ board.on("ready", () => {
 })
 
 function triggerConfigQuery() {
-    log("Triggering queryConfig, cr.configCheckInterval = "+cr.configCheckInterval)
+    //log("Triggering queryConfig, cr.configCheckInterval = "+cr.configCheckInterval)
     // Get values from the database
     getConfig(cr).then(outCR => {
         if (outCR != null) {
@@ -472,8 +472,8 @@ function getTemperature() {
         if (err) {
             log("Error in reading temperature file")
         } else {
-            cr.currTemperature = ((celsiusTemp/1000) * (9/5)) + 32
-            //log(`cr.currTemperature = ${cr.currTemperature}`)
+            cr.currTemperature = (((celsiusTemp/1000) * (9/5)) + 32).toFixed(2)
+            log(`cr.currTemperature = ${cr.currTemperature}`)
         }
     })
 }
@@ -490,7 +490,7 @@ function logMetric() {
         + "," + relayNames[2] + ":" + relayMetricValues[2]
         + "," + relayNames[3] + ":" + relayMetricValues[3]
         + "}";
-    //log(`metricJSON = ${metricJSON}`)
+    log(`metricJSON = ${metricJSON}`)
     let emoncmsUrl = process.env.EMONCMS_INPUT_URL + "&json=" + metricJSON
 
     // Use this if we need to limit the send to between the hours of 6 and 20
