@@ -77,6 +77,7 @@
      })
      .then(cr => {
          //console.log("TargetTemperature = "+cr.TargetTemperature)
+         updateDisplay.innerHTML = ""
          _renderConfig(cr);
      })
      .catch((err) => {
@@ -86,7 +87,6 @@
  }
 
 
-
  function paddy(num, padlen, padchar) {
      var pad_char = typeof padchar !== 'undefined' ? padchar : '0';
      var pad = new Array(1 + padlen).join(pad_char);
@@ -94,59 +94,55 @@
  }
 
  function _addDays(inDate, days) {
-     var td = new Date(inDate)
-     td.setDate(td.getDate() + days)
-     let tempMonth = td.getMonth() + 1
-     let tempDay = td.getDate()
-     let outDate = td.getFullYear() + '-' + paddy(tempMonth,2) + '-' + paddy(tempDay,2)
-     return outDate;
- }
+    let td = new Date(inDate)
+    td.setDate(td.getDate() + (parseInt(days)+1))
+    let tempMonth = td.getMonth() + 1
+    let tempDay = td.getDate()
+    let outDate = td.getFullYear() + '-' + paddy(tempMonth,2) + '-' + paddy(tempDay,2)
+    return outDate;
+}
 
  function _update(event) {
-     // Update other dates based on planting date
-     harvestDate.value = _addDays(plantingDate.value,75)
-     cureDate.value = _addDays(harvestDate.value,14)
-     productionDate.value = _addDays(cureDate.value,14)
+    // Update other dates based on planting date
+    harvestDate.value = _addDays(plantingDate.value,daysToBloom.value)
+    cureDate.value = _addDays(harvestDate.value,14)
+    productionDate.value = _addDays(cureDate.value,14)
 
- //    var daysToGerm = document.getElementById("daysToGerm")
- //var daysToBloom = document.getElementById("daysToBloom")
-
-     let url = 'js/genvUpdateInfo.php';
-     let paramData = {
-         configDesc: configDesc.value,
-         daysToBloom: daysToBloom.value,
-         daysToGerm: daysToGerm.value,
-         germinationStart: germinationStart.value,
-         plantingDate: plantingDate.value,
-         harvestDate: harvestDate.value,
-         cureDate: cureDate.value,
-         productionDate: productionDate.value,
-         targetTemperature: targetTemperature.value,
-         heatInterval: heatInterval.value,
-         heatDuration: heatDuration.value,
-         lightDuration: lightDuration.value,
-         waterDuration: waterDuration.value,
-         waterInterval: waterInterval.value,
-         configCheckInterval: configCheckInterval.value,
-         requestCommand: ""
+    let url = '/updConfigRec';
+    let paramData = {
+        configDesc: configDesc.value,
+        daysToBloom: daysToBloom.value,
+        daysToGerm: daysToGerm.value,
+        germinationStart: germinationStart.value,
+        plantingDate: plantingDate.value,
+        harvestDate: harvestDate.value,
+        cureDate: cureDate.value,
+        productionDate: productionDate.value,
+        targetTemperature: targetTemperature.value,
+        heatInterval: heatInterval.value,
+        heatDuration: heatDuration.value,
+        waterDuration: waterDuration.value,
+        waterInterval: waterInterval.value,
+        configCheckInterval: configCheckInterval.value
      }
      fetch(url, {
-         method: 'POST',
-         headers: {'Content-Type': 'application/json'},
-         body: JSON.stringify(paramData)
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(paramData)
      })
      .then(response => {
-         if (!response.ok) {
-             throw new Error('Response was not OK');
-         }
-         return response.text();
+        if (!response.ok) {
+            throw new Error('Response was not OK');
+        }
+        return response.json();
      })
-     .then(returnMsg => {
-         updateDisplay.innerHTML = "Update successful "+returnMsg;
+     .then(cr => {
+        updateDisplay.innerHTML = "Update successful "
+        _renderConfig(cr);
      })
      .catch((err) => {
-         console.error(`Error in Fetch to ${url}, ${err}`);
-         updateDisplay.innerHTML = "Fetch data FAILED - check log";
+        console.error(`Error in Fetch to ${url}, ${err}`);
+        updateDisplay.innerHTML = "Fetch data FAILED - check log";
      });
  }
 

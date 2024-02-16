@@ -31,7 +31,7 @@ export function getDateStr() {
     let tempMonth = td.getMonth() + 1
     let tempDay = td.getDate()
     let formattedDate = td.getFullYear() + '-' + paddy(tempMonth,2) + '-' + paddy(tempDay,2)
-    var dateStr = `${formattedDate} ${paddy(td.getHours(),2)}:${paddy(td.getMinutes(),2)}:${paddy(td.getSeconds(),2)}}`
+    var dateStr = `${formattedDate} ${paddy(td.getHours(),2)}:${paddy(td.getMinutes(),2)}:${paddy(td.getSeconds(),2)}`
     return(dateStr)
 }
 

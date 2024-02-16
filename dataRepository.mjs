@@ -16,7 +16,48 @@ Modification History
 import 'dotenv/config'
 import fs, { readFileSync } from 'node:fs'
 import mariadb from 'mariadb';
-import {log,getDateStr} from './util.mjs'
+import {log,getDateStr,daysFromDate} from './util.mjs'
+
+// Function to set light and water parameters based on the days from Planting Date
+export function autoSetParams(cr) {
+    let days = daysFromDate(cr.plantingDate)
+    //log("Days from PlantingDate = "+days)
+
+    cr.lightDuration = 18.0
+    if (days > 3) {
+        cr.lightDuration = 20.0
+    }
+
+    cr.waterDuration = 5.0
+    cr.waterInterval = 4.0
+
+    if (days > 40) {
+        cr.waterDuration = 26.0
+        cr.waterInterval = 30.0
+    } else if (days > 30) {
+        cr.waterDuration = 24.0
+        cr.waterInterval = 30.0
+    } else if (days > 20) {
+        cr.waterDuration = 20.0
+        cr.waterInterval = 30.0
+        // *** And add bottom
+    } else if (days > 10) {
+        cr.waterDuration = 16.0
+        cr.waterInterval = 30.0
+    } else if (days > 6) {
+        cr.waterDuration = 8.0
+        cr.waterInterval = 24.0
+    } else if (days > 5) {
+        cr.waterDuration = 6.0
+        cr.waterInterval = 12.0
+    } else if (days > 3) {
+        cr.waterInterval = 8.0
+    } else if (days > 1) {
+        cr.waterInterval = 6.0
+    }
+
+    return cr
+}
 
 //export async function getConfig(currTemperature) {
 export async function getConfig(cr) {
@@ -32,11 +73,6 @@ export async function getConfig(cr) {
 		  database: process.env.DB_NAME,
 		  dateStrings: true  
 		})
-  
-		let tempDateStr = getDateStr()
-		const res = await conn.query("UPDATE genvMonitorConfig SET CurrTemperature=?,LightDuration=?,WaterDuration=?,WaterInterval=?,LastWaterTs=?,LastWaterSecs=?,LastUpdateTs=? WHERE ConfigId=?", 
-			[cr.currTemperature,cr.lightDuration,cr.waterDuration,cr.waterInterval,cr.lastWaterTs,cr.lastWaterSecs,tempDateStr,1])
-
 
 		var query = "SELECT * FROM genvMonitorConfig WHERE ConfigId = 1;"
 		var rows = await conn.query(query)
@@ -46,6 +82,10 @@ export async function getConfig(cr) {
 			cr.daysToBloom = rows[0].DaysToBloom
 			cr.germinationStart = rows[0].GerminationStart
 			cr.plantingDate = rows[0].PlantingDate
+
+			cr.harvestDate = rows[0].HarvestDate
+			cr.cureDate = rows[0].CureDate
+			cr.productionDate = rows[0].ProductionDate
 
 			cr.configCheckInterval = parseInt(rows[0].ConfigCheckInterval)
 			cr.logMetricInterval = parseInt(rows[0].LogMetricInterval)
@@ -59,6 +99,14 @@ export async function getConfig(cr) {
 			cr.lastUpdateTs = rows[0].LastUpdateTs
 		}
   
+		// Set parameters according to days since planting
+		cr = autoSetParams(cr)
+
+		// Update params back into the server DB
+		cr.lastUpdateTs = getDateStr()
+		conn.query("UPDATE genvMonitorConfig SET CurrTemperature=?,LightDuration=?,WaterDuration=?,WaterInterval=?,LastWaterTs=?,LastWaterSecs=?,LastUpdateTs=? WHERE ConfigId=?", 
+			[cr.currTemperature,cr.lightDuration,cr.waterDuration,cr.waterInterval,cr.lastWaterTs,cr.lastWaterSecs,cr.lastUpdateTs,1])
+
 	} catch (err) {
 		//throw err;
 		// Just log the error instead of throwing for now
@@ -72,7 +120,7 @@ export async function getConfig(cr) {
 	return cr;
 }
 
-export async function updateParams(lightDuration,waterDuration,waterInterval) {
+export async function updateParams(cr) {
 	let conn;
 	try {
 		conn = await mariadb.createConnection({ 
@@ -84,10 +132,15 @@ export async function updateParams(lightDuration,waterDuration,waterInterval) {
 		  dateStrings: true  
 		})
   
-		let tempDateStr = getDateStr()
-		const res = await conn.query("UPDATE genvMonitorConfig SET LightDuration=?,WaterDuration=?,WaterInterval=?,LastUpdateTs=? WHERE ConfigId = ?", 
-		  [lightDuration,waterDuration,waterInterval,tempDateStr,1])
-
+		let sqlStr = "UPDATE genvMonitorConfig SET ConfigDesc=?,GerminationStart=?,DaysToGerm=?,PlantingDate=?,HarvestDate=?,CureDate=?"+
+						",ProductionDate=?,DaysToBloom=?,TargetTemperature=?,ConfigCheckInterval=?,HeatInterval=?,HeatDuration=?"+
+						",CurrTemperature=?,LightDuration=?,WaterDuration=?,WaterInterval=?,LastWaterTs=?,LastWaterSecs=?,LastUpdateTs=?"+
+						" WHERE ConfigId=?"
+		//const res = await conn.query(sqlStr, 
+		conn.query(sqlStr, [cr.configDesc,cr.germinationStart,cr.daysToGerm,cr.plantingDate,cr.harvestDate,cr.cureDate,cr.productionDate,
+					cr.daysToBloom,cr.targetTemperature,cr.configCheckInterval,cr.heatInterval,cr.heatDuration,cr.currTemperature,
+					cr.lightDuration,cr.waterDuration,cr.waterInterval,cr.lastWaterTs,cr.lastWaterSecs,cr.lastUpdateTs,1])
+  
 	} catch (err) {
 		//throw err
 		// Just log the error instead of throwing for now

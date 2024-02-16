@@ -118,8 +118,8 @@ import { Buffer } from 'node:buffer'
 import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 import nodeWebcamPkg from 'enhanced-node-webcam'
-import {log,daysFromDate} from './util.mjs'
-import {getConfig,updateParams,completeRequest,insertImage,saveImageToFile} from './dataRepository.mjs'
+import {log,getDateStr} from './util.mjs'
+import {autoSetParams,getConfig,updateParams,completeRequest,insertImage,saveImageToFile} from './dataRepository.mjs'
 import express from 'express';
 
 const app = express();
@@ -200,50 +200,12 @@ initConfigQuery()
 function initConfigQuery() {
     log("Initial Config Query")
     getConfig(cr).then(outCR => {
-        cr = outCR
-        autoSetParams(cr.plantingDate)
+        if (outCR != null) {
+            cr = outCR
+        }
     })
 }
 
-function autoSetParams(startDate) {
-    let days = daysFromDate(startDate)
-    //log("Days from PlantingDate = "+days)
-
-    cr.lightDuration = 18.0
-    if (days > 3) {
-        cr.lightDuration = 20.0
-    }
-
-    cr.waterDuration = 5.0
-    cr.waterInterval = 4.0
-
-    if (days > 40) {
-        cr.waterDuration = 26.0
-        cr.waterInterval = 30.0
-    } else if (days > 30) {
-        cr.waterDuration = 24.0
-        cr.waterInterval = 30.0
-    } else if (days > 20) {
-        cr.waterDuration = 20.0
-        cr.waterInterval = 30.0
-        // *** And add bottom
-    } else if (days > 10) {
-        cr.waterDuration = 16.0
-        cr.waterInterval = 30.0
-    } else if (days > 6) {
-        cr.waterDuration = 8.0
-        cr.waterInterval = 24.0
-    } else if (days > 5) {
-        cr.waterDuration = 6.0
-        cr.waterInterval = 12.0
-    } else if (days > 3) {
-        cr.waterInterval = 8.0
-    } else if (days > 1) {
-        cr.waterInterval = 6.0
-    }
-
-    //updateParams(cr.lightDuration,cr.waterDuration,cr.waterInterval)
-}
 
 // Create Johnny-Five board object
 // When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
@@ -302,39 +264,26 @@ board.on("ready", () => {
     // Trigger the watering on the watering interval (using cr.heatDurationMax for watering interval right now)
     setTimeout(triggerWatering, cr.waterInterval * hoursToMilliseconds)
 
+    /*
     log("Triggering Selfie interval")
     setTimeout(triggerSelfie, 9000)
     _letMeTakeASelfie()
-
+    */
+   
     log("End of board.on (initialize) event")
 })
 
 function triggerConfigQuery() {
-    /*
-    //log("Triggering queryConfig, cr.configCheckInterval = "+cr.configCheckInterval)
+    log("Triggering queryConfig, cr.configCheckInterval = "+cr.configCheckInterval)
     // Get values from the database
-    getConfig(cr).then(sr => {
-        if (sr != null) {
-            cr.configCheckInterval = parseInt(sr.ConfigCheckInterval)
-            cr.logMetricInterval = parseInt(sr.LogMetricInterval)
-            cr.targetTemperature = parseInt(sr.TargetTemperature)
-            cr.airInterval = parseFloat(sr.AirInterval)
-            cr.airDuration = parseFloat(sr.AirDuration)
-            cr.heatInterval = parseFloat(sr.HeatInterval)
-            cr.heatDuration = parseFloat(sr.HeatDuration)
+    getConfig(cr).then(outCR => {
+        if (outCR != null) {
+            cr = outCR
 
-            //cr.lightDuration = parseInt(sr.LightDuration)
-            //cr.waterDuration = parseInt(sr.WaterDuration)
-            //cr.waterInterval = parseInt(sr.WaterInterval)
-
-            autoSetParams(sr.PlantingDate)
-
-    
-            // >>>>>>>>>>> check for changes and reset the timeout???
-    
             //------------------------------------------------------------------------------------
             // Handle requests
             //------------------------------------------------------------------------------------
+            /*
             if (sr.RequestCommand != null && sr.RequestCommand != "") {
                 let returnMessage = ""
                 if (sr.RequestCommand == "WaterOn") {
@@ -346,11 +295,11 @@ function triggerConfigQuery() {
     
                 completeRequest(returnMessage)
             }
+            */
         }
 
         setTimeout(triggerConfigQuery, cr.configCheckInterval * secondsToMilliseconds)
     })
-    */
 }
 
 function _letMeTakeASelfie() {
@@ -510,7 +459,7 @@ function toggleHeat() {
         heatTimeout = cr.heatInterval + heatIntervalAdjustment
     }
 
-    //log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
+    log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
 
     // Recursively call the function with the current timeout value  
     setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds)
@@ -549,7 +498,7 @@ function logMetric() {
     let hours = date.getHours()
 
     // https call to send metric data to emoncms (CURRENTLY shut off - just updating temperature in server DB)
-    //fetch(emoncmsUrl)
+    fetch(emoncmsUrl)
     //.then(checkResponseStatus)
     //.catch(err => tempLogErr(err));
 
@@ -577,6 +526,11 @@ function waterThePlants() {
     setTimeout(() => {
         log("Watering the plants OFF")
         setRelay(WATER,OFF)
+
+        cr.lastWaterTs = getDateStr()
+        cr.lastWaterSecs = cr.waterDuration
+        // update
+
 
         log(">>> Triggering REBOOT after watering")
         // Reboot the system 5 seconds after turning off the water
@@ -613,6 +567,37 @@ app.listen(3035, function(err){
 })
 
 app.get('/getConfigRec', function routeHandler(req, res) {
+    res.json(cr)
+})
+
+app.post('/updConfigRec', function routeHandler(req, res) {
+    // update the params from web values
+    cr.configDesc = req.body.configDesc
+    cr.germinationStart = req.body.germinationStart
+    cr.daysToGerm = req.body.daysToGerm
+    cr.plantingDate = req.body.plantingDate
+    cr.harvestDate = req.body.harvestDate
+    cr.cureDate = req.body.cureDate
+    cr.productionDate = req.body.productionDate
+
+    cr.daysToBloom = parseInt(req.body.daysToBloom)
+    cr.targetTemperature = parseInt(req.body.targetTemperature)
+    cr.configCheckInterval = parseInt(req.body.configCheckInterval)
+    cr.heatInterval = parseFloat(req.body.heatInterval)
+    cr.heatDuration = parseFloat(req.body.heatDuration)
+    cr.waterDuration = parseFloat(req.body.waterDuration)
+    cr.waterInterval = parseFloat(req.body.waterInterval)
+
+    cr.lastUpdateTs = getDateStr()
+
+    //cr.logMetricInterval = parseInt(rows[0].LogMetricInterval)
+
+    // Set parameters according to days since planting
+	cr = autoSetParams(cr)
+
+    // Update values back into server DB
+    updateParams(cr)
+
     res.json(cr)
 })
 
