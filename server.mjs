@@ -181,8 +181,8 @@ var cr = {
     targetTemperature: 77,
     airInterval: 1.0,
     airDuration: 1.0,
-    heatInterval: 1.4,
-    heatDuration: 1.8,
+    heatInterval: 1.0,
+    heatDuration: 2.0,
     waterInterval: 4.0,
     waterDuration: 5.0,
     lightDuration: 20.0,
@@ -459,7 +459,7 @@ function toggleHeat() {
         heatTimeout = cr.heatInterval + heatIntervalAdjustment
     }
 
-    log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
+    //log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
 
     // Recursively call the function with the current timeout value  
     setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds)
