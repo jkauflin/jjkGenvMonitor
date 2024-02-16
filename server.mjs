@@ -473,7 +473,7 @@ function getTemperature() {
             log("Error in reading temperature file")
         } else {
             cr.currTemperature = (((celsiusTemp/1000) * (9/5)) + 32).toFixed(2)
-            log(`cr.currTemperature = ${cr.currTemperature}`)
+            //log(`cr.currTemperature = ${cr.currTemperature}`)
         }
     })
 }
@@ -484,13 +484,13 @@ function logMetric() {
     getTemperature()
 
     let metricJSON = "{" + "tempature:" + cr.currTemperature
-        + ",cr.heatDuration:" + cr.heatDuration
+        + ",heatDuration:" + cr.heatDuration
         + "," + relayNames[0] + ":" + relayMetricValues[0]
         + "," + relayNames[1] + ":" + relayMetricValues[1]
         + "," + relayNames[2] + ":" + relayMetricValues[2]
         + "," + relayNames[3] + ":" + relayMetricValues[3]
         + "}";
-    log(`metricJSON = ${metricJSON}`)
+    //log(`metricJSON = ${metricJSON}`)
     let emoncmsUrl = process.env.EMONCMS_INPUT_URL + "&json=" + metricJSON
 
     // Use this if we need to limit the send to between the hours of 6 and 20
@@ -602,7 +602,6 @@ app.post('/updConfigRec', function routeHandler(req, res) {
 })
 
 app.get('/genvGetSelfie', function routeHandler(req, res) {
-    /*
     webcam = nodeWebcamPkg.create(webcamOptions)
     webcam.capture("temp",function(err, base64ImgData) {
         if (err != null) {
@@ -612,10 +611,9 @@ app.get('/genvGetSelfie', function routeHandler(req, res) {
             webcam.clear()
         }
     })
-    */
     // get images and save to disk
-    saveImageToFile()
-    res.send()
+    //saveImageToFile()
+    //res.send()
 })
 
 app.post('/genvWaterOn', function routeHandler(req, res) {
