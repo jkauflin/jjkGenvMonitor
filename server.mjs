@@ -499,8 +499,8 @@ function logMetric() {
 
     // https call to send metric data to emoncms (CURRENTLY shut off - just updating temperature in server DB)
     fetch(emoncmsUrl)
-    //.then(checkResponseStatus)
-    //.catch(err => tempLogErr(err));
+    .then(checkResponseStatus)
+    .catch(err => tempLogErr(err));
 
     // Set the next time the function will run
     setTimeout(logMetric, cr.logMetricInterval * secondsToMilliseconds)
@@ -516,7 +516,7 @@ function checkResponseStatus(res) {
         return res
     } else {
         //throw new Error(`The HTTP status of the reponse: ${res.status} (${res.statusText})`)
-        log(`Fetch reponse is NOT OK: ${res.status} (${res.statusText})`)
+        log(`Log Fetch NOT OK: ${res.status} (${res.statusText})`)
     }
 }
 
