@@ -170,12 +170,14 @@ function _lookup(event) {
  }
 
  function _getSelfie(event) {
-     let url = '/genvGetSelfie';
+    updateDisplay.innerHTML = "Getting selfie...";
+    let url = '/genvGetSelfie';
      fetch(url)
      .then(response => {
          if (!response.ok) {
              throw new Error('Response was not OK');
          }
+         updateDisplay.innerHTML = "";
          return response.text();
      })
      .then(data => {
