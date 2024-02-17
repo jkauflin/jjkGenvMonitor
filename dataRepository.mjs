@@ -88,6 +88,8 @@ export async function getConfig(cr) {
 
 			cr.configCheckInterval = parseInt(rows[0].ConfigCheckInterval)
 			cr.logMetricInterval = parseInt(rows[0].LogMetricInterval)
+			cr.loggingOn = parseInt(rows[0].LoggingOn)
+			cr.selfieOn = parseInt(rows[0].SelfieOn)
 			cr.targetTemperature = parseInt(rows[0].TargetTemperature)
 
 			cr.airInterval = parseFloat(rows[0].AirInterval)

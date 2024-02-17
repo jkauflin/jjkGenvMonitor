@@ -178,6 +178,8 @@ var cr = {
     productionDate: '2000-01-01',
     configCheckInterval: 500,
     logMetricInterval: 30,
+    loggingOn: 0,
+    selfieOn: 0,
     currTemperature: 77,
     targetTemperature: 77,
     airInterval: 1.0,
@@ -268,11 +270,9 @@ board.on("ready", () => {
     // Trigger the watering on the watering interval (using cr.heatDurationMax for watering interval right now)
     setTimeout(triggerWatering, cr.waterInterval * hoursToMilliseconds)
 
-    /*
     log("Triggering Selfie interval")
     setTimeout(triggerSelfie, 9000)
     _letMeTakeASelfie()
-    */
    
     log("End of board.on (initialize) event")
 })
@@ -350,7 +350,9 @@ function _selfieRetry() {
 
 // Function to take a selfie image and store in database
 function triggerSelfie() {
-    _letMeTakeASelfie()
+    if (cr.selfieOn) {
+        _letMeTakeASelfie()
+    }
 
     // Set the next time the function will run
     setTimeout(triggerSelfie, cr.logMetricInterval * minutesToMilliseconds)
@@ -499,12 +501,12 @@ function logMetric() {
     let date = new Date()
     let hours = date.getHours()
 
-    // https call to send metric data to emoncms (CURRENTLY shut off - just updating temperature in server DB)
-    /*
-    fetch(emoncmsUrl)
-    .then(checkResponseStatus)
-    .catch(err => tempLogErr(err));
-    */
+    // https call to send metric data to emoncms
+    if (cr.loggingOn) {
+        fetch(emoncmsUrl)
+        .then(checkResponseStatus)
+        .catch(err => tempLogErr(err));
+    }
    
     // Set the next time the function will run
     setTimeout(logMetric, cr.logMetricInterval * secondsToMilliseconds)
