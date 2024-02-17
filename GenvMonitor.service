@@ -11,6 +11,7 @@
 #alias stops='sudo systemctl stop GenvMonitor.service'
 #alias starts='sudo systemctl start GenvMonitor.service'
 #alias reloads='sudo systemctl daemon-reload'
+#alias clearlog='sudo bash clearServiceLogs.sh'
 
 [Unit]
 Description=Grow Environment Monitor service

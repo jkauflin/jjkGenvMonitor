@@ -108,6 +108,7 @@ Modification History
                 and water timing based on days from planting
 2024-02-07 JJK  Implemented use of Config Record (cr) structure to keep
                 local variables
+2024-02-17 JJK  Got RequestCommand working again (added to cr and handling)
 =============================================================================*/
 
 import 'dotenv/config'
@@ -188,7 +189,9 @@ var cr = {
     lightDuration: 20.0,
 	lastUpdateTs: '2000-01-01 01:01:01',
     lastWaterTs: '2000-01-01 01:01:01',
-    lastWaterSecs: 10
+    lastWaterSecs: 10,
+    requestCommand: '',
+    requestValue: ''
 }
 
 var board = null
@@ -196,6 +199,7 @@ var relays = null
 
 log(">>> Starting server.mjs...")
 
+// Get parameter values from the server DB when the program starts
 initConfigQuery()
 function initConfigQuery() {
     log("Initial Config Query")
@@ -283,11 +287,10 @@ function triggerConfigQuery() {
             //------------------------------------------------------------------------------------
             // Handle requests
             //------------------------------------------------------------------------------------
-            /*
-            if (sr.RequestCommand != null && sr.RequestCommand != "") {
+            if (cr.requestCommand != null && cr.requestCommand != "") {
                 let returnMessage = ""
-                if (sr.RequestCommand == "WaterOn") {
-                    let waterSeconds = parseInt(sr.RequestValue)
+                if (cr.requestCommand == "WaterOn") {
+                    let waterSeconds = parseInt(cr.requestValue)
                     _waterOn(waterSeconds)
                     returnMessage = "Water turned on for "+waterSeconds+" seconds"
                 } 
@@ -295,7 +298,6 @@ function triggerConfigQuery() {
     
                 completeRequest(returnMessage)
             }
-            */
         }
 
         setTimeout(triggerConfigQuery, cr.configCheckInterval * secondsToMilliseconds)
@@ -498,10 +500,12 @@ function logMetric() {
     let hours = date.getHours()
 
     // https call to send metric data to emoncms (CURRENTLY shut off - just updating temperature in server DB)
+    /*
     fetch(emoncmsUrl)
     .then(checkResponseStatus)
     .catch(err => tempLogErr(err));
-
+    */
+   
     // Set the next time the function will run
     setTimeout(logMetric, cr.logMetricInterval * secondsToMilliseconds)
 }

@@ -59,7 +59,6 @@ export function autoSetParams(cr) {
     return cr
 }
 
-//export async function getConfig(currTemperature) {
 export async function getConfig(cr) {
 	let conn
 	try {
@@ -97,6 +96,9 @@ export async function getConfig(cr) {
 			cr.heatDuration = parseFloat(rows[0].HeatDuration)
 
 			cr.lastUpdateTs = rows[0].LastUpdateTs
+
+			cr.requestCommand = rows[0].RequestCommand
+			cr.requestValue = rows[0].RequestValue
 		}
   
 		// Set parameters according to days since planting
@@ -164,8 +166,9 @@ export async function completeRequest(returnMessage) {
 		  dateStrings: true  
 		})
   
-		const res = await conn.query("UPDATE genvMonitorConfig SET RequestCommand='',RequestValue='',ReturnMessage=?,LastUpdateTs=CURRENT_TIMESTAMP WHERE ConfigId = ?", 
-		  [returnMessage,1])
+		let tempLastUpdateTs = getDateStr()
+		conn.query("UPDATE genvMonitorConfig SET RequestCommand='',RequestValue='',ReturnMessage=?,LastUpdateTs=? WHERE ConfigId = ?", 
+		  [returnMessage,tempLastUpdateTs,1])
   
 	} catch (err) {
 		//throw err

@@ -66,7 +66,22 @@
 
  //=================================================================================================================
  // Module methods
- function _lookup(event) {
+ function paddy(num, padlen, padchar) {
+    var pad_char = typeof padchar !== 'undefined' ? padchar : '0';
+    var pad = new Array(1 + padlen).join(pad_char);
+    return (pad + num).slice(-pad.length);
+}
+
+function _addDays(inDate, days) {
+   let td = new Date(inDate)
+   td.setDate(td.getDate() + (parseInt(days)+1))
+   let tempMonth = td.getMonth() + 1
+   let tempDay = td.getDate()
+   let outDate = td.getFullYear() + '-' + paddy(tempMonth,2) + '-' + paddy(tempDay,2)
+   return outDate;
+}
+
+function _lookup(event) {
     let url = '/getConfigRec';
     fetch(url)
      .then(response => {
@@ -85,22 +100,6 @@
          updateDisplay.innerHTML = "Fetch data FAILED - check log";
      });
  }
-
-
- function paddy(num, padlen, padchar) {
-     var pad_char = typeof padchar !== 'undefined' ? padchar : '0';
-     var pad = new Array(1 + padlen).join(pad_char);
-     return (pad + num).slice(-pad.length);
- }
-
- function _addDays(inDate, days) {
-    let td = new Date(inDate)
-    td.setDate(td.getDate() + (parseInt(days)+1))
-    let tempMonth = td.getMonth() + 1
-    let tempDay = td.getDate()
-    let outDate = td.getFullYear() + '-' + paddy(tempMonth,2) + '-' + paddy(tempDay,2)
-    return outDate;
-}
 
  function _update(event) {
     // Update other dates based on planting date
