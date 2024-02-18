@@ -39,6 +39,7 @@ export function daysFromDate(dateStr) {
     let date1 = new Date(dateStr);
     let date2 = new Date();
 
+    // getTime() returns the number of milliseconds since January 1, 1970 00:00:00
     // Calculating the time difference
     // of two dates
     let Difference_In_Time =

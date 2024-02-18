@@ -109,6 +109,8 @@ Modification History
 2024-02-07 JJK  Implemented use of Config Record (cr) structure to keep
                 local variables
 2024-02-17 JJK  Got RequestCommand working again (added to cr and handling)
+2024-02-18 JJK  Added switches for logging and images, and a next water
+                to get water timing ok even if system reboots
 =============================================================================*/
 
 import 'dotenv/config'
@@ -180,8 +182,8 @@ var cr = {
     logMetricInterval: 30,
     loggingOn: 0,
     selfieOn: 0,
-    currTemperature: 77,
     targetTemperature: 77,
+    currTemperature: 77.1,
     airInterval: 1.0,
     airDuration: 1.0,
     heatInterval: 1.0,
@@ -189,8 +191,8 @@ var cr = {
     waterInterval: 4.0,
     waterDuration: 5.0,
     lightDuration: 20.0,
-	lastUpdateTs: '2000-01-01 01:01:01',
-    lastWaterTs: '2000-01-01 01:01:01',
+	lastUpdateTs: getDateStr(),
+    lastWaterTs: getDateStr(),
     lastWaterSecs: 10,
     requestCommand: '',
     requestValue: ''
@@ -199,8 +201,19 @@ var cr = {
 var board = null
 var relays = null
 
-log(">>> Starting server.mjs...")
+function msToNextWatering(lastWaterTs,waterInterval) {
+    let date1 = new Date(lastWaterTs);
+    let date2 = new Date();
+    let msSinceLastWatering = date2.getTime() - date1.getTime();
+    let msToNext = (waterInterval * hoursToMilliseconds) - msSinceLastWatering
+    if (msToNext < 5000) {
+        msToNext = 5000
+    }
 
+    return msToNext
+}
+
+log(">>> Starting server.mjs...")
 // Get parameter values from the server DB when the program starts
 initConfigQuery()
 function initConfigQuery() {
@@ -211,7 +224,6 @@ function initConfigQuery() {
         }
     })
 }
-
 
 // Create Johnny-Five board object
 // When running Johnny-Five programs as a sub-process (eg. init.d, or npm scripts), 
@@ -267,8 +279,10 @@ board.on("ready", () => {
     // Start sending metrics 10 seconds after starting (so things are calm)
     setTimeout(logMetric, 10000)
 
-    // Trigger the watering on the watering interval (using cr.heatDurationMax for watering interval right now)
-    setTimeout(triggerWatering, cr.waterInterval * hoursToMilliseconds)
+    // Trigger the next watering based on the watering interval and last watering timestamp
+    //setTimeout(triggerWatering, cr.waterInterval * hoursToMilliseconds)
+    let tempMs = msToNextWatering(cr.lastWaterTs,cr.waterInterval)
+    setTimeout(triggerWatering, tempMs)
 
     log("Triggering Selfie interval")
     setTimeout(triggerSelfie, 9000)
@@ -535,8 +549,10 @@ function waterThePlants() {
 
         cr.lastWaterTs = getDateStr()
         cr.lastWaterSecs = cr.waterDuration
-        // update
-
+        cr.lastUpdateTs = cr.lastWaterTs
+        // Update values back into server DB
+        updateParams(cr)
+        log("***** Updated lastWaterTs and Secs in DB")
 
         log(">>> Triggering REBOOT after watering")
         // Reboot the system 5 seconds after turning off the water
@@ -595,13 +611,11 @@ app.post('/updConfigRec', function routeHandler(req, res) {
     cr.waterInterval = parseFloat(req.body.waterInterval)
 
     cr.loggingOn = parseInt(req.body.loggingOn)
-    log(`in Update, cr.loggingOn = ${cr.loggingOn}`)
+    //log(`in Update, cr.loggingOn = ${cr.loggingOn}`)
     cr.selfieOn = parseInt(req.body.selfieOn)
-    log(`in Update, cr.selfieOn = ${cr.selfieOn}`)
+    //log(`in Update, cr.selfieOn = ${cr.selfieOn}`)
 
     cr.lastUpdateTs = getDateStr()
-
-    //cr.logMetricInterval = parseInt(rows[0].LogMetricInterval)
 
     // Set parameters according to days since planting
 	cr = autoSetParams(cr)

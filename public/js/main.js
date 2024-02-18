@@ -24,6 +24,8 @@
  * 2024-02-03 JJK   Modified to keep a local Config Record as the source of
  *                  truth for operations and display, instead of the DB
  *                  storage record - which is used for storage and updates
+ * 2024-02-18 JJK   Added switches for logging and images, and a next water
+ *                  to get water timing ok even if system reboots
  *============================================================================*/
 
  var configDesc = document.getElementById("configDesc")
