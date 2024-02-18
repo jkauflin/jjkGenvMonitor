@@ -57,6 +57,12 @@
  var waterButton = document.getElementById("WaterButton")
  var GetSelfieButton = document.getElementById("GetSelfieButton")
 
+ var loggingSwitch = document.getElementById("loggingSwitch")
+ var imagesSwitch = document.getElementById("imagesSwitch")
+ loggingSwitch.checked = false;
+ imagesSwitch.checked = false;
+
+
  //=================================================================================================================
  // Bind events
  getDataButton.addEventListener("click", _lookup);
@@ -122,7 +128,9 @@ function _lookup(event) {
         heatDuration: heatDuration.value,
         waterDuration: waterDuration.value,
         waterInterval: waterInterval.value,
-        configCheckInterval: configCheckInterval.value
+        configCheckInterval: configCheckInterval.value,
+        loggingOn: Number(loggingSwitch.checked),
+        selfieOn: Number(imagesSwitch.checked)
      }
      fetch(url, {
         method: 'POST',
@@ -220,6 +228,17 @@ function _lookup(event) {
         lastUpdateTs.value = cr.lastUpdateTs
         lastWaterTs.value = cr.lastWaterTs
         lastWaterSecs.value = cr.lastWaterSecs
+
+        if (cr.loggingOn) {
+            loggingSwitch.checked = true;
+        } else {
+            loggingSwitch.checked = false;
+        }
+        if (cr.selfieOn) {
+            imagesSwitch.checked = true;
+        } else {
+            imagesSwitch.checked = false;
+        }
      }
  }
 

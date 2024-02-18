@@ -594,6 +594,11 @@ app.post('/updConfigRec', function routeHandler(req, res) {
     cr.waterDuration = parseFloat(req.body.waterDuration)
     cr.waterInterval = parseFloat(req.body.waterInterval)
 
+    cr.loggingOn = parseInt(req.body.loggingOn)
+    log(`in Update, cr.loggingOn = ${cr.loggingOn}`)
+    cr.selfieOn = parseInt(req.body.selfieOn)
+    log(`in Update, cr.selfieOn = ${cr.selfieOn}`)
+
     cr.lastUpdateTs = getDateStr()
 
     //cr.logMetricInterval = parseInt(rows[0].LogMetricInterval)
