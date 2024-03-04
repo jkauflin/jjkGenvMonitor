@@ -59,7 +59,7 @@ export function autoSetParams(cr) {
     return cr
 }
 
-export async function getConfig(cr) {
+export async function getConfig(cr,initialGet=false) {
 	let conn
 	try {
 		// establish a connection to MariaDB
@@ -73,7 +73,7 @@ export async function getConfig(cr) {
 		  dateStrings: true  
 		})
 
-		var query = "SELECT * FROM genvMonitorConfig WHERE ConfigId = 1;"
+		var query = "SELECT * FROM genvMonitorConfigXXX WHERE ConfigId = 1;"
 		var rows = await conn.query(query)
 		if (rows.length > 0) {
 			cr.configDesc = rows[0].ConfigDesc
@@ -112,9 +112,12 @@ export async function getConfig(cr) {
 			[cr.currTemperature,cr.lightDuration,cr.waterDuration,cr.waterInterval,cr.lastWaterTs,cr.lastWaterSecs,cr.lastUpdateTs,1])
 
 	} catch (err) {
-		//throw err;
-		// Just log the error instead of throwing for now
-		console.log("in getConfig, "+err)
+		if (initialGet) {
+			console.log("ERR in getConfig (during init - will THROW ERR), "+err)
+			throw err;
+		} else {
+			console.log("ERR in getConfig (will just continue), "+err)
+		}
 	} finally {
 	  	if (conn) {
 			conn.close()

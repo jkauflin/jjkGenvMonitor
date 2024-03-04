@@ -218,7 +218,9 @@ log(">>> Starting server.mjs...")
 initConfigQuery()
 function initConfigQuery() {
     log("Initial Config Query")
-    getConfig(cr).then(outCR => {
+    // Setting the 2nd parameter to "true" will cause errors to be THROWN, and the system to reboot
+    // cannot continue unless you have a good initial load of configuration parameters from the server data source
+    getConfig(cr,true).then(outCR => {
         if (outCR != null) {
             cr = outCR
         }
@@ -552,7 +554,6 @@ function waterThePlants() {
         cr.lastUpdateTs = cr.lastWaterTs
         // Update values back into server DB
         updateParams(cr)
-        log("***** Updated lastWaterTs and Secs in DB")
 
         log(">>> Triggering REBOOT after watering")
         // Reboot the system 5 seconds after turning off the water
