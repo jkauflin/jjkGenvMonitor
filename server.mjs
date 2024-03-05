@@ -124,7 +124,7 @@ import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 import nodeWebcamPkg from 'enhanced-node-webcam'
 import {log,getDateStr,addDays,daysFromDate} from './util.mjs'
-import {getConfig,updateParams,completeRequest,insertImage,saveImageToFile} from './dataRepository.mjs'
+import {updServerDb,getConfig,updateParams,completeRequest,insertImage,saveImageToFile} from './dataRepository.mjs'
 import express from 'express';
 
 const app = express();
@@ -267,9 +267,8 @@ log(">>> Starting server.mjs...")
 initConfigQuery()
 function initConfigQuery() {
     log("Initial Config Query")
-
     autoSetParams(cr)
-
+    updServerDb(cr)
     /*
     getConfig(cr).then(outCR => {
         if (outCR != null) {
@@ -327,8 +326,8 @@ board.on("ready", () => {
     log("Starting Heat toggle interval")
     setTimeout(toggleHeat, 6000)
 
-    log("Triggering Config Query")
-    setTimeout(triggerConfigQuery, 8000)
+    log("Triggering Server DB update")
+    setTimeout(triggerUpdServerDb, 8000)
 
     // Start sending metrics 10 seconds after starting (so things are calm)
     setTimeout(logMetric, 10000)
@@ -345,8 +344,11 @@ board.on("ready", () => {
     log("End of board.on (initialize) event")
 })
 
-function triggerConfigQuery() {
+function triggerUpdServerDb() {
     //log("Triggering queryConfig, cr.configCheckInterval = "+cr.configCheckInterval)
+    updServerDb(cr)
+    setTimeout(triggerUpdServerDb, cr.configCheckInterval * secondsToMilliseconds)
+
     // Get values from the database
     /*
     getConfig(cr).then(outCR => {
@@ -371,7 +373,7 @@ function triggerConfigQuery() {
             }
         }
 
-        setTimeout(triggerConfigQuery, cr.configCheckInterval * secondsToMilliseconds)
+        setTimeout(triggerUpdServerDb, cr.configCheckInterval * secondsToMilliseconds)
     })
     */
 }
@@ -671,11 +673,6 @@ app.post('/updConfigRec', function routeHandler(req, res) {
     cr.waterDuration = parseFloat(req.body.waterDuration)
     cr.waterInterval = parseFloat(req.body.waterInterval)
 
-    cr.loggingOn = parseInt(req.body.loggingOn)
-    //log(`in Update, cr.loggingOn = ${cr.loggingOn}`)
-    cr.selfieOn = parseInt(req.body.selfieOn)
-    //log(`in Update, cr.selfieOn = ${cr.selfieOn}`)
-
     cr.lastUpdateTs = getDateStr()
 
     // Set parameters according to days since planting
@@ -684,6 +681,11 @@ app.post('/updConfigRec', function routeHandler(req, res) {
     // Update values back into server DB
     updateParams(cr)
     */
+
+    cr.loggingOn = parseInt(req.body.loggingOn)
+    //log(`in Update, cr.loggingOn = ${cr.loggingOn}`)
+    cr.selfieOn = parseInt(req.body.selfieOn)
+    //log(`in Update, cr.selfieOn = ${cr.selfieOn}`)
 
     res.json(cr)
 })

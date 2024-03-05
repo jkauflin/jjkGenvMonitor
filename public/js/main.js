@@ -96,14 +96,10 @@ function _lookup(event) {
 
  function _update(event) {
     // Update other dates based on planting date
-    /*
-    harvestDate.value = _addDays(plantingDate.value,daysToBloom.value)
-    cureDate.value = _addDays(harvestDate.value,14)
-    productionDate.value = _addDays(cureDate.value,14)
-    */
 
     let url = '/updConfigRec';
     let paramData = {
+        /*
         configDesc: configDesc.value,
         daysToBloom: daysToBloom.value,
         daysToGerm: daysToGerm.value,
@@ -118,6 +114,7 @@ function _lookup(event) {
         waterDuration: waterDuration.value,
         waterInterval: waterInterval.value,
         configCheckInterval: configCheckInterval.value,
+        */
         loggingOn: Number(loggingSwitch.checked),
         selfieOn: Number(imagesSwitch.checked)
      }
@@ -140,7 +137,7 @@ function _lookup(event) {
         console.error(`Error in Fetch to ${url}, ${err}`);
         updateDisplay.innerHTML = "Fetch data FAILED - check log";
      });
- }
+}
 
  function _water(event) {
      let url = '/genvWaterOn';

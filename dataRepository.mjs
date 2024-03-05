@@ -12,11 +12,51 @@ Modification History
                 calling code is not going to do anything different)
 2024-02-07 JJK  Modifed to use the new Config Record for getting current
 				values
+2024-03-05 JJK  Modified to get configuration parameters from the .env and
+                auto-calculation (don't count on the server DB for anything).
+				Added a updServerDb function to just update the config
+				parameters into the backend DB
 =============================================================================*/
 import 'dotenv/config'
 import fs, { readFileSync } from 'node:fs'
 import mariadb from 'mariadb';
 import {log,getDateStr,addDays,daysFromDate} from './util.mjs'
+
+// Update configuration parameter values into the backend server database
+export async function updServerDb(cr) {
+	let conn;
+	try {
+		conn = await mariadb.createConnection({ 
+		  host: process.env.DB_HOST,
+		  user: process.env.DB_USER, 
+		  password: process.env.DB_PASS, 
+		  port: process.env.DB_PORT,
+		  database: process.env.DB_NAME,
+		  dateStrings: true  
+		})
+  
+		cr.lastUpdateTs = getDateStr()
+
+		let sqlStr = "UPDATE genvMonitorConfig SET ConfigDesc=?,GerminationStart=?,DaysToGerm=?,PlantingDate=?,HarvestDate=?,CureDate=?"+
+						",ProductionDate=?,DaysToBloom=?,TargetTemperature=?,ConfigCheckInterval=?,HeatInterval=?,HeatDuration=?"+
+						",CurrTemperature=?,LightDuration=?,WaterDuration=?,WaterInterval=?,LastWaterTs=?,LastWaterSecs=?,LastUpdateTs=?"+
+						",LoggingOn=?,SelfieOn=?,AirInterval=?,AirDuration=?,LogMetricInterval=?"+
+						" WHERE ConfigId=?"
+		conn.query(sqlStr, [cr.configDesc,cr.germinationStart,cr.daysToGerm,cr.plantingDate,cr.harvestDate,cr.cureDate,cr.productionDate,
+					cr.daysToBloom,cr.targetTemperature,cr.configCheckInterval,cr.heatInterval,cr.heatDuration,cr.currTemperature,
+					cr.lightDuration,cr.waterDuration,cr.waterInterval,cr.lastWaterTs,cr.lastWaterSecs,cr.lastUpdateTs,
+					cr.loggingOn,cr.selfieOn,cr.airInterval,cr.airDuration,cr.logMetricInterval,1])
+  
+	} catch (err) {
+		//throw err
+		// Just log the error instead of throwing for now
+		console.log("in updServerDb, "+err)
+	} finally {
+		if (conn) {
+			conn.close()
+		}
+	}
+}
 
 
 export async function getConfig(cr) {
@@ -24,6 +64,7 @@ export async function getConfig(cr) {
 	try {
 		// establish a connection to MariaDB
 		//conn = await pool.getConnection();
+		/*
 		conn = await mariadb.createConnection({ 
 		  host: process.env.DB_HOST,
 		  user: process.env.DB_USER, 
@@ -70,6 +111,7 @@ export async function getConfig(cr) {
 		cr.lastUpdateTs = getDateStr()
 		conn.query("UPDATE genvMonitorConfig SET CurrTemperature=?,LightDuration=?,WaterDuration=?,WaterInterval=?,LastWaterTs=?,LastWaterSecs=?,LastUpdateTs=? WHERE ConfigId=?", 
 			[cr.currTemperature,cr.lightDuration,cr.waterDuration,cr.waterInterval,cr.lastWaterTs,cr.lastWaterSecs,cr.lastUpdateTs,1])
+		*/
 
 	} catch (err) {
 		/*
