@@ -16,50 +16,10 @@ Modification History
 import 'dotenv/config'
 import fs, { readFileSync } from 'node:fs'
 import mariadb from 'mariadb';
-import {log,getDateStr,daysFromDate} from './util.mjs'
+import {log,getDateStr,addDays,daysFromDate} from './util.mjs'
 
-// Function to set light and water parameters based on the days from Planting Date
-export function autoSetParams(cr) {
-    let days = daysFromDate(cr.plantingDate)
-    //log("Days from PlantingDate = "+days)
 
-    cr.lightDuration = 18.0
-    if (days > 3) {
-        cr.lightDuration = 20.0
-    }
-
-    cr.waterDuration = 5.0
-    cr.waterInterval = 4.0
-
-    if (days > 40) {
-        cr.waterDuration = 26.0
-        cr.waterInterval = 30.0
-    } else if (days > 30) {
-        cr.waterDuration = 24.0
-        cr.waterInterval = 30.0
-    } else if (days > 20) {
-        cr.waterDuration = 20.0
-        cr.waterInterval = 30.0
-        // *** And add bottom
-    } else if (days > 10) {
-        cr.waterDuration = 16.0
-        cr.waterInterval = 30.0
-    } else if (days > 6) {
-        cr.waterDuration = 8.0
-        cr.waterInterval = 24.0
-    } else if (days > 5) {
-        cr.waterDuration = 6.0
-        cr.waterInterval = 12.0
-    } else if (days > 3) {
-        cr.waterInterval = 8.0
-    } else if (days > 1) {
-        cr.waterInterval = 6.0
-    }
-
-    return cr
-}
-
-export async function getConfig(cr,initialGet=false) {
+export async function getConfig(cr) {
 	let conn
 	try {
 		// establish a connection to MariaDB
@@ -73,7 +33,7 @@ export async function getConfig(cr,initialGet=false) {
 		  dateStrings: true  
 		})
 
-		var query = "SELECT * FROM genvMonitorConfigXXX WHERE ConfigId = 1;"
+		var query = "SELECT * FROM genvMonitorConfig WHERE ConfigId = 1;"
 		var rows = await conn.query(query)
 		if (rows.length > 0) {
 			cr.configDesc = rows[0].ConfigDesc
@@ -104,7 +64,7 @@ export async function getConfig(cr,initialGet=false) {
 		}
   
 		// Set parameters according to days since planting
-		cr = autoSetParams(cr)
+		//cr = autoSetParams(cr)
 
 		// Update params back into the server DB
 		cr.lastUpdateTs = getDateStr()
@@ -112,12 +72,14 @@ export async function getConfig(cr,initialGet=false) {
 			[cr.currTemperature,cr.lightDuration,cr.waterDuration,cr.waterInterval,cr.lastWaterTs,cr.lastWaterSecs,cr.lastUpdateTs,1])
 
 	} catch (err) {
+		/*
 		if (initialGet) {
 			console.log("ERR in getConfig (during init - will THROW ERR), "+err)
 			throw err;
 		} else {
-			console.log("ERR in getConfig (will just continue), "+err)
 		}
+		*/
+		console.log("ERR in getConfig (will just continue), "+err)
 	} finally {
 	  	if (conn) {
 			conn.close()

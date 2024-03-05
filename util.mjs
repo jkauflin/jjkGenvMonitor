@@ -35,6 +35,15 @@ export function getDateStr() {
     return(dateStr)
 }
 
+export function addDays(inDate, days) {
+   let td = new Date(inDate)
+   td.setDate(td.getDate() + (parseInt(days)+1))
+   let tempMonth = td.getMonth() + 1
+   let tempDay = td.getDate()
+   let outDate = td.getFullYear() + '-' + paddy(tempMonth,2) + '-' + paddy(tempDay,2)
+   return outDate;
+}
+
 export function daysFromDate(dateStr) {
     let date1 = new Date(dateStr);
     let date2 = new Date();

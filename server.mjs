@@ -111,6 +111,8 @@ Modification History
 2024-02-17 JJK  Got RequestCommand working again (added to cr and handling)
 2024-02-18 JJK  Added switches for logging and images, and a next water
                 to get water timing ok even if system reboots
+2024-03-05 JJK  Modified to get configuration parameters from the .env and
+                auto-calculation (don't count on the server DB for anything)
 =============================================================================*/
 
 import 'dotenv/config'
@@ -121,8 +123,8 @@ import { Buffer } from 'node:buffer'
 import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 import nodeWebcamPkg from 'enhanced-node-webcam'
-import {log,getDateStr} from './util.mjs'
-import {autoSetParams,getConfig,updateParams,completeRequest,insertImage,saveImageToFile} from './dataRepository.mjs'
+import {log,getDateStr,addDays,daysFromDate} from './util.mjs'
+import {getConfig,updateParams,completeRequest,insertImage,saveImageToFile} from './dataRepository.mjs'
 import express from 'express';
 
 const app = express();
@@ -170,33 +172,80 @@ var currLightsVal = OFF
 
 // Configuration parameters for operations (also stored in server database)
 var cr = {
-    configDesc: 'Description',
-    daysToGerm: '2 to 7 days to crack open, 1 or 2 for tap root',
-    daysToBloom: 75,
-    germinationStart: '2000-01-01',
-    plantingDate: '2000-01-01',
-    harvestDate: '2000-01-01',
-    cureDate: '2000-01-01',
-    productionDate: '2000-01-01',
-    configCheckInterval: 500,
-    logMetricInterval: 30,
-    loggingOn: 0,
-    selfieOn: 0,
-    targetTemperature: 77,
-    currTemperature: 77.1,
-    airInterval: 1.0,
-    airDuration: 1.0,
-    heatInterval: 1.0,
-    heatDuration: 2.0,
-    waterInterval: 4.0,
-    waterDuration: 5.0,
-    lightDuration: 20.0,
+    configDesc: process.env.configDesc,
+    daysToGerm: process.env.daysToGerm,
+    daysToBloom: parseInt(process.env.daysToBloom),
+    germinationStart: process.env.germinationStart,
+    plantingDate: process.env.plantingDate,
+    harvestDate: '2099-01-01',
+    cureDate: '2099-01-01',
+    productionDate: '2099-01-01',
+    configCheckInterval: parseInt(process.env.configCheckInterval),
+    logMetricInterval: parseInt(process.env.logMetricInterval),
+    loggingOn: parseInt(process.env.loggingOn),
+    selfieOn: parseInt(process.env.selfieOn),
+    targetTemperature: parseInt(process.env.targetTemperature),
+    currTemperature: 0,
+    airInterval: parseFloat(process.env.airInterval),
+    airDuration: parseFloat(process.env.airDuration),
+    heatInterval: parseFloat(process.env.heatInterval),
+    heatDuration: parseFloat(process.env.heatDuration),
+    waterInterval: parseFloat(process.env.waterInterval),
+    waterDuration: parseFloat(process.env.waterDuration),
+    lightDuration: parseFloat(process.env.lightDuration),
 	lastUpdateTs: getDateStr(),
     lastWaterTs: getDateStr(),
-    lastWaterSecs: 10,
+    lastWaterSecs: 0,
     requestCommand: '',
     requestValue: ''
 }
+
+// Function to set light and water parameters based on the days from Planting Date
+function autoSetParams(cr) {
+    let days = daysFromDate(cr.plantingDate)
+    //log("Days from PlantingDate = "+days)
+
+    // Update other dates based on planting date
+    cr.harvestDate = addDays(cr.plantingDate,cr.daysToBloom)
+    cr.cureDate = addDays(cr.harvestDate,14)
+    cr.productionDate = addDays(cr.cureDate,14)
+
+    cr.lightDuration = 18.0
+    if (days > 3) {
+        cr.lightDuration = 20.0
+    }
+
+    cr.waterDuration = 5.0
+    cr.waterInterval = 4.0
+
+    if (days > 40) {
+        cr.waterDuration = 26.0
+        cr.waterInterval = 30.0
+    } else if (days > 30) {
+        cr.waterDuration = 24.0
+        cr.waterInterval = 30.0
+    } else if (days > 20) {
+        cr.waterDuration = 20.0
+        cr.waterInterval = 30.0
+        // *** And add bottom
+    } else if (days > 10) {
+        cr.waterDuration = 16.0
+        cr.waterInterval = 30.0
+    } else if (days > 6) {
+        cr.waterDuration = 8.0
+        cr.waterInterval = 24.0
+    } else if (days > 5) {
+        cr.waterDuration = 6.0
+        cr.waterInterval = 12.0
+    } else if (days > 3) {
+        cr.waterInterval = 8.0
+    } else if (days > 1) {
+        cr.waterInterval = 6.0
+    }
+
+    return cr
+}
+
 
 var board = null
 var relays = null
@@ -218,13 +267,16 @@ log(">>> Starting server.mjs...")
 initConfigQuery()
 function initConfigQuery() {
     log("Initial Config Query")
-    // Setting the 2nd parameter to "true" will cause errors to be THROWN, and the system to reboot
-    // cannot continue unless you have a good initial load of configuration parameters from the server data source
-    getConfig(cr,true).then(outCR => {
+
+    autoSetParams(cr)
+
+    /*
+    getConfig(cr).then(outCR => {
         if (outCR != null) {
             cr = outCR
         }
     })
+    */
 }
 
 // Create Johnny-Five board object
@@ -296,6 +348,7 @@ board.on("ready", () => {
 function triggerConfigQuery() {
     //log("Triggering queryConfig, cr.configCheckInterval = "+cr.configCheckInterval)
     // Get values from the database
+    /*
     getConfig(cr).then(outCR => {
         if (outCR != null) {
             cr = outCR
@@ -312,12 +365,15 @@ function triggerConfigQuery() {
                 } 
                 // >>>>>> put selfie request back in????
     
+                // >>>>>> accept REBOOT request ???  
+
                 completeRequest(returnMessage)
             }
         }
 
         setTimeout(triggerConfigQuery, cr.configCheckInterval * secondsToMilliseconds)
     })
+    */
 }
 
 function _letMeTakeASelfie() {
@@ -479,7 +535,7 @@ function toggleHeat() {
         heatTimeout = cr.heatInterval + heatIntervalAdjustment
     }
 
-    //log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
+    log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
 
     // Recursively call the function with the current timeout value  
     setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds)
@@ -510,7 +566,7 @@ function logMetric() {
         + "," + relayNames[2] + ":" + relayMetricValues[2]
         + "," + relayNames[3] + ":" + relayMetricValues[3]
         + "}";
-    //log(`metricJSON = ${metricJSON}`)
+    log(`metricJSON = ${metricJSON}`)
     let emoncmsUrl = process.env.EMONCMS_INPUT_URL + "&json=" + metricJSON
 
     // Use this if we need to limit the send to between the hours of 6 and 20
@@ -552,12 +608,15 @@ function waterThePlants() {
         cr.lastWaterTs = getDateStr()
         cr.lastWaterSecs = cr.waterDuration
         cr.lastUpdateTs = cr.lastWaterTs
+
         // Update values back into server DB
+        /*
         updateParams(cr)
 
         log(">>> Triggering REBOOT after watering")
         // Reboot the system 5 seconds after turning off the water
         setTimeout(rebootSystem, 5000)
+        */
 
     }, cr.waterDuration * secondsToMilliseconds)
 }
@@ -595,6 +654,7 @@ app.get('/getConfigRec', function routeHandler(req, res) {
 
 app.post('/updConfigRec', function routeHandler(req, res) {
     // update the params from web values
+    /*
     cr.configDesc = req.body.configDesc
     cr.germinationStart = req.body.germinationStart
     cr.daysToGerm = req.body.daysToGerm
@@ -623,6 +683,7 @@ app.post('/updConfigRec', function routeHandler(req, res) {
 
     // Update values back into server DB
     updateParams(cr)
+    */
 
     res.json(cr)
 })
