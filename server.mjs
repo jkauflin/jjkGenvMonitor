@@ -185,7 +185,7 @@ var cr = {
     loggingOn: parseInt(process.env.loggingOn),
     selfieOn: parseInt(process.env.selfieOn),
     targetTemperature: parseInt(process.env.targetTemperature),
-    currTemperature: 0,
+    currTemperature: parseInt(process.env.targetTemperature),
     airInterval: parseFloat(process.env.airInterval),
     airDuration: parseFloat(process.env.airDuration),
     heatInterval: parseFloat(process.env.heatInterval),
