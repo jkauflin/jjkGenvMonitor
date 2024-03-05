@@ -345,7 +345,7 @@ board.on("ready", () => {
 })
 
 function triggerUpdServerDb() {
-    //log("Triggering queryConfig, cr.configCheckInterval = "+cr.configCheckInterval)
+    log("Triggering updServerDb, cr.configCheckInterval = "+cr.configCheckInterval)
     updServerDb(cr)
     setTimeout(triggerUpdServerDb, cr.configCheckInterval * secondsToMilliseconds)
 
@@ -509,7 +509,8 @@ function toggleHeat() {
     let heatTimeout = 1.0
     let heatDurationAdjustment = 0.0
     let heatIntervalAdjustment = 0.0
-    let heatAdjustmentMax = 0.8
+    //let heatAdjustmentMax = 0.8
+    let heatAdjustmentMax = 1.0
 
     // Check the temperature and adjust the timeout values
     if (cr.currTemperature > (cr.targetTemperature + 0.5)) {
@@ -611,6 +612,8 @@ function waterThePlants() {
         cr.lastWaterSecs = cr.waterDuration
         cr.lastUpdateTs = cr.lastWaterTs
 
+        updServerDb(cr)
+
         // Update values back into server DB
         /*
         updateParams(cr)
@@ -686,6 +689,8 @@ app.post('/updConfigRec', function routeHandler(req, res) {
     //log(`in Update, cr.loggingOn = ${cr.loggingOn}`)
     cr.selfieOn = parseInt(req.body.selfieOn)
     //log(`in Update, cr.selfieOn = ${cr.selfieOn}`)
+
+    updServerDb(cr)
 
     res.json(cr)
 })
