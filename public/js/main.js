@@ -108,13 +108,13 @@ function _lookup(event) {
         harvestDate: harvestDate.value,
         cureDate: cureDate.value,
         productionDate: productionDate.value,
+        */
         targetTemperature: targetTemperature.value,
         heatInterval: heatInterval.value,
         heatDuration: heatDuration.value,
         waterDuration: waterDuration.value,
         waterInterval: waterInterval.value,
         configCheckInterval: configCheckInterval.value,
-        */
         loggingOn: Number(loggingSwitch.checked),
         selfieOn: Number(imagesSwitch.checked)
      }

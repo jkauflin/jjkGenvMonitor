@@ -509,7 +509,6 @@ function toggleHeat() {
     let heatTimeout = 1.0
     let heatDurationAdjustment = 0.0
     let heatIntervalAdjustment = 0.0
-    //let heatAdjustmentMax = 0.8
     let heatAdjustmentMax = 1.0
 
     // Check the temperature and adjust the timeout values
@@ -616,8 +615,6 @@ function waterThePlants() {
 
         // Update values back into server DB
         /*
-        updateParams(cr)
-
         log(">>> Triggering REBOOT after watering")
         // Reboot the system 5 seconds after turning off the water
         setTimeout(rebootSystem, 5000)
@@ -667,23 +664,19 @@ app.post('/updConfigRec', function routeHandler(req, res) {
     cr.harvestDate = req.body.harvestDate
     cr.cureDate = req.body.cureDate
     cr.productionDate = req.body.productionDate
-
     cr.daysToBloom = parseInt(req.body.daysToBloom)
+    cr.lastUpdateTs = getDateStr()
+    // Set parameters according to days since planting
+	cr = autoSetParams(cr)
+    // Update values back into server DB
+    updateParams(cr)
+    */
     cr.targetTemperature = parseInt(req.body.targetTemperature)
     cr.configCheckInterval = parseInt(req.body.configCheckInterval)
     cr.heatInterval = parseFloat(req.body.heatInterval)
     cr.heatDuration = parseFloat(req.body.heatDuration)
     cr.waterDuration = parseFloat(req.body.waterDuration)
     cr.waterInterval = parseFloat(req.body.waterInterval)
-
-    cr.lastUpdateTs = getDateStr()
-
-    // Set parameters according to days since planting
-	cr = autoSetParams(cr)
-
-    // Update values back into server DB
-    updateParams(cr)
-    */
 
     cr.loggingOn = parseInt(req.body.loggingOn)
     //log(`in Update, cr.loggingOn = ${cr.loggingOn}`)
