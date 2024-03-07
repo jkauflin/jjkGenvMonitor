@@ -195,7 +195,7 @@ var cr = {
     lightDuration: parseFloat(process.env.lightDuration),
 	lastUpdateTs: getDateStr(),
     lastWaterTs: getDateStr(),
-    lastWaterSecs: 0,
+    lastWaterSecs: 0.0,
     requestCommand: '',
     requestValue: ''
 }
@@ -345,7 +345,7 @@ board.on("ready", () => {
 })
 
 function triggerUpdServerDb() {
-    log("Triggering updServerDb, cr.configCheckInterval = "+cr.configCheckInterval)
+    //log("Triggering updServerDb, cr.configCheckInterval = "+cr.configCheckInterval)
     updServerDb(cr)
     setTimeout(triggerUpdServerDb, cr.configCheckInterval * secondsToMilliseconds)
 
@@ -537,7 +537,7 @@ function toggleHeat() {
         heatTimeout = cr.heatInterval + heatIntervalAdjustment
     }
 
-    log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
+    //log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
 
     // Recursively call the function with the current timeout value  
     setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds)
@@ -568,7 +568,7 @@ function logMetric() {
         + "," + relayNames[2] + ":" + relayMetricValues[2]
         + "," + relayNames[3] + ":" + relayMetricValues[3]
         + "}";
-    log(`metricJSON = ${metricJSON}`)
+    //log(`metricJSON = ${metricJSON}`)
     let emoncmsUrl = process.env.EMONCMS_INPUT_URL + "&json=" + metricJSON
 
     // Use this if we need to limit the send to between the hours of 6 and 20
