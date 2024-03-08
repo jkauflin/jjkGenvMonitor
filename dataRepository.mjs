@@ -16,6 +16,8 @@ Modification History
                 auto-calculation (don't count on the server DB for anything).
 				Added a updServerDb function to just update the config
 				parameters into the backend DB
+2024-03-08 JJK  Added an option of connectTimeout to createConnection and
+				changed from default 1000 to 3000 (3 seconds to connect)
 =============================================================================*/
 import 'dotenv/config'
 import fs, { readFileSync } from 'node:fs'
@@ -32,6 +34,7 @@ export async function updServerDb(cr) {
 		  password: process.env.DB_PASS, 
 		  port: process.env.DB_PORT,
 		  database: process.env.DB_NAME,
+		  connectTimeout: 3000,
 		  dateStrings: true  
 		})
   
@@ -71,6 +74,7 @@ export async function getConfig(cr) {
 		  password: process.env.DB_PASS, 
 		  port: process.env.DB_PORT,
 		  database: process.env.DB_NAME,
+		  connectTimeout: 3000,
 		  dateStrings: true  
 		})
 
@@ -140,6 +144,7 @@ export async function updateParams(cr) {
 		  password: process.env.DB_PASS, 
 		  port: process.env.DB_PORT,
 		  database: process.env.DB_NAME,
+		  connectTimeout: 3000,
 		  dateStrings: true  
 		})
   
@@ -173,6 +178,7 @@ export async function completeRequest(returnMessage) {
 		  password: process.env.DB_PASS, 
 		  port: process.env.DB_PORT,
 		  database: process.env.DB_NAME,
+		  connectTimeout: 3000,
 		  dateStrings: true  
 		})
   
@@ -200,6 +206,7 @@ export async function insertImage(base64ImgData) {
 		  password: process.env.DB_PASS, 
 		  port: process.env.DB_PORT,
 		  database: process.env.DB_NAME,
+		  connectTimeout: 3000,
 		  dateStrings: true  
 		})
   
@@ -234,6 +241,7 @@ export async function saveImageToFile() {
 		  password: process.env.DB_PASS, 
 		  port: process.env.DB_PORT,
 		  database: process.env.DB_NAME,
+		  connectTimeout: 3000,
 		  dateStrings: true  
 		})
   

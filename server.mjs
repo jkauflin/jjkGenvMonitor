@@ -435,7 +435,7 @@ function triggerSelfie() {
 
 function triggerWatering() {
     // Water the plant for the set water duration seconds
-    log(">>> Starting to water the plants ")
+    //log(">>> Starting to water the plants ")
     setTimeout(waterThePlants, 500)
 
     // Recursively call the function with the watering interval
@@ -604,7 +604,7 @@ function waterThePlants() {
     log(">>> Watering the plants, cr.waterDuration = "+cr.waterDuration)
     setRelay(WATER,ON)
     setTimeout(() => {
-        log("Watering the plants OFF")
+        //log("Watering the plants OFF")
         setRelay(WATER,OFF)
 
         cr.lastWaterTs = getDateStr()
