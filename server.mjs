@@ -229,11 +229,15 @@ function autoSetParams(cr) {
         cr.waterInterval = 30.0
         // *** And add bottom
     } else if (days > 10) {
-        cr.waterDuration = 16.0
-        cr.waterInterval = 30.0
+        //cr.waterDuration = 16.0
+        //cr.waterInterval = 30.0
+        cr.waterDuration = 5.0
+        cr.waterInterval = 10.0
     } else if (days > 6) {
-        cr.waterDuration = 8.0
-        cr.waterInterval = 24.0
+        //cr.waterDuration = 8.0
+        //cr.waterInterval = 24.0
+        cr.waterDuration = 5.0
+        cr.waterInterval = 10.0
     } else if (days > 5) {
         cr.waterDuration = 6.0
         cr.waterInterval = 12.0
