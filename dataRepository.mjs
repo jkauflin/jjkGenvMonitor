@@ -18,14 +18,16 @@ Modification History
 				parameters into the backend DB
 2024-03-08 JJK  Added an option of connectTimeout to createConnection and
 				changed from default 1000 to 3000 (3 seconds to connect)
+2024-12-22 JJK  Working on migration to Azure
 =============================================================================*/
 import 'dotenv/config'
 import fs, { readFileSync } from 'node:fs'
-import mariadb from 'mariadb';
+//import mariadb from 'mariadb';
 import {log,getDateStr,addDays,daysFromDate} from './util.mjs'
 
 // Update configuration parameter values into the backend server database
 export async function updServerDb(cr) {
+	/*
 	let conn;
 	try {
 		conn = await mariadb.createConnection({ 
@@ -59,11 +61,12 @@ export async function updServerDb(cr) {
 			conn.close()
 		}
 	}
+	*/
 }
 
 
 export async function getConfig(cr) {
-	let conn
+	//let conn
 	try {
 		// establish a connection to MariaDB
 		//conn = await pool.getConnection();
@@ -127,15 +130,18 @@ export async function getConfig(cr) {
 		*/
 		console.log("ERR in getConfig (will just continue), "+err)
 	} finally {
+		/*
 	  	if (conn) {
 			conn.close()
 		}
+		*/
 	}
   
 	return cr;
 }
 
 export async function updateParams(cr) {
+	/*
 	let conn;
 	try {
 		conn = await mariadb.createConnection({ 
@@ -167,9 +173,11 @@ export async function updateParams(cr) {
 			conn.close()
 		}
 	}
+	*/
 }
 
 export async function completeRequest(returnMessage) {
+	/*
 	let conn;
 	try {
 		conn = await mariadb.createConnection({ 
@@ -195,9 +203,11 @@ export async function completeRequest(returnMessage) {
 			conn.close()
 		}
 	}
+	*/
 }
 
 export async function insertImage(base64ImgData) {
+	/*
 	let conn;
 	try {
 		conn = await mariadb.createConnection({ 
@@ -230,9 +240,11 @@ export async function insertImage(base64ImgData) {
 			conn.close()
 		}
 	}
+	*/
 }
 
 export async function saveImageToFile() {
+	/*
 	let conn;
 	try {
 		conn = await mariadb.createConnection({ 
@@ -278,5 +290,6 @@ export async function saveImageToFile() {
 			conn.close()
 		}
 	}
+	*/
 }
 

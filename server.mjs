@@ -113,6 +113,7 @@ Modification History
                 to get water timing ok even if system reboots
 2024-03-05 JJK  Modified to get configuration parameters from the .env and
                 auto-calculation (don't count on the server DB for anything)
+2024-12-22 JJK  Migration to Azure
 =============================================================================*/
 
 import 'dotenv/config'
@@ -541,7 +542,7 @@ function toggleHeat() {
         heatTimeout = cr.heatInterval + heatIntervalAdjustment
     }
 
-    //log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
+    log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
 
     // Recursively call the function with the current timeout value  
     setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds)
@@ -581,9 +582,11 @@ function logMetric() {
 
     // https call to send metric data to emoncms
     if (cr.loggingOn) {
+        /*
         fetch(emoncmsUrl)
         .then(checkResponseStatus)
         .catch(err => tempLogErr(err));
+        */
     }
    
     // Set the next time the function will run
@@ -712,5 +715,4 @@ app.post('/genvWaterOn', function routeHandler(req, res) {
     _waterOn(waterSecs) 
     res.send(`Water turned ON for ${waterSecs} seconds`)
 })
-
 
