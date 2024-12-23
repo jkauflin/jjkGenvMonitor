@@ -25,6 +25,14 @@ import fs, { readFileSync } from 'node:fs'
 //import mariadb from 'mariadb';
 import {log,getDateStr,addDays,daysFromDate} from './util.mjs'
 
+
+const { CosmosClient } = require("@azure/cosmos");
+
+const endpoint = "https://your-account.documents.azure.com";
+const key = "<database account masterkey>";
+const client = new CosmosClient({ endpoint, key });
+
+
 // Update configuration parameter values into the backend server database
 export async function updServerDb(cr) {
 	/*
@@ -68,6 +76,28 @@ export async function updServerDb(cr) {
 export async function getConfig(cr) {
 	//let conn
 	try {
+
+		/*
+		const { resources } = await container.items
+		.query("SELECT * from c WHERE c.active = true", {
+				partitionKey: ["foo", 100],
+			  })
+		.fetchAll();
+	  	for (const item of resources) {
+			console.log(`${item.name}, ${item.address.zip} `);
+	  	}
+
+		  const { resources } = await container.items
+		  .query({
+			query: "SELECT * from c WHERE c.isCapitol = @isCapitol",
+			parameters: [{ name: "@isCapitol", value: true }]
+		  })
+		  .fetchAll();
+		for (const city of resources) {
+		  console.log(`${city.name}, ${city.state} is a capitol `);
+		}
+		*/
+
 		// establish a connection to MariaDB
 		//conn = await pool.getConnection();
 		/*
@@ -208,6 +238,16 @@ export async function completeRequest(returnMessage) {
 
 export async function insertImage(base64ImgData) {
 	/*
+
+const cities = [
+  { id: "1", name: "Olympia", state: "WA", isCapitol: true },
+  { id: "2", name: "Redmond", state: "WA", isCapitol: false },
+  { id: "3", name: "Chicago", state: "IL", isCapitol: false }
+];
+for (const city of cities) {
+  await container.items.create(city);
+}
+
 	let conn;
 	try {
 		conn = await mariadb.createConnection({ 

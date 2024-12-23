@@ -573,7 +573,7 @@ function logMetric() {
         + "," + relayNames[2] + ":" + relayMetricValues[2]
         + "," + relayNames[3] + ":" + relayMetricValues[3]
         + "}";
-    //log(`metricJSON = ${metricJSON}`)
+    log(`metricJSON = ${metricJSON}`)
     let emoncmsUrl = process.env.EMONCMS_INPUT_URL + "&json=" + metricJSON
 
     // Use this if we need to limit the send to between the hours of 6 and 20
