@@ -26,6 +26,7 @@
  *                  storage record - which is used for storage and updates
  * 2024-02-18 JJK   Added switches for logging and images, and a next water
  *                  to get water timing ok even if system reboots
+ * 2024-12-23 JJK   Migration to Azure and Cosmos DB NoSQL
  *============================================================================*/
 
  var configDesc = document.getElementById("configDesc")

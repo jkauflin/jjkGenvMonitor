@@ -173,6 +173,8 @@ var currLightsVal = OFF
 
 // Configuration parameters for operations (also stored in server database)
 var cr = {
+    id: '1',
+	ConfigId: 1,
     configDesc: process.env.configDesc,
     daysToGerm: process.env.daysToGerm,
     daysToBloom: parseInt(process.env.daysToBloom),
@@ -200,6 +202,39 @@ var cr = {
     requestCommand: '',
     requestValue: ''
 }
+
+var gmp = {
+    id: 'guid',
+	PointDay: 1,
+    targetTemperature: parseInt(process.env.targetTemperature),
+    currTemperature: parseInt(process.env.targetTemperature),
+    airInterval: parseFloat(process.env.airInterval),
+    airDuration: parseFloat(process.env.airDuration),
+    heatInterval: parseFloat(process.env.heatInterval),
+    heatDuration: parseFloat(process.env.heatDuration),
+    waterInterval: parseFloat(process.env.waterInterval),
+    waterDuration: parseFloat(process.env.waterDuration),
+    lightDuration: parseFloat(process.env.lightDuration),
+	lastUpdateTs: getDateStr(),
+    lastWaterTs: getDateStr(),
+    lastWaterSecs: 0.0
+}
+
+/*
+
+int ConfigId
+
+public class MetricPoint
+{
+    public string? id { get; set; }                      // GUID
+    public int PointDay { get; set; }                   // partitionKey (timestamp day value yyyyMMdd)   /PointDay
+    public DateTime PointDateTime { get; set; }
+    public long PointYearMonth { get; set; }            // int.Parse(takenDT.ToString("yyyyMM"))
+    public long PointDayTime { get; set; }              // int.Parse(takenDT.ToString("yyHHmmss"))
+    public string? pvVolts { get; set; }
+    public string? pvAmps { get; set; }
+    public string? pvWatts { get; set; }
+*/
 
 // Function to set light and water parameters based on the days from Planting Date
 function autoSetParams(cr) {

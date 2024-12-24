@@ -24,14 +24,40 @@ import 'dotenv/config'
 import fs, { readFileSync } from 'node:fs'
 //import mariadb from 'mariadb';
 import {log,getDateStr,addDays,daysFromDate} from './util.mjs'
+// Import the Azure Cosmos DB SDK
+import { CosmosClient } from '@azure/cosmos'
 
+const cosmos_db_endpoint = process.env.GENV_DB_ENDPOINT
+const cosmos_db_key = process.env.GENV_DB_KEY;
+const client = new CosmosClient({cosmos_db_endpoint, cosmos_db_key});
 
-const { CosmosClient } = require("@azure/cosmos");
+// Function to interact with Cosmos DB
+/*
 
-const endpoint = "https://your-account.documents.azure.com";
-const key = "<database account masterkey>";
-const client = new CosmosClient({ endpoint, key });
+GenvConfig          id - 1
+	/ConfigId 1
 
+GenvMetricPoint		id GUID?
+	/PointDay
+
+async function main() {
+
+  // Add an item to the container
+  const newItem = {
+    id: '1',
+    name: 'Sample Item',
+    description: 'This is a sample item',
+  };
+
+  const { resource: createdItem } = await container.items.create(newItem);
+  console.log(`Item created: ${createdItem.id}`);
+}
+
+main().catch((error) => {
+  console.error(error);
+});
+
+*/
 
 // Update configuration parameter values into the backend server database
 export async function updServerDb(cr) {
@@ -148,6 +174,23 @@ export async function getConfig(cr) {
 		cr.lastUpdateTs = getDateStr()
 		conn.query("UPDATE genvMonitorConfig SET CurrTemperature=?,LightDuration=?,WaterDuration=?,WaterInterval=?,LastWaterTs=?,LastWaterSecs=?,LastUpdateTs=? WHERE ConfigId=?", 
 			[cr.currTemperature,cr.lightDuration,cr.waterDuration,cr.waterInterval,cr.lastWaterTs,cr.lastWaterSecs,cr.lastUpdateTs,1])
+		*/
+
+		/*
+                    // Delete all previous documents with the filename and insert a brand new document with updated values
+                    // c.Name = "20241012_170906790_iOS.jpg"
+                    var queryText = $"SELECT * FROM c WHERE c.Name = \"{mediaInfo.Name}\" ";
+                    var feed = container.GetItemQueryIterator<MediaInfo>(queryText);
+                    while (feed.HasMoreResults)
+                    {
+                        var response = await feed.ReadNextAsync();
+                        foreach (var item in response)
+                        {
+                            //metricData.kWh_bucket_YEAR = float.Parse(item.TotalValue);
+                            container.DeleteItemAsync<MediaInfo>(item.id, new PartitionKey(mediaInfo.MediaTypeId));
+                        }
+                    }
+                    await container.CreateItemAsync<MediaInfo>(mediaInfo, new PartitionKey(mediaInfo.MediaTypeId));
 		*/
 
 	} catch (err) {
