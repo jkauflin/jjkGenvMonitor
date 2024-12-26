@@ -28,8 +28,21 @@ import {log,getDateStr,addDays,daysFromDate} from './util.mjs'
 import { CosmosClient } from '@azure/cosmos'
 
 const cosmos_db_endpoint = process.env.GENV_DB_ENDPOINT
-const cosmos_db_key = process.env.GENV_DB_KEY;
-const client = new CosmosClient({cosmos_db_endpoint, cosmos_db_key});
+const cosmos_db_key = process.env.GENV_DB_KEY
+const cosmos_db_id = process.env.GENV_DB_ID
+const cosmos_db_config_id = process.env.GENV_DB_CONFIG_ID
+const cosmos_db_metric_point_id = process.env.GENV_DB_METRIC_POINT_ID
+
+// Create a CosmosClient instance 
+const cosmosClient = new CosmosClient({
+	endpoint: cosmos_db_endpoint,
+	key: cosmos_db_key
+})
+
+const { database } = await cosmosClient.databases.createIfNotExists({ id: cosmos_db_id })
+const { container: configContainer } = await database.containers.createIfNotExists({ id: cosmos_db_config_id });
+const { container: metricPointContainer } = await database.containers.createIfNotExists({ id: cosmos_db_metric_point_id });
+
 
 // Function to interact with Cosmos DB
 /*
@@ -40,27 +53,22 @@ GenvConfig          id - 1
 GenvMetricPoint		id GUID?
 	/PointDay
 
-async function main() {
-
-  // Add an item to the container
-  const newItem = {
-    id: '1',
-    name: 'Sample Item',
-    description: 'This is a sample item',
-  };
-
-  const { resource: createdItem } = await container.items.create(newItem);
-  console.log(`Item created: ${createdItem.id}`);
-}
-
-main().catch((error) => {
-  console.error(error);
-});
-
 */
 
 // Update configuration parameter values into the backend server database
 export async function updServerDb(cr) {
+
+	try {
+		cr.lastUpdateTs = getDateStr()
+		await configContainer.items.create(cr);
+
+	} catch (err) {
+		//throw err
+		// Just log the error instead of throwing for now
+		console.log("in updServerDb, "+err)
+	}
+
+
 	/*
 	let conn;
 	try {

@@ -171,6 +171,9 @@ var currAirVal = OFF
 var currHeatVal = OFF
 var currLightsVal = OFF
 
+var board = null
+var relays = null
+
 // Configuration parameters for operations (also stored in server database)
 var cr = {
     id: '1',
@@ -285,10 +288,6 @@ function autoSetParams(cr) {
 
     return cr
 }
-
-
-var board = null
-var relays = null
 
 function msToNextWatering(lastWaterTs,waterInterval) {
     let date1 = new Date(lastWaterTs);
