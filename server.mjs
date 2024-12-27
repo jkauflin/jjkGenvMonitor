@@ -119,13 +119,15 @@ Modification History
 import 'dotenv/config'
 import {exec} from 'child_process'          // Class to execute Linux commands
 import fs, { readFileSync } from 'node:fs'
+import crypto from 'node:crypto'
 import { syncBuiltinESMExports } from 'node:module'
 import { Buffer } from 'node:buffer'
 import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 import nodeWebcamPkg from 'enhanced-node-webcam'
-import {log,getDateStr,addDays,daysFromDate} from './util.mjs'
-import {updServerDb,getConfig,updateParams,completeRequest,insertImage,saveImageToFile} from './dataRepository.mjs'
+import {log,getDateStr,addDays,daysFromDate,getPointDay,getPointDayTime} from './util.mjs'
+import {updServerDb,logMetricToServerDb,
+        getConfig,updateParams,completeRequest,insertImage,saveImageToFile} from './dataRepository.mjs'
 import express from 'express';
 
 const app = express();
@@ -147,8 +149,9 @@ var webcam = nodeWebcamPkg.create(webcamOptions)
 process.on('uncaughtException', function (e) {
     log("UncaughtException, error = " + e)
     console.error(e.stack)
-    // Try rebooting the system if there is an uncaught error
-    setTimeout(rebootSystem, 5000)
+    // Try rebooting the system if there is an uncaught error 
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> UN-COMMENT IF NEEDED <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    //setTimeout(rebootSystem, 5000)
 })
 
 // Global variables
@@ -206,99 +209,26 @@ var cr = {
     requestValue: ''
 }
 
+// Genv Metric Point
 var gmp = {
     id: 'guid',
-	PointDay: 1,
+	PointDay: 20241225,
+    PointDateTime: getDateStr(),
+    PointDayTime: 24125959,
     targetTemperature: parseInt(process.env.targetTemperature),
     currTemperature: parseInt(process.env.targetTemperature),
     airInterval: parseFloat(process.env.airInterval),
     airDuration: parseFloat(process.env.airDuration),
     heatInterval: parseFloat(process.env.heatInterval),
     heatDuration: parseFloat(process.env.heatDuration),
-    waterInterval: parseFloat(process.env.waterInterval),
-    waterDuration: parseFloat(process.env.waterDuration),
-    lightDuration: parseFloat(process.env.lightDuration),
-	lastUpdateTs: getDateStr(),
-    lastWaterTs: getDateStr(),
-    lastWaterSecs: 0.0
-}
-
-/*
-
-int ConfigId
-
-public class MetricPoint
-{
-    public string? id { get; set; }                      // GUID
-    public int PointDay { get; set; }                   // partitionKey (timestamp day value yyyyMMdd)   /PointDay
-    public DateTime PointDateTime { get; set; }
-    public long PointYearMonth { get; set; }            // int.Parse(takenDT.ToString("yyyyMM"))
-    public long PointDayTime { get; set; }              // int.Parse(takenDT.ToString("yyHHmmss"))
-    public string? pvVolts { get; set; }
-    public string? pvAmps { get; set; }
-    public string? pvWatts { get; set; }
-*/
-
-// Function to set light and water parameters based on the days from Planting Date
-function autoSetParams(cr) {
-    let days = daysFromDate(cr.plantingDate)
-    //log("Days from PlantingDate = "+days)
-
-    // Update other dates based on planting date
-    cr.harvestDate = addDays(cr.plantingDate,cr.daysToBloom)
-    cr.cureDate = addDays(cr.harvestDate,14)
-    cr.productionDate = addDays(cr.cureDate,14)
-
-    cr.lightDuration = 18.0
-    if (days > 3) {
-        cr.lightDuration = 20.0
-    }
-
-    cr.waterDuration = 5.0
-    cr.waterInterval = 4.0
-
-    if (days > 40) {
-        cr.waterDuration = 26.0
-        cr.waterInterval = 30.0
-    } else if (days > 30) {
-        cr.waterDuration = 24.0
-        cr.waterInterval = 30.0
-    } else if (days > 20) {
-        cr.waterDuration = 20.0
-        cr.waterInterval = 30.0
-        // *** And add bottom
-    } else if (days > 10) {
-        //cr.waterDuration = 16.0
-        //cr.waterInterval = 30.0
-        cr.waterDuration = 5.0
-        cr.waterInterval = 10.0
-    } else if (days > 6) {
-        //cr.waterDuration = 8.0
-        //cr.waterInterval = 24.0
-        cr.waterDuration = 5.0
-        cr.waterInterval = 10.0
-    } else if (days > 5) {
-        cr.waterDuration = 6.0
-        cr.waterInterval = 12.0
-    } else if (days > 3) {
-        cr.waterInterval = 8.0
-    } else if (days > 1) {
-        cr.waterInterval = 6.0
-    }
-
-    return cr
-}
-
-function msToNextWatering(lastWaterTs,waterInterval) {
-    let date1 = new Date(lastWaterTs);
-    let date2 = new Date();
-    let msSinceLastWatering = date2.getTime() - date1.getTime();
-    let msToNext = (waterInterval * hoursToMilliseconds) - msSinceLastWatering
-    if (msToNext < 5000) {
-        msToNext = 5000
-    }
-
-    return msToNext
+    relayName0: relayNames[0],
+    relayMetricValue0: relayMetricValues[0],
+    relayName1: relayNames[1],
+    relayMetricValue1: relayMetricValues[1],
+    relayName2: relayNames[2],
+    relayMetricValue2: relayMetricValues[2],
+    relayName3: relayNames[3],
+    relayMetricValue3: relayMetricValues[3],
 }
 
 log(">>> Starting server.mjs...")
@@ -308,13 +238,6 @@ function initConfigQuery() {
     log("Initial Config Query")
     autoSetParams(cr)
     updServerDb(cr)
-    /*
-    getConfig(cr).then(outCR => {
-        if (outCR != null) {
-            cr = outCR
-        }
-    })
-    */
 }
 
 // Create Johnny-Five board object
@@ -383,11 +306,78 @@ board.on("ready", () => {
     log("End of board.on (initialize) event")
 })
 
+
+// Function to set light and water parameters based on the days from Planting Date
+function autoSetParams(cr) {
+    let days = daysFromDate(cr.plantingDate)
+    log("Days from PlantingDate = "+days)
+
+    // Update other dates based on planting date
+    cr.harvestDate = addDays(cr.plantingDate,cr.daysToBloom)
+    cr.cureDate = addDays(cr.harvestDate,14)
+    cr.productionDate = addDays(cr.cureDate,14)
+
+    cr.lightDuration = 18.0
+    if (days > 3) {
+        cr.lightDuration = 20.0
+    }
+
+    // Default germination start is 5 seconds every 4 hours
+    cr.waterDuration = 5.0
+    cr.waterInterval = 4.0
+
+    if (days > 40) {
+        cr.waterDuration = 26.0
+        cr.waterInterval = 30.0
+    } else if (days > 30) {
+        cr.waterDuration = 24.0
+        cr.waterInterval = 30.0
+    } else if (days > 20) {
+        cr.waterDuration = 20.0
+        cr.waterInterval = 30.0
+        // *** And add bottom
+    } else if (days > 10) {
+        //cr.waterDuration = 16.0
+        //cr.waterInterval = 30.0
+        cr.waterDuration = 5.0
+        cr.waterInterval = 10.0
+    } else if (days > 7) {
+        //cr.waterDuration = 8.0
+        //cr.waterInterval = 24.0
+        cr.waterDuration = 5.0
+        cr.waterInterval = 10.0
+    } else if (days > 6) {
+        //cr.waterDuration = 6.0
+        cr.waterInterval = 12.0
+    } else if (days > 3) {
+        cr.waterInterval = 8.0
+    } else if (days > 1) {
+        //cr.waterInterval = 6.0
+        cr.waterInterval = 8.0
+    }
+
+    return cr
+}
+
+function msToNextWatering(lastWaterTs,waterInterval) {
+    let date1 = new Date(lastWaterTs);
+    let date2 = new Date();
+    let msSinceLastWatering = date2.getTime() - date1.getTime();
+    let msToNext = (waterInterval * hoursToMilliseconds) - msSinceLastWatering
+    if (msToNext < 5000) {
+        msToNext = 5000
+    }
+
+    return msToNext
+}
+
+
 function triggerUpdServerDb() {
     //log("Triggering updServerDb, cr.configCheckInterval = "+cr.configCheckInterval)
     updServerDb(cr)
     setTimeout(triggerUpdServerDb, cr.configCheckInterval * secondsToMilliseconds)
 
+    // >>>>>>>>>>> CHANGE this to checking for requests from some other data source <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     // Get values from the database
     /*
     getConfig(cr).then(outCR => {
@@ -599,46 +589,28 @@ function getTemperature() {
 function logMetric() {
     // Set the current temperature from the one-wire overlay file
     getTemperature()
-
-    let metricJSON = "{" + "tempature:" + cr.currTemperature
-        + ",heatDuration:" + cr.heatDuration
-        + "," + relayNames[0] + ":" + relayMetricValues[0]
-        + "," + relayNames[1] + ":" + relayMetricValues[1]
-        + "," + relayNames[2] + ":" + relayMetricValues[2]
-        + "," + relayNames[3] + ":" + relayMetricValues[3]
-        + "}";
-    log(`metricJSON = ${metricJSON}`)
-    let emoncmsUrl = process.env.EMONCMS_INPUT_URL + "&json=" + metricJSON
-
-    // Use this if we need to limit the send to between the hours of 6 and 20
-    let date = new Date()
-    let hours = date.getHours()
-
-    // https call to send metric data to emoncms
     if (cr.loggingOn) {
-        /*
-        fetch(emoncmsUrl)
-        .then(checkResponseStatus)
-        .catch(err => tempLogErr(err));
-        */
+        let dateTimeStr = getDateStr()
+        gmp.id = crypto.randomUUID()
+        gmp.PointDay = getPointDay(dateTimeStr)
+        gmp.PointDateTime = dateTimeStr
+        gmp.PointDayTime = getPointDayTime(dateTimeStr)
+        gmp.targetTemperature = cr.targetTemperature
+        gmp.currTemperature = cr.currTemperature
+        gmp.airInterval = cr.airInterval
+        gmp.airDuration = cr.airDuration
+        gmp.heatInterval = cr.heatInterval
+        gmp.heatDuration = cr.heatDuration
+        gmp.relayMetricValue0 = relayMetricValues[0]
+        gmp.relayMetricValue1 = relayMetricValues[1]
+        gmp.relayMetricValue2 = relayMetricValues[2]
+        gmp.relayMetricValue3 = relayMetricValues[3]
+        
+        logMetricToServerDb(gmp)
     }
    
     // Set the next time the function will run
     setTimeout(logMetric, cr.logMetricInterval * secondsToMilliseconds)
-}
-
-function tempLogErr(err) {
-    log("ERROR: "+err)
-}
-
-function checkResponseStatus(res) {
-    if(res.ok){
-        //log(`Fetch reponse is OK: ${res.status} (${res.statusText})`);
-        return res
-    } else {
-        //throw new Error(`The HTTP status of the reponse: ${res.status} (${res.statusText})`)
-        log(`Log Fetch NOT OK: ${res.status} (${res.statusText})`)
-    }
 }
 
 function waterThePlants() {

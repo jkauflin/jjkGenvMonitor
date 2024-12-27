@@ -43,7 +43,6 @@ const { database } = await cosmosClient.databases.createIfNotExists({ id: cosmos
 const { container: configContainer } = await database.containers.createIfNotExists({ id: cosmos_db_config_id });
 const { container: metricPointContainer } = await database.containers.createIfNotExists({ id: cosmos_db_metric_point_id });
 
-
 // Function to interact with Cosmos DB
 /*
 
@@ -60,52 +59,32 @@ export async function updServerDb(cr) {
 
 	try {
 		cr.lastUpdateTs = getDateStr()
-		await configContainer.items.create(cr);
+		//cr.requestCommand = "jjk test"
+		//await 
+		configContainer.item(cr.id,cr.ConfigId).replace(cr); 
+		//const { resource: replacedItem } = await configContainer.item(cr.id,cr.ConfigId).replace(cr); 
+		//console.log(`Item updated: ${replacedItem.requestCommand}`);
+
+		//await container.item("1").delete();
+		//await configContainer.items.create(cr);
 
 	} catch (err) {
 		//throw err
 		// Just log the error instead of throwing for now
 		console.log("in updServerDb, "+err)
 	}
-
-
-	/*
-	let conn;
-	try {
-		conn = await mariadb.createConnection({ 
-		  host: process.env.DB_HOST,
-		  user: process.env.DB_USER, 
-		  password: process.env.DB_PASS, 
-		  port: process.env.DB_PORT,
-		  database: process.env.DB_NAME,
-		  connectTimeout: 3000,
-		  dateStrings: true  
-		})
-  
-		cr.lastUpdateTs = getDateStr()
-
-		let sqlStr = "UPDATE genvMonitorConfig SET ConfigDesc=?,GerminationStart=?,DaysToGerm=?,PlantingDate=?,HarvestDate=?,CureDate=?"+
-						",ProductionDate=?,DaysToBloom=?,TargetTemperature=?,ConfigCheckInterval=?,HeatInterval=?,HeatDuration=?"+
-						",CurrTemperature=?,LightDuration=?,WaterDuration=?,WaterInterval=?,LastWaterTs=?,LastWaterSecs=?,LastUpdateTs=?"+
-						",LoggingOn=?,SelfieOn=?,AirInterval=?,AirDuration=?,LogMetricInterval=?"+
-						" WHERE ConfigId=?"
-		conn.query(sqlStr, [cr.configDesc,cr.germinationStart,cr.daysToGerm,cr.plantingDate,cr.harvestDate,cr.cureDate,cr.productionDate,
-					cr.daysToBloom,cr.targetTemperature,cr.configCheckInterval,cr.heatInterval,cr.heatDuration,cr.currTemperature,
-					cr.lightDuration,cr.waterDuration,cr.waterInterval,cr.lastWaterTs,cr.lastWaterSecs,cr.lastUpdateTs,
-					cr.loggingOn,cr.selfieOn,cr.airInterval,cr.airDuration,cr.logMetricInterval,1])
-  
-	} catch (err) {
-		//throw err
-		// Just log the error instead of throwing for now
-		console.log("in updServerDb, "+err)
-	} finally {
-		if (conn) {
-			conn.close()
-		}
-	}
-	*/
 }
 
+// Update configuration parameter values into the backend server database
+export async function logMetricToServerDb(gmp) {
+	try {
+		metricPointContainer.items.create(gmp);
+	} catch (err) {
+		//throw err
+		// Just log the error instead of throwing for now
+		console.log("in logMetricToServerDb, "+err)
+	}
+}
 
 export async function getConfig(cr) {
 	//let conn
@@ -184,22 +163,6 @@ export async function getConfig(cr) {
 			[cr.currTemperature,cr.lightDuration,cr.waterDuration,cr.waterInterval,cr.lastWaterTs,cr.lastWaterSecs,cr.lastUpdateTs,1])
 		*/
 
-		/*
-                    // Delete all previous documents with the filename and insert a brand new document with updated values
-                    // c.Name = "20241012_170906790_iOS.jpg"
-                    var queryText = $"SELECT * FROM c WHERE c.Name = \"{mediaInfo.Name}\" ";
-                    var feed = container.GetItemQueryIterator<MediaInfo>(queryText);
-                    while (feed.HasMoreResults)
-                    {
-                        var response = await feed.ReadNextAsync();
-                        foreach (var item in response)
-                        {
-                            //metricData.kWh_bucket_YEAR = float.Parse(item.TotalValue);
-                            container.DeleteItemAsync<MediaInfo>(item.id, new PartitionKey(mediaInfo.MediaTypeId));
-                        }
-                    }
-                    await container.CreateItemAsync<MediaInfo>(mediaInfo, new PartitionKey(mediaInfo.MediaTypeId));
-		*/
 
 	} catch (err) {
 		/*

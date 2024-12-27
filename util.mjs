@@ -9,6 +9,13 @@ Modification History
 2024-01-04 JJK  Added getDateStr
 =============================================================================*/
 
+// Remove all child nodes from an element
+export function empty(node) {
+    while (node.firstChild) {
+        node.removeChild(node.firstChild)
+    }
+}
+
 function paddy(num, padlen, padchar) {
     var pad_char = typeof padchar !== 'undefined' ? padchar : '0'
     var pad = new Array(1 + padlen).join(pad_char)
@@ -71,3 +78,61 @@ export function daysFromDate(dateStr) {
    
     return(Difference_In_Days-1)
 }
+
+export function getPointDay(dateStr) {
+    if (dateStr == null) {
+        dateStr = getDateStr()
+    }
+    let yyyyMMdd = dateStr.substring(0,4) + dateStr.substring(5,7) + dateStr.substring(8,10)
+    return parseInt(yyyyMMdd)   
+}
+
+export function getPointDayTime(dateStr) {
+    if (dateStr == null) {
+        dateStr = getDateStr()
+    }
+    let yyHHmmss = dateStr.substring(2,4) + dateStr.substring(11,13) + dateStr.substring(14,16) + dateStr.substring(17)
+    return parseInt(yyHHmmss)
+}
+
+function formatDate(inDate) {
+    var tempDate = inDate;
+    if (tempDate == null) {
+        tempDate = new Date();
+    }
+    var tempMonth = tempDate.getMonth() + 1;
+    if (tempDate.getMonth() < 9) {
+        tempMonth = '0' + (tempDate.getMonth() + 1);
+    }
+    var tempDay = tempDate.getDate();
+    if (tempDate.getDate() < 10) {
+        tempDay = '0' + tempDate.getDate();
+    }
+    return tempDate.getFullYear() + '-' + tempMonth + '-' + tempDay;
+}
+
+function formatDate2(inDate) {
+    var tempDate = inDate;
+    if (tempDate == null) {
+        tempDate = new Date();
+    }
+    var tempMonth = tempDate.getMonth() + 1;
+    if (tempDate.getMonth() < 9) {
+        tempMonth = '0' + (tempDate.getMonth() + 1);
+    }
+    var tempDay = tempDate.getDate();
+    if (tempDate.getDate() < 10) {
+        tempDay = '0' + tempDate.getDate();
+    }
+    return tempDate.getFullYear() + '-' + tempMonth + '-' + tempDay;
+}
+
+var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+function formatDateMonth(inDate) {
+    var tempDate = inDate;
+    if (tempDate == null) {
+        tempDate = new Date();
+    }
+    return months[tempDate.getMonth()] + ' ' + tempDate.getDate() + ', ' + tempDate.getFullYear();
+}
+
