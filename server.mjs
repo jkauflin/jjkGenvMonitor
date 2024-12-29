@@ -589,6 +589,16 @@ function getTemperature() {
 function logMetric() {
     // Set the current temperature from the one-wire overlay file
     getTemperature()
+
+    let metricJSON = "{" + "tempature:" + cr.currTemperature
+        + ",heatDuration:" + cr.heatDuration
+        + "," + relayNames[0] + ":" + relayMetricValues[0]
+        + "," + relayNames[1] + ":" + relayMetricValues[1]
+        + "," + relayNames[2] + ":" + relayMetricValues[2]
+        + "," + relayNames[3] + ":" + relayMetricValues[3]
+        + "}";
+    log(`metricJSON = ${metricJSON}`)
+
     if (cr.loggingOn) {
         let dateTimeStr = getDateStr()
         gmp.id = crypto.randomUUID()
