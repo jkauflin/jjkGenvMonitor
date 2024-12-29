@@ -568,6 +568,7 @@ function toggleHeat() {
         heatTimeout = cr.heatInterval + heatIntervalAdjustment
     }
 
+    // if SOMETHING
     log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
 
     // Recursively call the function with the current timeout value  
@@ -599,6 +600,7 @@ function logMetric() {
         + "," + relayNames[2] + ":" + relayMetricValues[2]
         + "," + relayNames[3] + ":" + relayMetricValues[3]
         + "}";
+    // if SOMETHING
     log(`metricJSON = ${metricJSON}`)
 
     if (cr.loggingOn) {
