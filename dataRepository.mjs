@@ -22,7 +22,8 @@ Modification History
 =============================================================================*/
 import 'dotenv/config'
 import fs, { readFileSync } from 'node:fs'
-import {log,getDateStr,addDays,daysFromDate,getPointDay} from './util.mjs'
+import {log,getDateStr,addDays,daysFromDate,getPointDay,getPointDayTime} from './util.mjs'
+import crypto from 'node:crypto'
 // Import the Azure Cosmos DB SDK
 import { CosmosClient } from '@azure/cosmos'
 
@@ -31,6 +32,7 @@ const cosmos_db_key = process.env.GENV_DB_KEY
 const cosmos_db_id = process.env.GENV_DB_ID
 const cosmos_db_config_id = process.env.GENV_DB_CONFIG_ID
 const cosmos_db_metric_point_id = process.env.GENV_DB_METRIC_POINT_ID
+const cosmos_db_image_id = process.env.GENV_DB_IMAGE_ID
 
 // Create a CosmosClient instance 
 const cosmosClient = new CosmosClient({
@@ -41,6 +43,7 @@ const cosmosClient = new CosmosClient({
 const { database } = await cosmosClient.databases.createIfNotExists({ id: cosmos_db_id })
 const { container: configContainer } = await database.containers.createIfNotExists({ id: cosmos_db_config_id });
 const { container: metricPointContainer } = await database.containers.createIfNotExists({ id: cosmos_db_metric_point_id });
+const { container: imageContainer } = await database.containers.createIfNotExists({ id: cosmos_db_image_id });
 
 // Functions to interact with Azure Cosmos DB NoSQL
 
@@ -80,6 +83,9 @@ export async function purgeMetricPointsInServerDb(days) {
 			//console.log(`metricPoint.id = ${metricPoint.id} `);
 			await metricPointContainer.item(metricPoint.id,metricPoint.PointDay).delete()
 	  	}
+
+		// purge selfie images too?
+
 	} catch (err) {
 		//throw err
 		// Just log the error instead of throwing for now
@@ -203,17 +209,32 @@ export async function completeRequest(returnMessage) {
 }
 
 export async function insertImage(base64ImgData) {
+	try {
+		let dateTimeStr = getDateStr()
+
+		var imagePoint = {
+			id: 'guid',
+			PointDay: 20241225,
+			PointDateTime: getDateStr(),
+			PointDayTime: 24125959,
+			ImgData: ""
+		}
+
+		imagePoint.id = crypto.randomUUID()
+		imagePoint.PointDay = getPointDay(dateTimeStr)
+		imagePoint.PointDateTime = dateTimeStr
+		imagePoint.PointDayTime = getPointDayTime(dateTimeStr)
+		imagePoint.ImgData = base64ImgData
+
+		imageContainer.items.create(imagePoint);
+
+	} catch (err) {
+		//throw err
+		// Just log the error instead of throwing for now
+		console.log("in insertImage, "+err)
+	}
+
 	/*
-
-const cities = [
-  { id: "1", name: "Olympia", state: "WA", isCapitol: true },
-  { id: "2", name: "Redmond", state: "WA", isCapitol: false },
-  { id: "3", name: "Chicago", state: "IL", isCapitol: false }
-];
-for (const city of cities) {
-  await container.items.create(city);
-}
-
 	let conn;
 	try {
 		conn = await mariadb.createConnection({ 
