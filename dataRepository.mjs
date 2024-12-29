@@ -22,8 +22,7 @@ Modification History
 =============================================================================*/
 import 'dotenv/config'
 import fs, { readFileSync } from 'node:fs'
-//import mariadb from 'mariadb';
-import {log,getDateStr,addDays,daysFromDate} from './util.mjs'
+import {log,getDateStr,addDays,daysFromDate,getPointDay} from './util.mjs'
 // Import the Azure Cosmos DB SDK
 import { CosmosClient } from '@azure/cosmos'
 
@@ -43,31 +42,13 @@ const { database } = await cosmosClient.databases.createIfNotExists({ id: cosmos
 const { container: configContainer } = await database.containers.createIfNotExists({ id: cosmos_db_config_id });
 const { container: metricPointContainer } = await database.containers.createIfNotExists({ id: cosmos_db_metric_point_id });
 
-// Function to interact with Cosmos DB
-/*
-
-GenvConfig          id - 1
-	/ConfigId 1
-
-GenvMetricPoint		id GUID?
-	/PointDay
-
-*/
+// Functions to interact with Azure Cosmos DB NoSQL
 
 // Update configuration parameter values into the backend server database
 export async function updServerDb(cr) {
-
 	try {
 		cr.lastUpdateTs = getDateStr()
-		//cr.requestCommand = "jjk test"
-		//await 
 		configContainer.item(cr.id,cr.ConfigId).replace(cr); 
-		//const { resource: replacedItem } = await configContainer.item(cr.id,cr.ConfigId).replace(cr); 
-		//console.log(`Item updated: ${replacedItem.requestCommand}`);
-
-		//await container.item("1").delete();
-		//await configContainer.items.create(cr);
-
 	} catch (err) {
 		//throw err
 		// Just log the error instead of throwing for now
@@ -83,6 +64,26 @@ export async function logMetricToServerDb(gmp) {
 		//throw err
 		// Just log the error instead of throwing for now
 		console.log("in logMetricToServerDb, "+err)
+	}
+}
+
+// Purge GenvMetricPoint items older than a certain number of days from the backend server database
+export async function purgeMetricPointsInServerDb(days) {
+	try {
+		let td = new Date()
+		let maxYearMonthDay = getPointDay(addDays(td, days))
+		//console.log(`maxYearMonthDay = ${maxYearMonthDay}`)
+		const { resources } = await metricPointContainer.items
+			.query(`SELECT * from c WHERE c.PointDay < ${maxYearMonthDay}` )
+			.fetchAll();
+		for (const metricPoint of resources) {
+			//console.log(`metricPoint.id = ${metricPoint.id} `);
+			await metricPointContainer.item(metricPoint.id,metricPoint.PointDay).delete()
+	  	}
+	} catch (err) {
+		//throw err
+		// Just log the error instead of throwing for now
+		console.log("in purgeMetricPointsInServerDb, "+err)
 	}
 }
 
@@ -111,58 +112,8 @@ export async function getConfig(cr) {
 		}
 		*/
 
-		// establish a connection to MariaDB
-		//conn = await pool.getConnection();
-		/*
-		conn = await mariadb.createConnection({ 
-		  host: process.env.DB_HOST,
-		  user: process.env.DB_USER, 
-		  password: process.env.DB_PASS, 
-		  port: process.env.DB_PORT,
-		  database: process.env.DB_NAME,
-		  connectTimeout: 3000,
-		  dateStrings: true  
-		})
-
-		var query = "SELECT * FROM genvMonitorConfig WHERE ConfigId = 1;"
-		var rows = await conn.query(query)
-		if (rows.length > 0) {
-			cr.configDesc = rows[0].ConfigDesc
-			cr.daysToGerm = rows[0].DaysToGerm
-			cr.daysToBloom = rows[0].DaysToBloom
-			cr.germinationStart = rows[0].GerminationStart
-			cr.plantingDate = rows[0].PlantingDate
-
-			cr.harvestDate = rows[0].HarvestDate
-			cr.cureDate = rows[0].CureDate
-			cr.productionDate = rows[0].ProductionDate
-
-			cr.configCheckInterval = parseInt(rows[0].ConfigCheckInterval)
-			cr.logMetricInterval = parseInt(rows[0].LogMetricInterval)
-			cr.loggingOn = parseInt(rows[0].LoggingOn)
-			cr.selfieOn = parseInt(rows[0].SelfieOn)
-			cr.targetTemperature = parseInt(rows[0].TargetTemperature)
-
-			cr.airInterval = parseFloat(rows[0].AirInterval)
-			cr.airDuration = parseFloat(rows[0].AirDuration)
-			cr.heatInterval = parseFloat(rows[0].HeatInterval)
-			cr.heatDuration = parseFloat(rows[0].HeatDuration)
-
-			cr.lastUpdateTs = rows[0].LastUpdateTs
-
-			cr.requestCommand = rows[0].RequestCommand
-			cr.requestValue = rows[0].RequestValue
-		}
-  
 		// Set parameters according to days since planting
 		//cr = autoSetParams(cr)
-
-		// Update params back into the server DB
-		cr.lastUpdateTs = getDateStr()
-		conn.query("UPDATE genvMonitorConfig SET CurrTemperature=?,LightDuration=?,WaterDuration=?,WaterInterval=?,LastWaterTs=?,LastWaterSecs=?,LastUpdateTs=? WHERE ConfigId=?", 
-			[cr.currTemperature,cr.lightDuration,cr.waterDuration,cr.waterInterval,cr.lastWaterTs,cr.lastWaterSecs,cr.lastUpdateTs,1])
-		*/
-
 
 	} catch (err) {
 		/*
@@ -183,6 +134,7 @@ export async function getConfig(cr) {
   
 	return cr;
 }
+
 
 export async function updateParams(cr) {
 	/*

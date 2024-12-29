@@ -126,7 +126,7 @@ import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 import nodeWebcamPkg from 'enhanced-node-webcam'
 import {log,getDateStr,addDays,daysFromDate,getPointDay,getPointDayTime} from './util.mjs'
-import {updServerDb,logMetricToServerDb,
+import {updServerDb,logMetricToServerDb,purgeMetricPointsInServerDb,
         getConfig,updateParams,completeRequest,insertImage,saveImageToFile} from './dataRepository.mjs'
 import express from 'express';
 
@@ -305,7 +305,6 @@ board.on("ready", () => {
    
     log("End of board.on (initialize) event")
 })
-
 
 // Function to set light and water parameters based on the days from Planting Date
 function autoSetParams(cr) {
@@ -525,6 +524,9 @@ function toggleAir() {
         if (currLightsVal == OFF) {
             setRelay(LIGHTS,ON)
             currLightsVal = ON
+            // >>>>> Add GenvMetricPoint purge when the lights come on
+            let days = -2
+            purgeMetricPointsInServerDb(days)
         }
     }
 
