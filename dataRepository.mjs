@@ -19,6 +19,8 @@ Modification History
 2024-03-08 JJK  Added an option of connectTimeout to createConnection and
 				changed from default 1000 to 3000 (3 seconds to connect)
 2024-12-22 JJK  Working on migration to Azure
+2024-12-30 JJK  Got new Config, MetricPoint, and Image container read and
+				updates working
 =============================================================================*/
 import 'dotenv/config'
 import fs, { readFileSync } from 'node:fs'

@@ -114,6 +114,8 @@ Modification History
 2024-03-05 JJK  Modified to get configuration parameters from the .env and
                 auto-calculation (don't count on the server DB for anything)
 2024-12-22 JJK  Migration to Azure
+2024-12-30 JJK  Got new Config, MetricPoint, and Image containers working
+                and testing getting to target tempature
 =============================================================================*/
 
 import 'dotenv/config'
@@ -540,7 +542,7 @@ function toggleHeat() {
     let heatTimeout = 1.0
     let heatDurationAdjustment = 0.0
     let heatIntervalAdjustment = 0.0
-    let heatAdjustmentMax = 1.0
+    let heatAdjustmentMax = 1.5
 
     // Check the temperature and adjust the timeout values
     if (cr.currTemperature > (cr.targetTemperature + 0.5)) {
