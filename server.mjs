@@ -542,7 +542,7 @@ function toggleHeat() {
     let heatTimeout = 1.0
     let heatDurationAdjustment = 0.0
     let heatIntervalAdjustment = 0.0
-    let heatAdjustmentMax = 1.5
+    let heatAdjustmentMax = 2.0
 
     // Check the temperature and adjust the timeout values
     if (cr.currTemperature > (cr.targetTemperature + 0.5)) {
@@ -571,7 +571,7 @@ function toggleHeat() {
     }
 
     // if SOMETHING
-    log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
+    //log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
 
     // Recursively call the function with the current timeout value  
     setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds)
@@ -603,7 +603,7 @@ function logMetric() {
         + "," + relayNames[3] + ":" + relayMetricValues[3]
         + "}";
     // if SOMETHING
-    log(`metricJSON = ${metricJSON}`)
+    //log(`metricJSON = ${metricJSON}`)
 
     if (cr.loggingOn) {
         let dateTimeStr = getDateStr()
