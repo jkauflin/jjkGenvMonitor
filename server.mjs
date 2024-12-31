@@ -35,7 +35,7 @@ Modification History
                 Removed moisture sensor (wasn't really giving good info)
 2018-04-06 JJK  Re-working metrics logging to give consistent values to
                 web ecomcms.
-2018-04-07 JJK  Added adjustment to cr.airDuration based on tempature (if it
+2018-04-07 JJK  Added adjustment to cr.airDuration based on temperature (if it
                 drops below 70 increase duration)
 2018-04-14 JJK  Added toggleHeat and separate from air ventilation
 2018-04-15 JJK  Modified to turn heat on when air goes off
@@ -44,7 +44,7 @@ Modification History
 2018-05-18 JJK  Modified to accept configuration updates from web client
 2018-06-18 JJK  Added cr.lightDuration to store rec
 2018-08-19 JJK  Turned off camera, added important dates and description
-2018-09-30 JJK  Turned metrics back on to track tempature
+2018-09-30 JJK  Turned metrics back on to track temperature
 2019-09-08 JJK  Upgraded to Raspbian Buster and NodeJS v10
 2019-09-28 JJK  Re-implementing web display and updates to config values
 2022-04-03 JJK  Updating to ES6 and bootstrap 5
@@ -115,7 +115,7 @@ Modification History
                 auto-calculation (don't count on the server DB for anything)
 2024-12-22 JJK  Migration to Azure
 2024-12-30 JJK  Got new Config, MetricPoint, and Image containers working
-                and testing getting to target tempature
+                and testing getting to target temperature
 =============================================================================*/
 
 import 'dotenv/config'
@@ -191,12 +191,12 @@ var cr = {
     harvestDate: '2099-01-01',
     cureDate: '2099-01-01',
     productionDate: '2099-01-01',
-    configCheckInterval: parseInt(process.env.configCheckInterval),
-    logMetricInterval: parseInt(process.env.logMetricInterval),
+    configCheckInterval: parseFloat(process.env.configCheckInterval),
+    logMetricInterval: parseFloat(process.env.logMetricInterval),
     loggingOn: parseInt(process.env.loggingOn),
     selfieOn: parseInt(process.env.selfieOn),
-    targetTemperature: parseInt(process.env.targetTemperature),
-    currTemperature: parseInt(process.env.targetTemperature),
+    targetTemperature: parseFloat(process.env.targetTemperature),
+    currTemperature: parseFloat(process.env.targetTemperature),
     airInterval: parseFloat(process.env.airInterval),
     airDuration: parseFloat(process.env.airDuration),
     heatInterval: parseFloat(process.env.heatInterval),
@@ -217,8 +217,8 @@ var gmp = {
 	PointDay: 20241225,
     PointDateTime: getDateStr(),
     PointDayTime: 24125959,
-    targetTemperature: parseInt(process.env.targetTemperature),
-    currTemperature: parseInt(process.env.targetTemperature),
+    targetTemperature: parseFloat(process.env.targetTemperature),
+    currTemperature: parseFloat(process.env.targetTemperature),
     airInterval: parseFloat(process.env.airInterval),
     airDuration: parseFloat(process.env.airDuration),
     heatInterval: parseFloat(process.env.heatInterval),
@@ -571,7 +571,7 @@ function toggleHeat() {
     }
 
     // if SOMETHING
-    //log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
+    log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
 
     // Recursively call the function with the current timeout value  
     setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds)
@@ -584,7 +584,7 @@ function getTemperature() {
         if (err) {
             log("Error in reading temperature file")
         } else {
-            cr.currTemperature = (((celsiusTemp/1000) * (9/5)) + 32).toFixed(2)
+            cr.currTemperature = parseFloat((((celsiusTemp/1000) * (9/5)) + 32).toFixed(2)) 
             //log(`cr.currTemperature = ${cr.currTemperature}`)
         }
     })
@@ -595,7 +595,7 @@ function logMetric() {
     // Set the current temperature from the one-wire overlay file
     getTemperature()
 
-    let metricJSON = "{" + "tempature:" + cr.currTemperature
+    let metricJSON = "{" + "temperature:" + cr.currTemperature
         + ",heatDuration:" + cr.heatDuration
         + "," + relayNames[0] + ":" + relayMetricValues[0]
         + "," + relayNames[1] + ":" + relayMetricValues[1]
@@ -603,7 +603,7 @@ function logMetric() {
         + "," + relayNames[3] + ":" + relayMetricValues[3]
         + "}";
     // if SOMETHING
-    //log(`metricJSON = ${metricJSON}`)
+    log(`metricJSON = ${metricJSON}`)
 
     if (cr.loggingOn) {
         let dateTimeStr = getDateStr()
@@ -700,7 +700,7 @@ app.post('/updConfigRec', function routeHandler(req, res) {
     // Update values back into server DB
     updateParams(cr)
     */
-    cr.targetTemperature = parseInt(req.body.targetTemperature)
+    cr.targetTemperature = parseFloat(req.body.targetTemperature)
     cr.configCheckInterval = parseInt(req.body.configCheckInterval)
     cr.heatInterval = parseFloat(req.body.heatInterval)
     cr.heatDuration = parseFloat(req.body.heatDuration)
