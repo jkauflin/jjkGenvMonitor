@@ -353,8 +353,8 @@ function autoSetParams(cr) {
     } else if (days > 3) {
         cr.waterInterval = 8.0
     } else if (days > 1) {
-        //cr.waterInterval = 6.0
-        cr.waterInterval = 8.0
+        cr.waterInterval = 6.0
+        //cr.waterInterval = 8.0
     }
 
     return cr
@@ -558,11 +558,16 @@ function toggleHeat() {
         }
     }
 
+    let tempHeatDuration = cr.heatDuration
+    if (currLightsVal == OFF) {
+        tempHeatDuration = cr.heatDuration + 2.0
+    }
+
     if (currHeatVal == OFF) {
         //log("Turning Heat ON")
         setRelay(HEAT, ON)
         currHeatVal = ON
-        heatTimeout =  cr.heatDuration + heatDurationAdjustment
+        heatTimeout =  tempHeatDuration + heatDurationAdjustment
     } else {
         //log("Turning Heat OFF")
         setRelay(HEAT, OFF)
