@@ -116,6 +116,7 @@ Modification History
 2024-12-22 JJK  Migration to Azure
 2024-12-30 JJK  Got new Config, MetricPoint, and Image containers working
                 and testing getting to target temperature
+2025-01-27 JJK  Making adjustments to auto-calc logic and metrics logging
 =============================================================================*/
 
 import 'dotenv/config'
@@ -216,6 +217,8 @@ var gmp = {
     id: 'guid',
 	PointDay: 20241225,
     PointDateTime: getDateStr(),
+    //            YYhhMMss
+    //              HH      needs to be 24-hr
     PointDayTime: 24125959,
     targetTemperature: parseFloat(process.env.targetTemperature),
     currTemperature: parseFloat(process.env.targetTemperature),
@@ -238,7 +241,7 @@ log(">>> Starting server.mjs...")
 initConfigQuery()
 function initConfigQuery() {
     log("Initial Config Query")
-    autoSetParams(cr)
+    autoSetParams(cr)  // >>>>>>>>>>>>> it was only setting this at the beginning (NOT EVERY DAY)
     updServerDb(cr)
 }
 
@@ -560,6 +563,7 @@ function toggleHeat() {
 
     let tempHeatDuration = cr.heatDuration
     if (currLightsVal == OFF) {
+        // Add extra time to the Heat when the lights are OFF
         tempHeatDuration = cr.heatDuration + 2.0
     }
 
