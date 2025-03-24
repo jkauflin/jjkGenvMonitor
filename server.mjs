@@ -1,5 +1,5 @@
 /*==============================================================================
-(C) Copyright 2018,2019,2022,2023,2024 John J Kauflin, All rights reserved. 
+(C) Copyright 2018,2024,2025 John J Kauflin, All rights reserved. 
 -----------------------------------------------------------------------------
 DESCRIPTION: NodeJS module to handle board functions.  Communicates with
              the Arduino Mega board using johnny-five library.  Gets
@@ -117,6 +117,7 @@ Modification History
 2024-12-30 JJK  Got new Config, MetricPoint, and Image containers working
                 and testing getting to target temperature
 2025-01-27 JJK  Making adjustments to auto-calc logic and metrics logging
+2025-03-24 JJK  Checking target temperature logic again
 =============================================================================*/
 
 import 'dotenv/config'
@@ -529,7 +530,7 @@ function toggleAir() {
         if (currLightsVal == OFF) {
             setRelay(LIGHTS,ON)
             currLightsVal = ON
-            // >>>>> Add GenvMetricPoint purge when the lights come on
+            // >>>>> Add GenvMetricPoint purge when the lights come on (till I get the Daily Function working)
             let days = -2
             purgeMetricPointsInServerDb(days)
         }
