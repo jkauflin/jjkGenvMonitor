@@ -613,7 +613,7 @@ function logMetric() {
         + "," + relayNames[3] + ":" + relayMetricValues[3]
         + "}";
     // if SOMETHING
-    log(`metricJSON = ${metricJSON}`)
+    //log(`metricJSON = ${metricJSON}`)
 
     if (cr.loggingOn) {
         let dateTimeStr = getDateStr()
