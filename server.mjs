@@ -549,6 +549,7 @@ function toggleHeat() {
     let heatAdjustmentMax = 2.0
 
     // Check the temperature and adjust the timeout values
+    /*
     if (cr.currTemperature > (cr.targetTemperature + 0.5)) {
         heatIntervalAdjustment = cr.currTemperature - cr.targetTemperature
         if (heatIntervalAdjustment > heatAdjustmentMax) {
@@ -561,18 +562,22 @@ function toggleHeat() {
             heatDurationAdjustment = heatAdjustmentMax
         }
     }
+    */
 
     let tempHeatDuration = cr.heatDuration
+    /*
     if (currLightsVal == OFF) {
         // Add extra time to the Heat when the lights are OFF
         tempHeatDuration = cr.heatDuration + 2.0
     }
+    */
 
     if (currHeatVal == OFF) {
         //log("Turning Heat ON")
         setRelay(HEAT, ON)
         currHeatVal = ON
-        heatTimeout =  tempHeatDuration + heatDurationAdjustment
+        //heatTimeout =  tempHeatDuration + heatDurationAdjustment
+        heatTimeout =  cr.heatDuration + heatDurationAdjustment
     } else {
         //log("Turning Heat OFF")
         setRelay(HEAT, OFF)
