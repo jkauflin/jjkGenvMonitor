@@ -152,7 +152,9 @@ var webcam = nodeWebcamPkg.create(webcamOptions)
 // General handler for any uncaught exceptions
 process.on('uncaughtException', function (e) {
     log("UncaughtException, error = " + e)
-    console.error(e.stack)
+    // if NOT RestError than print stack?
+    //console.error(e.stack)
+    
     // Try rebooting the system if there is an uncaught error 
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> UN-COMMENT IF NEEDED <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     //setTimeout(rebootSystem, 5000)
