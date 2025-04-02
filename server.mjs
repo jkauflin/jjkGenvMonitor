@@ -118,6 +118,7 @@ Modification History
                 and testing getting to target temperature
 2025-01-27 JJK  Making adjustments to auto-calc logic and metrics logging
 2025-03-24 JJK  Checking target temperature logic again
+2025-04-02 JJK  Re-implementing target temp adjustment logic
 =============================================================================*/
 
 import 'dotenv/config'
@@ -330,7 +331,8 @@ function autoSetParams(cr) {
     }
 
     // Default germination start is 5 seconds every 4 hours
-    cr.waterDuration = 5.0
+    //cr.waterDuration = 5.0
+    cr.waterDuration = 4.0
     cr.waterInterval = 4.0
 
     if (days > 40) {
@@ -357,10 +359,11 @@ function autoSetParams(cr) {
         //cr.waterDuration = 6.0
         cr.waterInterval = 12.0
     } else if (days > 3) {
-        cr.waterInterval = 8.0
-    } else if (days > 1) {
-        cr.waterInterval = 6.0
         //cr.waterInterval = 8.0
+        cr.waterInterval = 6.0
+    } else if (days > 1) {
+        //cr.waterInterval = 6.0
+        cr.waterInterval = 5.0
     }
 
     return cr
@@ -545,29 +548,44 @@ function toggleAir() {
 
 // Function to toggle air ventilation ON and OFF
 function toggleHeat() {
-    let heatTimeout = 1.0
-    let heatDurationAdjustment = 0.0
-    let heatIntervalAdjustment = 0.0
-    let heatAdjustmentMax = 2.0
+    let heatTimeout = 0.5               // Default timeout value
+    let heatDurationAdjustment = 0.0    // Reset adjustment to zero before checking temperature
+    let heatIntervalAdjustment = 0.0    // Reset adjustment to zero before checking temperature
+    //let heatAdjustmentMax = 2.0
+    //let heatAdjustmentMax = 0.2
 
     // Check the temperature and adjust the timeout values
-    /*
-    if (cr.currTemperature > (cr.targetTemperature + 0.5)) {
+    if (cr.currTemperature > (cr.targetTemperature + 0.4)) {
+        // Temperature is too HIGH - decrease the Duration
+        heatDurationAdjustment = -0.1
+        // If really too HIGH, increase the Interval
+        if (cr.currTemperature > (cr.targetTemperature + 1.0)) {
+            heatIntervalAdjustment = 0.1
+        }
+        /*
         heatIntervalAdjustment = cr.currTemperature - cr.targetTemperature
         if (heatIntervalAdjustment > heatAdjustmentMax) {
             heatIntervalAdjustment = heatAdjustmentMax
         }
+        */
     }
     if (cr.currTemperature < (cr.targetTemperature - 0.5)) {
+        // Temperature is too LOW - increase the Duration
+        heatDurationAdjustment = 0.2
+        // If really too LOW, decrease the Interval
+        if (cr.currTemperature > (cr.targetTemperature - 1.0)) {
+            heatIntervalAdjustment = -0.1
+        }
+        /*
         heatDurationAdjustment = cr.targetTemperature - cr.currTemperature
         if (heatDurationAdjustment > heatAdjustmentMax) {
             heatDurationAdjustment = heatAdjustmentMax
         }
+        */
     }
-    */
 
-    let tempHeatDuration = cr.heatDuration
     /*
+    let tempHeatDuration = cr.heatDuration
     if (currLightsVal == OFF) {
         // Add extra time to the Heat when the lights are OFF
         tempHeatDuration = cr.heatDuration + 2.0
