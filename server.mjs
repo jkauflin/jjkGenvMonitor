@@ -561,6 +561,7 @@ function toggleHeat() {
         // If really too HIGH, increase the Interval
         if (cr.currTemperature > (cr.targetTemperature + 1.0)) {
             heatIntervalAdjustment = 0.1
+            heatDurationAdjustment = -0.2
         }
     }
     if (cr.currTemperature < (cr.targetTemperature - 0.5)) {
@@ -569,6 +570,7 @@ function toggleHeat() {
         // If really too LOW, decrease the Interval
         if (cr.currTemperature < (cr.targetTemperature - 1.0)) {
             heatIntervalAdjustment = -0.1
+            heatDurationAdjustment = 0.3
         }
     }
 
@@ -594,7 +596,7 @@ function toggleHeat() {
     }
 
     // if SOMETHING
-    log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
+    //log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
 
     // Recursively call the function with the current timeout value  
     setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds)
