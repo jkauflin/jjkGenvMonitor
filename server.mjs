@@ -119,6 +119,7 @@ Modification History
 2025-01-27 JJK  Making adjustments to auto-calc logic and metrics logging
 2025-03-24 JJK  Checking target temperature logic again
 2025-04-02 JJK  Re-implementing target temp adjustment logic
+2025-04-16 JJK  Checked base watering logic, and commented out logs
 =============================================================================*/
 
 import 'dotenv/config'
@@ -331,8 +332,7 @@ function autoSetParams(cr) {
     }
 
     // Default germination start is 5 seconds every 4 hours
-    //cr.waterDuration = 5.0
-    cr.waterDuration = 4.0
+    cr.waterDuration = 5.0
     cr.waterInterval = 4.0
 
     if (days > 40) {
@@ -655,7 +655,7 @@ function logMetric() {
 }
 
 function waterThePlants() {
-    log(">>> Watering the plants, cr.waterDuration = "+cr.waterDuration)
+    //log(">>> Watering the plants, cr.waterDuration = "+cr.waterDuration)
     setRelay(WATER,ON)
     setTimeout(() => {
         //log("Watering the plants OFF")
@@ -678,7 +678,7 @@ function waterThePlants() {
 }
 
 function _waterOn(waterSeconds) {
-    log("Turning Water ON, seconds = " + waterSeconds);
+    //log("Turning Water ON, seconds = " + waterSeconds);
     setRelay(WATER, ON)
     setTimeout(() => {
         //log("Turning Water OFF")
