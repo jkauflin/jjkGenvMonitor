@@ -568,7 +568,7 @@ function toggleHeat() {
             heatDurationAdjustment = -0.3
         }
     }
-    if (cr.currTemperature < (cr.targetTemperature - 0.5)) {a
+    if (cr.currTemperature < (cr.targetTemperature - 0.5)) {
         // Temperature is too LOW - increase the Duration
         heatDurationAdjustment = 0.2
         // If really too LOW, decrease the Interval
