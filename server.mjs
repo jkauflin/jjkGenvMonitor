@@ -535,9 +535,12 @@ function toggleAir() {
         if (currLightsVal == OFF) {
             setRelay(LIGHTS,ON)
             currLightsVal = ON
+
             // >>>>> Add GenvMetricPoint purge when the lights come on (till I get the Daily Function working)
+            /* 2025-04-28 comment out for now
             let days = -2
             purgeMetricPointsInServerDb(days)
+            */
         }
     }
 
@@ -557,28 +560,28 @@ function toggleHeat() {
     // Check the temperature and adjust the timeout values
     if (cr.currTemperature > (cr.targetTemperature + 0.4)) {
         // Temperature is too HIGH - decrease the Duration
-        heatDurationAdjustment = -0.1
+        heatDurationAdjustment = -0.2
         // If really too HIGH, increase the Interval
         if (cr.currTemperature > (cr.targetTemperature + 1.0)) {
             heatIntervalAdjustment = 0.1
-            heatDurationAdjustment = -0.2
+            heatDurationAdjustment = -0.3
         }
         if (cr.currTemperature > (cr.targetTemperature + 1.5)) {
             heatIntervalAdjustment = 0.2
-            heatDurationAdjustment = -0.3
+            heatDurationAdjustment = -0.4
         }
     }
     if (cr.currTemperature < (cr.targetTemperature - 0.5)) {
         // Temperature is too LOW - increase the Duration
-        heatDurationAdjustment = 0.2
+        heatDurationAdjustment = 0.3
         // If really too LOW, decrease the Interval
         if (cr.currTemperature < (cr.targetTemperature - 1.0)) {
             heatIntervalAdjustment = -0.1
-            heatDurationAdjustment = 0.3
+            heatDurationAdjustment = 0.4
         }
         if (cr.currTemperature < (cr.targetTemperature - 1.5)) {
             heatIntervalAdjustment = -0.2
-            heatDurationAdjustment = 0.4
+            heatDurationAdjustment = 0.5
         }
     }
 
