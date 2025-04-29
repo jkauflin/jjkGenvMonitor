@@ -326,6 +326,7 @@ function autoSetParams(cr) {
     cr.cureDate = addDays(cr.harvestDate,14)
     cr.productionDate = addDays(cr.cureDate,14)
 
+    /*
     cr.lightDuration = 18.0
     if (days > 3) {
         cr.lightDuration = 20.0
@@ -365,7 +366,8 @@ function autoSetParams(cr) {
         //cr.waterInterval = 6.0
         cr.waterInterval = 5.0
     }
-
+    */
+   
     return cr
 }
 
@@ -560,15 +562,15 @@ function toggleHeat() {
     // Check the temperature and adjust the timeout values
     if (cr.currTemperature > (cr.targetTemperature + 0.4)) {
         // Temperature is too HIGH - decrease the Duration
-        heatDurationAdjustment = -0.2
+        heatDurationAdjustment = -0.3
         // If really too HIGH, increase the Interval
         if (cr.currTemperature > (cr.targetTemperature + 1.0)) {
             heatIntervalAdjustment = 0.1
-            heatDurationAdjustment = -0.3
+            heatDurationAdjustment = -0.4
         }
         if (cr.currTemperature > (cr.targetTemperature + 1.5)) {
-            heatIntervalAdjustment = 0.2
-            heatDurationAdjustment = -0.4
+            heatIntervalAdjustment = 0.3
+            heatDurationAdjustment = -0.5
         }
     }
     if (cr.currTemperature < (cr.targetTemperature - 0.5)) {
@@ -581,7 +583,7 @@ function toggleHeat() {
         }
         if (cr.currTemperature < (cr.targetTemperature - 1.5)) {
             heatIntervalAdjustment = -0.2
-            heatDurationAdjustment = 0.5
+            heatDurationAdjustment = 0.6
         }
     }
 
