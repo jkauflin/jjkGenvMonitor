@@ -576,6 +576,7 @@ function toggleHeat() {
     if (cr.currTemperature < (cr.targetTemperature - 0.5)) {
         // Temperature is too LOW - increase the Duration
         heatDurationAdjustment = 0.3
+
         // If really too LOW, decrease the Interval
         if (cr.currTemperature < (cr.targetTemperature - 1.0)) {
             heatIntervalAdjustment = -0.1
@@ -585,15 +586,12 @@ function toggleHeat() {
             heatIntervalAdjustment = -0.2
             heatDurationAdjustment = 0.6
         }
-    }
 
-    /*
-    let tempHeatDuration = cr.heatDuration
-    if (currLightsVal == OFF) {
-        // Add extra time to the Heat when the lights are OFF
-        tempHeatDuration = cr.heatDuration + 2.0
+        if (currLightsVal == OFF) {
+            // Add extra time to the Heat when the lights are OFF
+            heatDurationAdjustment += 0.2
+        }
     }
-    */
 
     if (currHeatVal == OFF) {
         //log("Turning Heat ON")
