@@ -63,7 +63,7 @@
 
  var loggingSwitch = document.getElementById("loggingSwitch")
  var imagesSwitch = document.getElementById("imagesSwitch")
- var imagesSwitch = document.getElementById("autoSetSwitch")
+ var autoSetSwitch = document.getElementById("autoSetSwitch")
  loggingSwitch.checked = false;
  imagesSwitch.checked = false;
  autoSetSwitch.checked = false;
