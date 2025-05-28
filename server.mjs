@@ -382,7 +382,7 @@ function msToNextWatering(lastWaterTs,waterInterval) {
 
 
 function triggerUpdServerDb() {
-    log("Triggering updServerDb, cr.configCheckInterval = "+cr.configCheckInterval)
+    //log("Triggering updServerDb, cr.configCheckInterval = "+cr.configCheckInterval)
 
     // If turned on, calculate the auto-set values before doing an update
     if (cr.autoSetOn) {
