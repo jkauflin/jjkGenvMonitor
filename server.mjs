@@ -320,7 +320,7 @@ board.on("ready", () => {
 // Function to set light and water parameters based on the days from Planting Date
 function autoSetParams(cr) {
     let days = daysFromDate(cr.plantingDate)
-    log(">>> Set auto-watering, Days from PlantingDate = "+days)
+    //log(">>> Set auto-watering, Days from PlantingDate = "+days)
 
     // Update other dates based on planting date
     cr.harvestDate = addDays(cr.plantingDate,cr.daysToBloom)
