@@ -120,6 +120,7 @@ Modification History
 2025-03-24 JJK  Checking target temperature logic again
 2025-04-02 JJK  Re-implementing target temp adjustment logic
 2025-04-16 JJK  Checked base watering logic, and commented out logs
+2025-05-28 JJK  Re-implementing auto-watering and command request logic
 =============================================================================*/
 
 import 'dotenv/config'
@@ -132,8 +133,7 @@ import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 import nodeWebcamPkg from 'enhanced-node-webcam'
 import {log,getDateStr,addDays,daysFromDate,getPointDay,getPointDayTime} from './util.mjs'
-import {updServerDb,logMetricToServerDb,purgeMetricPointsInServerDb,
-        getConfig,updateParams,completeRequest,insertImage,saveImageToFile} from './dataRepository.mjs'
+import {updServerDb,logMetricToServerDb,updateParams,completeRequest,insertImage} from './dataRepository.mjs'
 import express from 'express';
 
 const app = express();
@@ -201,6 +201,7 @@ var cr = {
     logMetricInterval: parseFloat(process.env.logMetricInterval),
     loggingOn: parseInt(process.env.loggingOn),
     selfieOn: parseInt(process.env.selfieOn),
+    autoSetOn: parseInt(process.env.autoSetOn),
     targetTemperature: parseFloat(process.env.targetTemperature),
     currTemperature: parseFloat(process.env.targetTemperature),
     airInterval: parseFloat(process.env.airInterval),
@@ -246,7 +247,7 @@ log(">>> Starting server.mjs...")
 initConfigQuery()
 function initConfigQuery() {
     log("Initial Config Query")
-    autoSetParams(cr)  // >>>>>>>>>>>>> it was only setting this at the beginning (NOT EVERY DAY)
+    autoSetParams(cr)
     updServerDb(cr)
 }
 
@@ -319,55 +320,51 @@ board.on("ready", () => {
 // Function to set light and water parameters based on the days from Planting Date
 function autoSetParams(cr) {
     let days = daysFromDate(cr.plantingDate)
-    log("Days from PlantingDate = "+days)
+    log(">>> Set auto-watering, Days from PlantingDate = "+days)
 
     // Update other dates based on planting date
     cr.harvestDate = addDays(cr.plantingDate,cr.daysToBloom)
     cr.cureDate = addDays(cr.harvestDate,14)
     cr.productionDate = addDays(cr.cureDate,14)
 
-    /*
-    cr.lightDuration = 18.0
-    if (days > 3) {
-        cr.lightDuration = 20.0
-    }
-
-    // Default germination start is 5 seconds every 4 hours
-    cr.waterDuration = 5.0
-    cr.waterInterval = 4.0
-
-    if (days > 40) {
+    // Don't start auto-watering until after 11 days
+    cr.waterDuration = 0.0
+    cr.waterInterval = 1.0
+    if (days > 38) {
+        cr.waterDuration = 28.0
+        cr.waterInterval = 24.0
+    } else if (days > 35) {
+        cr.waterDuration = 27.0
+        cr.waterInterval = 24.0
+    } else if (days > 32) {
         cr.waterDuration = 26.0
-        cr.waterInterval = 30.0
+        cr.waterInterval = 24.0
     } else if (days > 30) {
         cr.waterDuration = 24.0
-        cr.waterInterval = 30.0
-    } else if (days > 20) {
+        cr.waterInterval = 24.0
+    } else if (days > 27) {
+        cr.waterDuration = 22.0
+        cr.waterInterval = 24.0
+    } else if (days > 25) {
         cr.waterDuration = 20.0
-        cr.waterInterval = 30.0
-        // *** And add bottom
-    } else if (days > 10) {
-        //cr.waterDuration = 16.0
-        //cr.waterInterval = 30.0
+        cr.waterInterval = 24.0
+    } else if (days > 20) {
+        cr.waterDuration = 14.0
+        cr.waterInterval = 20.0
+    } else if (days > 15) {
+        cr.waterDuration = 8.0
+        cr.waterInterval = 10.0
+    } else if (days > 13) {
+        cr.waterDuration = 7.0
+        cr.waterInterval = 10.0
+    } else if (days > 12) {
+        cr.waterDuration = 6.0
+        cr.waterInterval = 10.0
+    } else if (days > 11) {
         cr.waterDuration = 5.0
         cr.waterInterval = 10.0
-    } else if (days > 7) {
-        //cr.waterDuration = 8.0
-        //cr.waterInterval = 24.0
-        cr.waterDuration = 5.0
-        cr.waterInterval = 10.0
-    } else if (days > 6) {
-        //cr.waterDuration = 6.0
-        cr.waterInterval = 12.0
-    } else if (days > 3) {
-        //cr.waterInterval = 8.0
-        cr.waterInterval = 6.0
-    } else if (days > 1) {
-        //cr.waterInterval = 6.0
-        cr.waterInterval = 5.0
     }
-    */
-   
+
     return cr
 }
 
@@ -385,8 +382,15 @@ function msToNextWatering(lastWaterTs,waterInterval) {
 
 
 function triggerUpdServerDb() {
-    //log("Triggering updServerDb, cr.configCheckInterval = "+cr.configCheckInterval)
+    log("Triggering updServerDb, cr.configCheckInterval = "+cr.configCheckInterval)
+
+    // If turned on, calculate the auto-set values before doing an update
+    if (cr.autoSetOn) {
+        autoSetParams(cr)
+    }
+    // Set the current values into the backend server data store
     updServerDb(cr)
+    // Set the next time to check the update
     setTimeout(triggerUpdServerDb, cr.configCheckInterval * secondsToMilliseconds)
 
     // >>>>>>>>>>> CHANGE this to checking for requests from some other data source <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -537,12 +541,6 @@ function toggleAir() {
         if (currLightsVal == OFF) {
             setRelay(LIGHTS,ON)
             currLightsVal = ON
-
-            // >>>>> Add GenvMetricPoint purge when the lights come on (till I get the Daily Function working)
-            /* 2025-04-28 comment out for now
-            let days = -2
-            purgeMetricPointsInServerDb(days)
-            */
         }
     }
 
