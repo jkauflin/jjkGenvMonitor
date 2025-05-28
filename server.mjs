@@ -133,7 +133,7 @@ import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 import nodeWebcamPkg from 'enhanced-node-webcam'
 import {log,getDateStr,addDays,daysFromDate,getPointDay,getPointDayTime} from './util.mjs'
-import {updServerDb,logMetricToServerDb,updateParams,completeRequest,insertImage} from './dataRepository.mjs'
+import {updServerDb,logMetricToServerDb,updateParams,insertImage} from './dataRepository.mjs'
 import express from 'express';
 
 const app = express();
@@ -215,7 +215,8 @@ var cr = {
     lastWaterTs: getDateStr(),
     lastWaterSecs: 0.0,
     requestCommand: '',
-    requestValue: ''
+    requestValue: '',
+    requestResult: ''
 }
 
 // Genv Metric Point
@@ -388,39 +389,28 @@ function triggerUpdServerDb() {
     if (cr.autoSetOn) {
         autoSetParams(cr)
     }
+
+    //------------------------------------------------------------------------------------
+    // Handle requests
+    //------------------------------------------------------------------------------------
+    if (cr.requestCommand != null && cr.requestCommand != "") {
+        cr.requestResult = ""
+        if (cr.requestCommand == "WaterOn") {
+            let waterSeconds = parseInt(cr.requestValue)
+            _waterOn(waterSeconds)
+            cr.requestCommand = ""
+            cr.requestValue = ""
+            cr.requestResult = "Water turned on for "+waterSeconds+" seconds"
+        } 
+
+        // >>>>>> put selfie request back in????
+        // >>>>>> accept REBOOT request ???  
+    }
+
     // Set the current values into the backend server data store
     updServerDb(cr)
     // Set the next time to check the update
     setTimeout(triggerUpdServerDb, cr.configCheckInterval * secondsToMilliseconds)
-
-    // >>>>>>>>>>> CHANGE this to checking for requests from some other data source <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    // Get values from the database
-    /*
-    getConfig(cr).then(outCR => {
-        if (outCR != null) {
-            cr = outCR
-
-            //------------------------------------------------------------------------------------
-            // Handle requests
-            //------------------------------------------------------------------------------------
-            if (cr.requestCommand != null && cr.requestCommand != "") {
-                let returnMessage = ""
-                if (cr.requestCommand == "WaterOn") {
-                    let waterSeconds = parseInt(cr.requestValue)
-                    _waterOn(waterSeconds)
-                    returnMessage = "Water turned on for "+waterSeconds+" seconds"
-                } 
-                // >>>>>> put selfie request back in????
-    
-                // >>>>>> accept REBOOT request ???  
-
-                completeRequest(returnMessage)
-            }
-        }
-
-        setTimeout(triggerUpdServerDb, cr.configCheckInterval * secondsToMilliseconds)
-    })
-    */
 }
 
 function _letMeTakeASelfie() {
@@ -674,14 +664,8 @@ function waterThePlants() {
         cr.lastWaterSecs = cr.waterDuration
         cr.lastUpdateTs = cr.lastWaterTs
 
-        updServerDb(cr)
-
         // Update values back into server DB
-        /*
-        log(">>> Triggering REBOOT after watering")
-        // Reboot the system 5 seconds after turning off the water
-        setTimeout(rebootSystem, 5000)
-        */
+        updServerDb(cr)
 
     }, cr.waterDuration * secondsToMilliseconds)
 }
@@ -744,6 +728,8 @@ app.post('/updConfigRec', function routeHandler(req, res) {
     cr.loggingOn = parseInt(req.body.loggingOn)
     //log(`in Update, cr.loggingOn = ${cr.loggingOn}`)
     cr.selfieOn = parseInt(req.body.selfieOn)
+    //log(`in Update, cr.selfieOn = ${cr.selfieOn}`)
+    cr.autoSetOn = parseInt(req.body.autoSetOn)
     //log(`in Update, cr.selfieOn = ${cr.selfieOn}`)
 
     updServerDb(cr)

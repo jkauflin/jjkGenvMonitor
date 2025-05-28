@@ -27,6 +27,7 @@
  * 2024-02-18 JJK   Added switches for logging and images, and a next water
  *                  to get water timing ok even if system reboots
  * 2024-12-23 JJK   Migration to Azure and Cosmos DB NoSQL
+ * 2025-05-28 JJK   Back-track updates from the backend website version
  *============================================================================*/
 
  var configDesc = document.getElementById("configDesc")
@@ -62,9 +63,10 @@
 
  var loggingSwitch = document.getElementById("loggingSwitch")
  var imagesSwitch = document.getElementById("imagesSwitch")
+ var imagesSwitch = document.getElementById("autoSetSwitch")
  loggingSwitch.checked = false;
  imagesSwitch.checked = false;
-
+ autoSetSwitch.checked = false;
 
  //=================================================================================================================
  // Bind events
@@ -72,6 +74,7 @@
  updateButton.addEventListener("click", _update);
  waterButton.addEventListener("click", _water);
  GetSelfieButton.addEventListener("click", _getSelfie);
+
 
  //=================================================================================================================
  // Module methods
@@ -86,12 +89,12 @@ function _lookup(event) {
      })
      .then(cr => {
          //console.log("TargetTemperature = "+cr.TargetTemperature)
-         updateDisplay.innerHTML = ""
+         updateDisplay.textContent = ""
          _renderConfig(cr);
      })
      .catch((err) => {
          console.error(`Error in Fetch to ${url}, ${err}`);
-         updateDisplay.innerHTML = "Fetch data FAILED - check log";
+         updateDisplay.textContent = "Fetch data FAILED - check log";
      });
  }
 
@@ -117,7 +120,8 @@ function _lookup(event) {
         waterInterval: waterInterval.value,
         configCheckInterval: configCheckInterval.value,
         loggingOn: Number(loggingSwitch.checked),
-        selfieOn: Number(imagesSwitch.checked)
+        selfieOn: Number(imagesSwitch.checked),
+        autoSetOn: Number(imagesSwitch.checked)
      }
      fetch(url, {
         method: 'POST',
@@ -225,6 +229,11 @@ function _lookup(event) {
             imagesSwitch.checked = true;
         } else {
             imagesSwitch.checked = false;
+        }
+        if (cr.autoSetOn) {
+            autoSetSwitch.checked = true;
+        } else {
+            autoSetSwitch.checked = false;
         }
      }
  }

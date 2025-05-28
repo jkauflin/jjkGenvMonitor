@@ -108,36 +108,6 @@ export async function updateParams(cr) {
 	*/
 }
 
-export async function completeRequest(returnMessage) {
-	/*
-	let conn;
-	try {
-		conn = await mariadb.createConnection({ 
-		  host: process.env.DB_HOST,
-		  user: process.env.DB_USER, 
-		  password: process.env.DB_PASS, 
-		  port: process.env.DB_PORT,
-		  database: process.env.DB_NAME,
-		  connectTimeout: 3000,
-		  dateStrings: true  
-		})
-  
-		let tempLastUpdateTs = getDateStr()
-		conn.query("UPDATE genvMonitorConfig SET RequestCommand='',RequestValue='',ReturnMessage=?,LastUpdateTs=? WHERE ConfigId = ?", 
-		  [returnMessage,tempLastUpdateTs,1])
-  
-	} catch (err) {
-		//throw err
-		// Just log the error instead of throwing for now
-		console.log("in completeRequest, "+err)
-	} finally {
-		if (conn) {
-			conn.close()
-		}
-	}
-	*/
-}
-
 export async function insertImage(base64ImgData) {
 	try {
 		let dateTimeStr = getDateStr()
