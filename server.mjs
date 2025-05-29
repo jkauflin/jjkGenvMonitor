@@ -409,6 +409,7 @@ function triggerUpdServerDb() {
         } 
         // >>>>>> put selfie request back in????
         // >>>>>> accept REBOOT request ???  
+        log(cr.requestResult)
     }
 
     // Set the current values into the backend server data store
