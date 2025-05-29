@@ -386,7 +386,7 @@ function triggerUpdServerDb() {
     //log("Triggering updServerDb, cr.configCheckInterval = "+cr.configCheckInterval)
 
     // Get the Cosmos DB item for cr
-    let dbCr = getServerDb()
+    let dbCr = getServerDb(cr)
 
     // If turned on, calculate the auto-set values before doing an update
     if (cr.autoSetOn) {
