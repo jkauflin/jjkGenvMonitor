@@ -401,8 +401,12 @@ function triggerUpdServerDb() {
             cr.requestCommand = ""
             cr.requestValue = ""
             cr.requestResult = "Water turned on for "+waterSeconds+" seconds"
+        } else if (cr.requestCommand == "SetAutoSetOn") {
+            cr.autoSetOn = parseInt(cr.requestValue)
+            cr.requestCommand = ""
+            cr.requestValue = ""
+            cr.requestResult = "cr.autoSetOn set to "+cr.autoSetOn
         } 
-
         // >>>>>> put selfie request back in????
         // >>>>>> accept REBOOT request ???  
     }
