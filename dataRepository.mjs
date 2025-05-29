@@ -50,9 +50,8 @@ const { container: imageContainer } = await database.containers.createIfNotExist
 // Functions to interact with Azure Cosmos DB NoSQL
 
 export async function getServerDb(cr) {
-	let dbCr = null
 	try {
-		dbCr = await configContainer.item(cr.id,cr.ConfigId).read(); 
+		let dbCr = await configContainer.item(cr.id,cr.ConfigId).read(); 
     	log("in getServerDb, dbCr.requestCommand = "+dbCr.requestCommand)
 	} catch (err) {
 		//throw err
