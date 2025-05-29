@@ -53,6 +53,7 @@ export async function getServerDb(cr) {
 	let dbCr = null
 	try {
 		dbCr = await configContainer.item(cr.id,cr.ConfigId).read(); 
+    	log("in getServerDb, dbCr.requestCommand = "+dbCr.requestCommand)
 	} catch (err) {
 		//throw err
 		// Just log the error instead of throwing for now
