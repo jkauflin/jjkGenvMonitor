@@ -385,13 +385,14 @@ function msToNextWatering(lastWaterTs,waterInterval) {
 async function triggerUpdServerDb() {
     //log("Triggering updServerDb, cr.configCheckInterval = "+cr.configCheckInterval)
 
-    // Get the Cosmos DB item for cr
-    let dbCr = await getServerDb(cr)
-
     // If turned on, calculate the auto-set values before doing an update
     if (cr.autoSetOn) {
         autoSetParams(cr)
     }
+
+    // Get the Cosmos DB item for cr
+    let dbCr = await getServerDb(cr)
+    log("dbCr.requestCommand = "+dbCr.requestCommand)
 
     //------------------------------------------------------------------------------------
     // Handle requests
