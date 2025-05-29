@@ -122,7 +122,7 @@ async function _update(event) {
         configCheckInterval: configCheckInterval.value,
         loggingOn: Number(loggingSwitch.checked),
         selfieOn: Number(imagesSwitch.checked),
-        autoSetOn: Number(imagesSwitch.checked)
+        autoSetOn: Number(autoSetSwitch.checked)
     }
 
     showLoadingSpinner(messageDisplay)
@@ -172,6 +172,7 @@ async function _getSelfie(event) {
         })
         await checkFetchResponse(response)
         // Success
+        messageDisplay.textContent = ""
         let data = await response.text();
         imgDisplay.src = data
     } catch (err) {
