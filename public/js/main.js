@@ -28,7 +28,10 @@
  *                  to get water timing ok even if system reboots
  * 2024-12-23 JJK   Migration to Azure and Cosmos DB NoSQL
  * 2025-05-28 JJK   Back-track updates from the backend website version
+ * 2025-05-29 JJK   Added util and better fetch error handling
  *============================================================================*/
+
+ import {showLoadingSpinner,empty,checkFetchResponse} from './util.js'
 
  var configDesc = document.getElementById("configDesc")
  var daysToGerm = document.getElementById("daysToGerm")
@@ -52,7 +55,7 @@
  var configCheckInterval = document.getElementById("configCheckInterval")
 
  var lastUpdateTs = document.getElementById("lastUpdateTs")
- var updateDisplay = document.getElementById("UpdateDisplay")
+ var messageDisplay = document.getElementById("MessageDisplay")
  var imgDisplay = document.getElementById("ImgDisplay")
  var returnMessage = document.getElementById("returnMessage")
 
@@ -78,30 +81,28 @@
 
  //=================================================================================================================
  // Module methods
-function _lookup(event) {
-    let url = '/getConfigRec';
-    fetch(url)
-     .then(response => {
-         if (!response.ok) {
-             throw new Error('Response was not OK');
-         }
-         return response.json();
-     })
-     .then(cr => {
-         //console.log("TargetTemperature = "+cr.TargetTemperature)
-         updateDisplay.textContent = ""
+async function _lookup(event) {
+    showLoadingSpinner(messageDisplay)
+    try {
+        const response = await fetch("/getConfigRec", {
+            //method: "POST",
+            //headers: { "Content-Type": "application/json" },
+            //headers: { "Content-Type": "text/plain" },
+            //body: parcelId
+        })
+        await checkFetchResponse(response)
+        // Success
+        let cr = await response.json();
+        messageDisplay.textContent = ""
          _renderConfig(cr);
-     })
-     .catch((err) => {
-         console.error(`Error in Fetch to ${url}, ${err}`);
-         updateDisplay.textContent = "Fetch data FAILED - check log";
-     });
- }
+    } catch (err) {
+        console.error(err)
+        messageDisplay.textContent = `Error in Fetch: ${err.message}`
+    }
+}
 
- function _update(event) {
+async function _update(event) {
     // Update other dates based on planting date
-
-    let url = '/updConfigRec';
     let paramData = {
         /*
         configDesc: configDesc.value,
@@ -122,75 +123,66 @@ function _lookup(event) {
         loggingOn: Number(loggingSwitch.checked),
         selfieOn: Number(imagesSwitch.checked),
         autoSetOn: Number(imagesSwitch.checked)
-     }
-     fetch(url, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(paramData)
-     })
-     .then(response => {
-        if (!response.ok) {
-            throw new Error('Response was not OK');
-        }
-        return response.json();
-     })
-     .then(cr => {
-        updateDisplay.innerHTML = "Update successful "
-        _renderConfig(cr);
-     })
-     .catch((err) => {
-        console.error(`Error in Fetch to ${url}, ${err}`);
-        updateDisplay.innerHTML = "Fetch data FAILED - check log";
-     });
+    }
+
+    showLoadingSpinner(messageDisplay)
+    try {
+        const response = await fetch("/updConfigRec", {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(paramData)
+        })
+        await checkFetchResponse(response)
+        // Success
+        let cr = await response.json();
+        messageDisplay.textContent = "Update successful "
+         _renderConfig(cr);
+    } catch (err) {
+        console.error(err)
+        messageDisplay.textContent = `Error in Fetch: ${err.message}`
+    }
 }
 
- function _water(event) {
-     let url = '/genvWaterOn';
-     let paramData = {
-         waterSeconds: document.getElementById("waterSeconds").value}
-     fetch(url, {
-         method: 'POST',
-         headers: {'Content-Type': 'application/json'},
-         body: JSON.stringify(paramData)
-     })
-     .then(response => {
-         if (!response.ok) {
-             throw new Error('Response was not OK');
-         }
-         return response.text();
-     })
-     .then(message => {
-         updateDisplay.innerHTML = message;
-     })
-     .catch((err) => {
-         console.error(`Error in Fetch to ${url}, ${err}`);
-         updateDisplay.innerHTML = "Fetch data FAILED - check log";
-     });
- }
+async function _water(event) {
+    let paramData = {
+        waterSeconds: document.getElementById("waterSeconds").value
+    }
 
- function _getSelfie(event) {
-    updateDisplay.innerHTML = "Getting selfie...";
-    let url = '/genvGetSelfie';
-     fetch(url)
-     .then(response => {
-         if (!response.ok) {
-             throw new Error('Response was not OK');
-         }
-         updateDisplay.innerHTML = "";
-         return response.text();
-     })
-     .then(data => {
+    showLoadingSpinner(messageDisplay)
+    try {
+        const response = await fetch("/genvWaterOn", {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(paramData)
+        })
+        await checkFetchResponse(response)
+        // Success
+        let message = await response.text();
+        messageDisplay.textContent = message
+    } catch (err) {
+        console.error(err)
+        messageDisplay.textContent = `Error in Fetch: ${err.message}`
+    }
+}
+
+async function _getSelfie(event) {
+    showLoadingSpinner(messageDisplay)
+    try {
+        const response = await fetch("/genvGetSelfie", {
+        })
+        await checkFetchResponse(response)
+        // Success
+        let data = await response.text();
         imgDisplay.src = data
-     })
-     .catch((err) => {
-         console.error(`Error in Fetch to ${url}, ${err}`)
-         updateDisplay.innerHTML = "Selfie fetch FAILED"
-     })
+    } catch (err) {
+        console.error(err)
+        messageDisplay.textContent = `Error in Fetch: ${err.message}`
+    }
  }
 
  function displayImage() {
      // {imgId: 1221, lastChangeTs: '2024-01-04 00:56:06', imgData: '
-     updateDisplay.innerHTML = "ImgTS: "+imgArray[currImg].lastChangeTs+" ("+imgArray[currImg].imgId+")"
+     messageDisplay.textContent = "ImgTS: "+imgArray[currImg].lastChangeTs+" ("+imgArray[currImg].imgId+")"
      imgDisplay.src = imgArray[currImg].imgData
  }
 
