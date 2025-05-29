@@ -52,7 +52,7 @@ const { container: imageContainer } = await database.containers.createIfNotExist
 export async function getServerDb(cr) {
 	let returnCr = null
 	try {
-		returnCr = configContainer.item(cr.id,cr.ConfigId).read(); 
+		returnCr = await configContainer.item(cr.id,cr.ConfigId).read(); 
 	} catch (err) {
 		//throw err
 		// Just log the error instead of throwing for now
