@@ -394,6 +394,7 @@ function triggerUpdServerDb() {
     // Handle requests
     //------------------------------------------------------------------------------------
     if (cr.requestCommand != null && cr.requestCommand != "") {
+        log("cr.requestCommand = "+cr.requestCommand)
         cr.requestResult = ""
         if (cr.requestCommand == "WaterOn") {
             let waterSeconds = parseInt(cr.requestValue)
