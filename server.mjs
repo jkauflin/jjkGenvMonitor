@@ -391,12 +391,13 @@ async function triggerUpdServerDb() {
     }
 
     // Get the Cosmos DB item for cr
-    let dbCr = await getServerDb(cr)
-    log("dbCr.requestCommand = "+dbCr.requestCommand)
+    //let dbCr = await getServerDb(cr)
+    //log("dbCr.requestCommand = "+dbCr.requestCommand)
 
     //------------------------------------------------------------------------------------
     // Handle requests
     //------------------------------------------------------------------------------------
+    /*
     if (dbCr.requestCommand != null && dbCr.requestCommand != "") {
         log("dbCr.requestCommand = "+dbCr.requestCommand)
         cr.requestResult = ""
@@ -416,6 +417,7 @@ async function triggerUpdServerDb() {
         // >>>>>> accept REBOOT request ???  
         log(cr.requestResult)
     }
+    */
 
     // Set the current values into the backend server data store
     updServerDb(cr)
