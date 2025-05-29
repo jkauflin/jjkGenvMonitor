@@ -133,7 +133,7 @@ import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 import nodeWebcamPkg from 'enhanced-node-webcam'
 import {log,getDateStr,addDays,daysFromDate,getPointDay,getPointDayTime} from './util.mjs'
-import {updServerDb,logMetricToServerDb,updateParams,insertImage} from './dataRepository.mjs'
+import {getServerDb,updServerDb,logMetricToServerDb,updateParams,insertImage} from './dataRepository.mjs'
 import express from 'express';
 
 const app = express();
@@ -385,6 +385,9 @@ function msToNextWatering(lastWaterTs,waterInterval) {
 function triggerUpdServerDb() {
     //log("Triggering updServerDb, cr.configCheckInterval = "+cr.configCheckInterval)
 
+    // Get the Cosmos DB item for cr
+    let dbCr = getServerDb()
+
     // If turned on, calculate the auto-set values before doing an update
     if (cr.autoSetOn) {
         autoSetParams(cr)
@@ -393,17 +396,17 @@ function triggerUpdServerDb() {
     //------------------------------------------------------------------------------------
     // Handle requests
     //------------------------------------------------------------------------------------
-    if (cr.requestCommand != null && cr.requestCommand != "") {
-        log("cr.requestCommand = "+cr.requestCommand)
+    if (dbCr.requestCommand != null && dbCr.requestCommand != "") {
+        log("dbCr.requestCommand = "+dbCr.requestCommand)
         cr.requestResult = ""
-        if (cr.requestCommand == "WaterOn") {
-            let waterSeconds = parseInt(cr.requestValue)
+        if (dbCr.requestCommand == "WaterOn") {
+            let waterSeconds = parseInt(dbCr.requestValue)
             _waterOn(waterSeconds)
             cr.requestCommand = ""
             cr.requestValue = ""
             cr.requestResult = "Water turned on for "+waterSeconds+" seconds"
-        } else if (cr.requestCommand == "SetAutoSetOn") {
-            cr.autoSetOn = parseInt(cr.requestValue)
+        } else if (dbCr.requestCommand == "SetAutoSetOn") {
+            cr.autoSetOn = parseInt(dbCr.requestValue)
             cr.requestCommand = ""
             cr.requestValue = ""
             cr.requestResult = "cr.autoSetOn set to "+cr.autoSetOn

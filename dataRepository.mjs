@@ -49,6 +49,19 @@ const { container: imageContainer } = await database.containers.createIfNotExist
 
 // Functions to interact with Azure Cosmos DB NoSQL
 
+export async function getServerDb() {
+	let returnCr = null
+	try {
+		returnCr = configContainer.item(cr.id,cr.ConfigId).read(); 
+	} catch (err) {
+		//throw err
+		// Just log the error instead of throwing for now
+		console.log("in getServerDb, "+err)
+	}
+
+	return returnCr
+}
+
 // Update configuration parameter values into the backend server database
 export async function updServerDb(cr) {
 	try {
