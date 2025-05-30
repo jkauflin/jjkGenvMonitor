@@ -21,6 +21,7 @@ Modification History
 2024-12-22 JJK  Working on migration to Azure
 2024-12-30 JJK  Got new Config, MetricPoint, and Image container read and
 				updates working
+2025-05-30 JJK	Added getServerDb to get the current GenvConfig item
 =============================================================================*/
 import 'dotenv/config'
 import fs, { readFileSync } from 'node:fs'
@@ -50,17 +51,15 @@ const { container: imageContainer } = await database.containers.createIfNotExist
 // Functions to interact with Azure Cosmos DB NoSQL
 
 export async function getServerDb(cr) {
-	let dbCr = null
 	try {
-		dbCr = await configContainer.item(cr.id,cr.ConfigId).read(); 
-    	log("in getServerDb, dbCr.requestCommand = "+dbCr.requestCommand)
+		const { resource: item } = await configContainer.item(cr.id,cr.ConfigId).read()
+		return item
 	} catch (err) {
 		//throw err
 		// Just log the error instead of throwing for now
 		console.log("in getServerDb, "+err)
+		return null
 	}
-
-	return {dbCr}
 }
 
 // Update configuration parameter values into the backend server database
@@ -84,42 +83,6 @@ export async function logMetricToServerDb(gmp) {
 		// Just log the error instead of throwing for now
 		console.log("in logMetricToServerDb, "+err)
 	}
-}
-
-export async function updateParams(cr) {
-	/*
-	let conn;
-	try {
-		conn = await mariadb.createConnection({ 
-		  host: process.env.DB_HOST,
-		  user: process.env.DB_USER, 
-		  password: process.env.DB_PASS, 
-		  port: process.env.DB_PORT,
-		  database: process.env.DB_NAME,
-		  connectTimeout: 3000,
-		  dateStrings: true  
-		})
-  
-		let sqlStr = "UPDATE genvMonitorConfig SET ConfigDesc=?,GerminationStart=?,DaysToGerm=?,PlantingDate=?,HarvestDate=?,CureDate=?"+
-						",ProductionDate=?,DaysToBloom=?,TargetTemperature=?,ConfigCheckInterval=?,HeatInterval=?,HeatDuration=?"+
-						",CurrTemperature=?,LightDuration=?,WaterDuration=?,WaterInterval=?,LastWaterTs=?,LastWaterSecs=?,LastUpdateTs=?"+
-						",LoggingOn=?,SelfieOn=?"+
-						" WHERE ConfigId=?"
-		conn.query(sqlStr, [cr.configDesc,cr.germinationStart,cr.daysToGerm,cr.plantingDate,cr.harvestDate,cr.cureDate,cr.productionDate,
-					cr.daysToBloom,cr.targetTemperature,cr.configCheckInterval,cr.heatInterval,cr.heatDuration,cr.currTemperature,
-					cr.lightDuration,cr.waterDuration,cr.waterInterval,cr.lastWaterTs,cr.lastWaterSecs,cr.lastUpdateTs,
-					cr.loggingOn,cr.selfieOn,1])
-  
-	} catch (err) {
-		//throw err
-		// Just log the error instead of throwing for now
-		console.log("in updateParams, "+err)
-	} finally {
-		if (conn) {
-			conn.close()
-		}
-	}
-	*/
 }
 
 export async function insertImage(base64ImgData) {

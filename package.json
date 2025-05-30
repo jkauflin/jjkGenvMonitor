@@ -16,10 +16,10 @@
   "dependencies": {
     "@azure/cosmos": "^4.2.0",
     "dotenv": "^16.4.7",
+    "johnny-five": "^2.1.0",
     "enhanced-node-webcam": "^2.1.1",
     "express": "^4.21.2",
     "jjkgenvmonitor": "file:",
-    "johnny-five": "^2.1.0",
     "node-fetch": "^3.3.2"
   }
 }

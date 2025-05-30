@@ -3,7 +3,8 @@
 -----------------------------------------------------------------------------
 DESCRIPTION: NodeJS module to handle board functions.  Communicates with
              the Arduino Mega board using johnny-five library.  Gets
-             configuration values gives updates to a server database
+             configuration values gives updates to a server database.
+             Implements a web server for local admin functions.
 
 -----------------------------------------------------------------------------
 Modification History
@@ -133,7 +134,7 @@ import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 import nodeWebcamPkg from 'enhanced-node-webcam'
 import {log,getDateStr,addDays,daysFromDate,getPointDay,getPointDayTime} from './util.mjs'
-import {getServerDb,updServerDb,logMetricToServerDb,updateParams,insertImage} from './dataRepository.mjs'
+import {getServerDb,updServerDb,logMetricToServerDb,insertImage} from './dataRepository.mjs'
 import express from 'express';
 
 const app = express();
@@ -318,6 +319,7 @@ board.on("ready", () => {
     log("End of board.on (initialize) event")
 })
 
+
 // Function to set light and water parameters based on the days from Planting Date
 function autoSetParams(cr) {
     let days = daysFromDate(cr.plantingDate)
@@ -381,7 +383,6 @@ function msToNextWatering(lastWaterTs,waterInterval) {
     return msToNext
 }
 
-
 async function triggerUpdServerDb() {
     //log("Triggering updServerDb, cr.configCheckInterval = "+cr.configCheckInterval)
 
@@ -391,33 +392,49 @@ async function triggerUpdServerDb() {
     }
 
     // Get the Cosmos DB item for cr
-    //let dbCr = await getServerDb(cr)
-    //log("dbCr.requestCommand = "+dbCr.requestCommand)
+    let dbCr = await getServerDb(cr)
 
     //------------------------------------------------------------------------------------
     // Handle requests
     //------------------------------------------------------------------------------------
-    /*
-    if (dbCr.requestCommand != null && dbCr.requestCommand != "") {
-        log("dbCr.requestCommand = "+dbCr.requestCommand)
+    if (dbCr != null && dbCr.requestCommand != null && dbCr.requestCommand != "") {
+        //log("dbCr.requestCommand = "+dbCr.requestCommand)
         cr.requestResult = ""
         if (dbCr.requestCommand == "WaterOn") {
             let waterSeconds = parseInt(dbCr.requestValue)
             _waterOn(waterSeconds)
             cr.requestCommand = ""
             cr.requestValue = ""
-            cr.requestResult = "Water turned on for "+waterSeconds+" seconds"
+            cr.requestResult = "Water turned on for "+waterSeconds+" secs"
         } else if (dbCr.requestCommand == "SetAutoSetOn") {
             cr.autoSetOn = parseInt(dbCr.requestValue)
             cr.requestCommand = ""
             cr.requestValue = ""
-            cr.requestResult = "cr.autoSetOn set to "+cr.autoSetOn
+            cr.requestResult = "autoSetOn set to "+cr.autoSetOn
+        } else if (dbCr.requestCommand == "TakeSelfie") {
+            _letMeTakeASelfie()
+            cr.requestCommand = ""
+            cr.requestValue = ""
+            cr.requestResult = "Selfie taken "
+        } else if (dbCr.requestCommand == "WaterDuration") {
+            cr.waterDuration = parseInt(dbCr.requestValue)
+            cr.requestCommand = ""
+            cr.requestValue = ""
+            cr.requestResult = "waterDuration set to "+cr.waterDuration
+        } else if (dbCr.requestCommand == "WaterInterval") {
+            cr.waterInterval = parseInt(dbCr.requestValue)
+            cr.requestCommand = ""
+            cr.requestValue = ""
+            cr.requestResult = "waterInterval set to "+cr.waterInterval
+        } else if (dbCr.requestCommand == "REBOOT") {
+            cr.requestCommand = ""
+            cr.requestValue = ""
+            cr.requestResult = "Initiating REBOOT... "
+            await updServerDb(cr)
+            rebootSystem()
         } 
-        // >>>>>> put selfie request back in????
-        // >>>>>> accept REBOOT request ???  
-        log(cr.requestResult)
+        //log(cr.requestResult)
     }
-    */
 
     // Set the current values into the backend server data store
     updServerDb(cr)
@@ -715,21 +732,6 @@ app.get('/getConfigRec', function routeHandler(req, res) {
 
 app.post('/updConfigRec', function routeHandler(req, res) {
     // update the params from web values
-    /*
-    cr.configDesc = req.body.configDesc
-    cr.germinationStart = req.body.germinationStart
-    cr.daysToGerm = req.body.daysToGerm
-    cr.plantingDate = req.body.plantingDate
-    cr.harvestDate = req.body.harvestDate
-    cr.cureDate = req.body.cureDate
-    cr.productionDate = req.body.productionDate
-    cr.daysToBloom = parseInt(req.body.daysToBloom)
-    cr.lastUpdateTs = getDateStr()
-    // Set parameters according to days since planting
-	cr = autoSetParams(cr)
-    // Update values back into server DB
-    updateParams(cr)
-    */
     cr.targetTemperature = parseFloat(req.body.targetTemperature)
     cr.configCheckInterval = parseInt(req.body.configCheckInterval)
     cr.heatInterval = parseFloat(req.body.heatInterval)
