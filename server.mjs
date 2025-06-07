@@ -122,6 +122,7 @@ Modification History
 2025-04-02 JJK  Re-implementing target temp adjustment logic
 2025-04-16 JJK  Checked base watering logic, and commented out logs
 2025-05-28 JJK  Re-implementing auto-watering and command request logic
+2025-06-07 JJK  Backing out command request logic - still don't have it right
 =============================================================================*/
 
 import 'dotenv/config'
@@ -333,7 +334,10 @@ function autoSetParams(cr) {
     // Don't start auto-watering until after 11 days
     cr.waterDuration = 0.0
     cr.waterInterval = 1.0
-    if (days > 38) {
+    if (days > 41) {
+        cr.waterDuration = 32.0
+        cr.waterInterval = 30.0
+    } else if (days > 38) {
         cr.waterDuration = 28.0
         cr.waterInterval = 24.0
     } else if (days > 35) {
@@ -392,6 +396,7 @@ async function triggerUpdServerDb() {
     }
 
     // Get the Cosmos DB item for cr
+    /*
     let dbCr = await getServerDb(cr)
 
     //------------------------------------------------------------------------------------
@@ -435,6 +440,7 @@ async function triggerUpdServerDb() {
         } 
         //log(cr.requestResult)
     }
+    */
 
     // Set the current values into the backend server data store
     updServerDb(cr)
