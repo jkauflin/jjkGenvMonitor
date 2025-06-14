@@ -331,10 +331,16 @@ function autoSetParams(cr) {
     cr.cureDate = addDays(cr.harvestDate,14)
     cr.productionDate = addDays(cr.cureDate,14)
 
+
+// add a day display ?
+
     // Don't start auto-watering until after 11 days
     cr.waterDuration = 0.0
     cr.waterInterval = 1.0
-    if (days > 41) {
+    if (days > 45) {
+        cr.waterDuration = 35.0
+        cr.waterInterval = 30.0
+    } else if (days > 41) {
         cr.waterDuration = 32.0
         cr.waterInterval = 30.0
     } else if (days > 38) {
