@@ -123,6 +123,7 @@ Modification History
 2025-04-16 JJK  Checked base watering logic, and commented out logs
 2025-05-28 JJK  Re-implementing auto-watering and command request logic
 2025-06-07 JJK  Backing out command request logic - still don't have it right
+2025-06-20 JJK  Modified to get id from env, and set notes
 =============================================================================*/
 
 import 'dotenv/config'
@@ -189,8 +190,8 @@ var relays = null
 
 // Configuration parameters for operations (also stored in server database)
 var cr = {
-    id: '1',
-	ConfigId: 1,
+    id: process.env.id,
+	ConfigId: parseInt(process.env.id),
     configDesc: process.env.configDesc,
     daysToGerm: process.env.daysToGerm,
     daysToBloom: parseInt(process.env.daysToBloom),
@@ -218,7 +219,8 @@ var cr = {
     lastWaterSecs: 0.0,
     requestCommand: '',
     requestValue: '',
-    requestResult: ''
+    requestResult: '',
+    notes: ''
 }
 
 // Genv Metric Point
