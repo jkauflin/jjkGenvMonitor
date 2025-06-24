@@ -490,16 +490,18 @@ function _letMeTakeASelfie() {
 }
 
 function _selfieRetry() {
-    webcam = nodeWebcamPkg.create(webcamOptions)
-    webcam.capture("temp",function(err, base64ImgData) {
-        if (err != null) {
-            log("2nd Selfie Try - Error with webcam capture, "+err)
-        } else {
-            //console.log("webcam base64ImgData = "+base64ImgData)
-            insertImage(base64ImgData)
-            webcam.clear()
-        }
-    })
+    if (currLightsVal == ON) {
+        webcam = nodeWebcamPkg.create(webcamOptions)
+        webcam.capture("temp",function(err, base64ImgData) {
+            if (err != null) {
+                log("2nd Selfie Try - Error with webcam capture, "+err)
+            } else {
+                //console.log("webcam base64ImgData = "+base64ImgData)
+                insertImage(base64ImgData)
+                webcam.clear()
+            }
+        })
+    }
 }
 
 // Function to take a selfie image and store in database
