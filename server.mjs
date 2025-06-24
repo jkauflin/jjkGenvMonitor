@@ -339,8 +339,8 @@ function autoSetParams(cr) {
     // Don't start auto-watering until after 11 days (just unplug the water)
 
     // Values for Germination (to Start)
-    cr.waterDuration = 7.0
-    cr.waterInterval = 6.0
+    //cr.waterDuration = 7.0
+    //cr.waterInterval = 6.0
     if (days > 45) {
         cr.waterDuration = 35.0
         cr.waterInterval = 30.0
@@ -378,8 +378,8 @@ function autoSetParams(cr) {
         cr.waterDuration = 6.0
         cr.waterInterval = 10.0
     } else if (days > 11) {
-        //cr.waterDuration = 5.0
-        //cr.waterInterval = 10.0
+        cr.waterDuration = 5.0
+        cr.waterInterval = 10.0
     }
 
     return cr
