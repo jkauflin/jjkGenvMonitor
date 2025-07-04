@@ -192,6 +192,7 @@ var waterDuration = 0
 var waterInterval = 0
 var lastWaterTs = '2099-01-01'
 var lastWaterSecs = 0
+var currTemperature = 0.0
 
 var board = null
 var relays = null
@@ -583,29 +584,29 @@ function toggleHeat() {
     //let heatAdjustmentMax = 0.2
 
     // Check the temperature and adjust the timeout values
-    if (cr.currTemperature > (cr.targetTemperature + 0.4)) {
+    if (currTemperature > (cr.targetTemperature + 0.4)) {
         // Temperature is too HIGH - decrease the Duration
         heatDurationAdjustment = -0.3
         // If really too HIGH, increase the Interval
-        if (cr.currTemperature > (cr.targetTemperature + 1.0)) {
+        if (currTemperature > (cr.targetTemperature + 1.0)) {
             heatIntervalAdjustment = 0.1
             heatDurationAdjustment = -0.4
         }
-        if (cr.currTemperature > (cr.targetTemperature + 1.5)) {
+        if (currTemperature > (cr.targetTemperature + 1.5)) {
             heatIntervalAdjustment = 0.3
             heatDurationAdjustment = -0.5
         }
     }
-    if (cr.currTemperature < (cr.targetTemperature - 0.5)) {
+    if (currTemperature < (cr.targetTemperature - 0.5)) {
         // Temperature is too LOW - increase the Duration
         heatDurationAdjustment = 0.4
 
         // If really too LOW, decrease the Interval
-        if (cr.currTemperature < (cr.targetTemperature - 1.0)) {
+        if (currTemperature < (cr.targetTemperature - 1.0)) {
             heatIntervalAdjustment = -0.1
             heatDurationAdjustment = 0.5
         }
-        if (cr.currTemperature < (cr.targetTemperature - 1.5)) {
+        if (currTemperature < (cr.targetTemperature - 1.5)) {
             heatIntervalAdjustment = -0.2
             heatDurationAdjustment = 0.7
         }
@@ -630,7 +631,7 @@ function toggleHeat() {
     }
 
     // if SOMETHING
-    //log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${cr.currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
+    //log(`Heat:${currHeatVal} , target:${cr.targetTemperature}, curr:${currTemperature}, Timeout:${heatTimeout},  DurationAdj: ${heatDurationAdjustment}, IntervalAdj: ${heatIntervalAdjustment} `)
 
     // Recursively call the function with the current timeout value  
     setTimeout(toggleHeat, heatTimeout * minutesToMilliseconds)
@@ -643,8 +644,8 @@ function getTemperature() {
         if (err) {
             log("Error in reading temperature file")
         } else {
-            cr.currTemperature = parseFloat((((celsiusTemp/1000) * (9/5)) + 32).toFixed(2)) 
-            //log(`cr.currTemperature = ${cr.currTemperature}`)
+            currTemperature = parseFloat((((celsiusTemp/1000) * (9/5)) + 32).toFixed(2)) 
+            //log(`currTemperature = ${currTemperature}`)
         }
     })
 }
@@ -655,7 +656,7 @@ function logMetric() {
     getTemperature()
 
     /*
-    let metricJSON = "{" + "temperature:" + cr.currTemperature
+    let metricJSON = "{" + "temperature:" + currTemperature
         + ",heatDuration:" + cr.heatDuration
         + "," + relayNames[0] + ":" + relayMetricValues[0]
         + "," + relayNames[1] + ":" + relayMetricValues[1]
@@ -673,7 +674,7 @@ function logMetric() {
         gmp.PointDateTime = dateTimeStr
         gmp.PointDayTime = getPointDayTime(dateTimeStr)
         gmp.targetTemperature = cr.targetTemperature
-        gmp.currTemperature = cr.currTemperature
+        gmp.currTemperature = currTemperature
         gmp.airInterval = cr.airInterval
         gmp.airDuration = cr.airDuration
         gmp.heatInterval = cr.heatInterval
