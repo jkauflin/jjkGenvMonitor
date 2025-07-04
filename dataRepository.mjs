@@ -56,7 +56,7 @@ export async function getLatestConfigId() {
 	let cr = null
 	try {
 		const query = {
-			query: 'SELECT * FROM c ORDER BY c._ts DESC OFFSET 0 LIMIT 1'
+			query: 'SELECT * FROM c ORDER BY c.ConfigId DESC OFFSET 0 LIMIT 1'
 		};
 
 		const { resources: results } = await container.items
