@@ -240,7 +240,7 @@ var gmp = {
     heatDuration: parseFloat(process.env.heatDuration),
 
     lastWaterTs: getDateStr(),
-    lastWaterSecs: 0,
+    lastWaterSecs: 0
 
     //relayName0: relayNames[0],
     //relayMetricValue0: relayMetricValues[0],
@@ -334,10 +334,10 @@ board.on("ready", () => {
 async function getDataSetParams(cr) {
     // Get the Cosmos DB item for cr
     cr = await getServerDb(cr)
-    log("Successful get of CR record from cloud datasource")
+    //log("Successful get of CR record from cloud datasource")
 
     let days = daysFromDate(cr.plantingDate)
-    log(">>> Set stage-watering, Days from PlantingDate = "+days)
+    //log(">>> Set stage-watering, Days from PlantingDate = "+days)
 
     // Set the values for Stage 0 (germination), but after planting count on un-plugging the water 
     // and doing manual misting until the sprout is strong enough (about 7 to 10 days)
@@ -367,11 +367,6 @@ async function getDataSetParams(cr) {
         waterDuration = cr.s0waterDuration
         waterInterval = cr.s0waterInterval
     }
-
-    log("cr.s1waterDuration = "+cr.s1waterDuration)
-    log("cr.s1waterInterval = "+cr.s1waterInterval)
-    log("After Set, waterDuration = "+waterDuration)
-    log("After Set, waterInterval = "+waterInterval)
 
     return cr
 }
