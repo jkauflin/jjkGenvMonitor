@@ -191,7 +191,6 @@ var currLightsVal = OFF
 var waterDuration = 0
 var waterInterval = 0
 var lastWaterTs = getDateStr()
-
 var lastWaterSecs = 0
 var currTemperature = 0.0
 
@@ -239,7 +238,8 @@ var gmp = {
     airDuration: parseFloat(process.env.airDuration),
     heatInterval: parseFloat(process.env.heatInterval),
     heatDuration: parseFloat(process.env.heatDuration),
-
+    waterDuration: waterDuration,
+    waterInterval: waterInterval,
     lastWaterTs: getDateStr(),
     lastWaterSecs: 0
 
@@ -679,7 +679,8 @@ function logMetric() {
         gmp.airDuration = cr.airDuration
         gmp.heatInterval = cr.heatInterval
         gmp.heatDuration = cr.heatDuration
-
+        gmp.waterDuration = waterDuration
+        gmp.waterInterval = waterInterval
         gmp.lastWaterTs = lastWaterTs
         gmp.lastWaterSecs = lastWaterSecs
 
