@@ -333,7 +333,9 @@ board.on("ready", () => {
 // Function to set light and water parameters based on the days from Planting Date
 async function getDataSetParams(cr) {
     // Get the Cosmos DB item for cr
+    log("BEFORE db get, cr = "+cr.toString())
     cr = await getServerDb(cr)
+    log("AFTER db get, cr = "+cr.toString())
     log("Successful get of CR record from cloud datasource")
 
     let days = daysFromDate(cr.plantingDate)
