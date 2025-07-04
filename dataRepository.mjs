@@ -59,7 +59,7 @@ export async function getLatestConfigId() {
 			query: 'SELECT * FROM c ORDER BY c.ConfigId DESC OFFSET 0 LIMIT 1'
 		};
 
-		const { resources: results } = await container.items
+		const { resources: results } = await configContainer.items
 			.query(query, { enableCrossPartitionQuery: true })
 			.fetchAll();
 
