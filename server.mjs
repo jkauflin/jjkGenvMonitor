@@ -105,7 +105,7 @@ Modification History
                 which I will use in addition to back-end server DB 
                 interactions, but for things that require immediate
                 response, monitoring, or actions
-2024-01-28 JJK  Implemented autoSetParams with logic for setting light
+2024-01-28 JJK  Implemented getDataSetParams with logic for setting light
                 and water timing based on days from planting
 2024-02-07 JJK  Implemented use of Config Record (cr) structure to keep
                 local variables
@@ -124,6 +124,9 @@ Modification History
 2025-05-28 JJK  Re-implementing auto-watering and command request logic
 2025-06-07 JJK  Backing out command request logic - still don't have it right
 2025-06-20 JJK  Modified to get id from env, and set notes
+2025-07-04 JJK  Modifying to go back to datasource as primary record of 
+                truth, adding stages to replace auto-calc, and changing
+                update to use patch of specific fields instead of replace
 =============================================================================*/
 
 import 'dotenv/config'
@@ -136,7 +139,7 @@ import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 import nodeWebcamPkg from 'enhanced-node-webcam'
 import {log,getDateStr,addDays,daysFromDate,getPointDay,getPointDayTime} from './util.mjs'
-import {getServerDb,updServerDb,logMetricToServerDb,insertImage} from './dataRepository.mjs'
+import {getServerDb,getLatestConfigId,logMetricToServerDb,insertImage} from './dataRepository.mjs'
 import express from 'express';
 
 const app = express();
@@ -185,43 +188,40 @@ var currAirVal = OFF
 var currHeatVal = OFF
 var currLightsVal = OFF
 
+var waterDuration = 0
+var waterInterval = 0
+var lastWaterTs = '2099-01-01'
+var lastWaterSecs = 0
+
 var board = null
 var relays = null
 
 // Configuration parameters for operations (also stored in server database)
-var cr = {
-    id: process.env.id,
-	ConfigId: parseInt(process.env.id),
-    configDesc: process.env.configDesc,
-    daysToGerm: process.env.daysToGerm,
-    daysToBloom: parseInt(process.env.daysToBloom),
-    germinationStart: process.env.germinationStart,
-    plantingDate: process.env.plantingDate,
-    harvestDate: '2099-01-01',
-    cureDate: '2099-01-01',
-    productionDate: '2099-01-01',
-    configCheckInterval: parseFloat(process.env.configCheckInterval),
-    logMetricInterval: parseFloat(process.env.logMetricInterval),
-    loggingOn: parseInt(process.env.loggingOn),
-    selfieOn: parseInt(process.env.selfieOn),
-    autoSetOn: parseInt(process.env.autoSetOn),
-    targetTemperature: parseFloat(process.env.targetTemperature),
-    currTemperature: parseFloat(process.env.targetTemperature),
-    airInterval: parseFloat(process.env.airInterval),
-    airDuration: parseFloat(process.env.airDuration),
-    heatInterval: parseFloat(process.env.heatInterval),
-    heatDuration: parseFloat(process.env.heatDuration),
-    waterInterval: parseFloat(process.env.waterInterval),
-    waterDuration: parseFloat(process.env.waterDuration),
-    lightDuration: parseFloat(process.env.lightDuration),
-	lastUpdateTs: getDateStr(),
-    lastWaterTs: getDateStr(),
-    lastWaterSecs: 0.0,
-    requestCommand: '',
-    requestValue: '',
-    requestResult: '',
-    notes: ''
-}
+var cr
+
+/*
+    "s0day": 0,
+    "s0waterDuration": 6,
+    "s0waterInterval": 7,
+    "s1day": 10,
+    "s1waterDuration": 7,
+    "s1waterInterval": 9,
+    "s2day": 20,
+    "s2waterDuration": 14,
+    "s2waterInterval": 20,
+    "s3day": 25,
+    "s3waterDuration": 24,
+    "s3waterInterval": 24,
+    "s4day": 32,
+    "s4waterDuration": 27,
+    "s4waterInterval": 24,
+    "s5day": 40,
+    "s5waterDuration": 30,
+    "s5waterInterval": 24,
+    "s6day": 45,
+    "s6waterDuration": 35,
+    "s6waterInterval": 24,
+*/
 
 // Genv Metric Point
 var gmp = {
@@ -237,23 +237,29 @@ var gmp = {
     airDuration: parseFloat(process.env.airDuration),
     heatInterval: parseFloat(process.env.heatInterval),
     heatDuration: parseFloat(process.env.heatDuration),
-    relayName0: relayNames[0],
-    relayMetricValue0: relayMetricValues[0],
-    relayName1: relayNames[1],
-    relayMetricValue1: relayMetricValues[1],
-    relayName2: relayNames[2],
-    relayMetricValue2: relayMetricValues[2],
-    relayName3: relayNames[3],
-    relayMetricValue3: relayMetricValues[3],
+
+    lastWaterTs: getDateStr(),
+    lastWaterSecs: 0,
+
+    //relayName0: relayNames[0],
+    //relayMetricValue0: relayMetricValues[0],
+    //relayName1: relayNames[1],
+    //relayMetricValue1: relayMetricValues[1],
+    //relayName2: relayNames[2],
+    //relayMetricValue2: relayMetricValues[2],
+    //relayName3: relayNames[3],
+    //relayMetricValue3: relayMetricValues[3],
 }
+
 
 log(">>> Starting server.mjs...")
 // Get parameter values from the server DB when the program starts
 initConfigQuery()
-function initConfigQuery() {
+async function initConfigQuery() {
     log("Initial Config Query")
-    autoSetParams(cr)
-    updServerDb(cr)
+    // Get latest config rec from the cloud datasource
+    cr = await getLatestConfigId()
+    getDataSetParams(cr)
 }
 
 // Create Johnny-Five board object
@@ -304,15 +310,15 @@ board.on("ready", () => {
     log("Starting Heat toggle interval")
     setTimeout(toggleHeat, 6000)
 
-    log("Triggering Server DB update")
-    setTimeout(triggerUpdServerDb, 8000)
+    //log("Triggering Server DB update")
+    //setTimeout(triggerUpdServerDb, 8000)
 
-    // Start sending metrics 10 seconds after starting (so things are calm)
-    setTimeout(logMetric, 10000)
+    // Start sending metrics X seconds after starting (so things are calm)
+    setTimeout(logMetric, 8000)
 
     // Trigger the next watering based on the watering interval and last watering timestamp
     //setTimeout(triggerWatering, cr.waterInterval * hoursToMilliseconds)
-    let tempMs = msToNextWatering(cr.lastWaterTs,cr.waterInterval)
+    let tempMs = msToNextWatering(lastWaterTs,waterInterval)
     setTimeout(triggerWatering, tempMs)
 
     log("Triggering Selfie interval")
@@ -324,63 +330,45 @@ board.on("ready", () => {
 
 
 // Function to set light and water parameters based on the days from Planting Date
-function autoSetParams(cr) {
+async function getDataSetParams(cr) {
+    // Get the Cosmos DB item for cr
+    cr = await getServerDb(cr)
+    log("Successful get of CR record from cloud datasource")
+
     let days = daysFromDate(cr.plantingDate)
-    //log(">>> Set auto-watering, Days from PlantingDate = "+days)
+    log(">>> Set stage-watering, Days from PlantingDate = "+days)
 
-    // Update other dates based on planting date
-    cr.harvestDate = addDays(cr.plantingDate,cr.daysToBloom)
-    cr.cureDate = addDays(cr.harvestDate,14)
-    cr.productionDate = addDays(cr.cureDate,14)
+    // Set the values for Stage 0 (germination), but after planting count on un-plugging the water 
+    // and doing manual misting until the sprout is strong enough (about 7 to 10 days)
 
-
-// add a day display ?
-
-    // Don't start auto-watering until after 11 days (just unplug the water)
-
-    // Values for Germination (to Start)
-    //cr.waterDuration = 7.0
-    //cr.waterInterval = 6.0
-    if (days > 45) {
-        cr.waterDuration = 35.0
-        cr.waterInterval = 30.0
-    } else if (days > 41) {
-        cr.waterDuration = 32.0
-        cr.waterInterval = 30.0
-    } else if (days > 38) {
-        cr.waterDuration = 28.0
-        cr.waterInterval = 24.0
-    } else if (days > 35) {
-        cr.waterDuration = 27.0
-        cr.waterInterval = 24.0
-    } else if (days > 32) {
-        cr.waterDuration = 26.0
-        cr.waterInterval = 24.0
-    } else if (days > 30) {
-        cr.waterDuration = 24.0
-        cr.waterInterval = 24.0
-    } else if (days > 27) {
-        cr.waterDuration = 22.0
-        cr.waterInterval = 24.0
-    } else if (days > 25) {
-        cr.waterDuration = 20.0
-        cr.waterInterval = 24.0
-    } else if (days > 20) {
-        cr.waterDuration = 14.0
-        cr.waterInterval = 20.0
-    } else if (days > 15) {
-        cr.waterDuration = 8.0
-        cr.waterInterval = 10.0
-    } else if (days > 13) {
-        cr.waterDuration = 7.0
-        cr.waterInterval = 10.0
-    } else if (days > 12) {
-        cr.waterDuration = 6.0
-        cr.waterInterval = 10.0
-    } else if (days > 9) {
-        cr.waterDuration = 5.0
-        cr.waterInterval = 10.0
+    if (days >= cr.s6day) {
+        waterDuration = cr.s6waterDuration
+        waterInterval = cr.s6waterInterval
+    } else if (days >= cr.s5day) {
+        waterDuration = cr.s5waterDuration
+        waterInterval = cr.s5waterInterval
+    } else if (days >= cr.s4day) {
+        waterDuration = cr.s4waterDuration
+        waterInterval = cr.s4waterInterval
+    } else if (days >= cr.s3day) {
+        waterDuration = cr.s3waterDuration
+        waterInterval = cr.s3waterInterval
+    } else if (days >= cr.s2day) {
+        waterDuration = cr.s2waterDuration
+        waterInterval = cr.s2waterInterval
+    } else if (days >= cr.s1day) {
+        waterDuration = cr.s1waterDuration
+        waterInterval = cr.s1waterInterval
+    } else {
+        // Values for Germination (Stage 0)
+        //waterDuration = 7
+        //waterInterval = 6
+        waterDuration = cr.s0waterDuration
+        waterInterval = cr.s0waterInterval
     }
+
+    log("After Set, waterDuration = "+waterDuration)
+    log("After Set, waterInterval = "+waterInterval)
 
     return cr
 }
@@ -397,16 +385,16 @@ function msToNextWatering(lastWaterTs,waterInterval) {
     return msToNext
 }
 
+/*
 async function triggerUpdServerDb() {
     //log("Triggering updServerDb, cr.configCheckInterval = "+cr.configCheckInterval)
 
     // If turned on, calculate the auto-set values before doing an update
-    if (cr.autoSetOn) {
-        autoSetParams(cr)
-    }
+    //if (cr.autoSetOn) {
+        getDataSetParams(cr)
+    //}
 
     // Get the Cosmos DB item for cr
-    /*
     let dbCr = await getServerDb(cr)
 
     //------------------------------------------------------------------------------------
@@ -450,13 +438,13 @@ async function triggerUpdServerDb() {
         } 
         //log(cr.requestResult)
     }
-    */
 
     // Set the current values into the backend server data store
     updServerDb(cr)
     // Set the next time to check the update
     setTimeout(triggerUpdServerDb, cr.configCheckInterval * secondsToMilliseconds)
 }
+*/
 
 function _letMeTakeASelfie() {
     //log("in letMeTakeASelfie")
@@ -521,7 +509,7 @@ function triggerWatering() {
     setTimeout(waterThePlants, 500)
 
     // Recursively call the function with the watering interval
-    setTimeout(triggerWatering, cr.waterInterval * hoursToMilliseconds)
+    setTimeout(triggerWatering, waterInterval * hoursToMilliseconds)
 }
 
 function turnRelaysOFF() {
@@ -666,6 +654,7 @@ function logMetric() {
     // Set the current temperature from the one-wire overlay file
     getTemperature()
 
+    /*
     let metricJSON = "{" + "temperature:" + cr.currTemperature
         + ",heatDuration:" + cr.heatDuration
         + "," + relayNames[0] + ":" + relayMetricValues[0]
@@ -673,6 +662,7 @@ function logMetric() {
         + "," + relayNames[2] + ":" + relayMetricValues[2]
         + "," + relayNames[3] + ":" + relayMetricValues[3]
         + "}";
+    */
     // if SOMETHING
     //log(`metricJSON = ${metricJSON}`)
 
@@ -688,11 +678,15 @@ function logMetric() {
         gmp.airDuration = cr.airDuration
         gmp.heatInterval = cr.heatInterval
         gmp.heatDuration = cr.heatDuration
-        gmp.relayMetricValue0 = relayMetricValues[0]
-        gmp.relayMetricValue1 = relayMetricValues[1]
-        gmp.relayMetricValue2 = relayMetricValues[2]
-        gmp.relayMetricValue3 = relayMetricValues[3]
-        
+
+        gmp.lastWaterTs = lastWaterTs
+        gmp.lastWaterSecs = lastWaterSecs
+
+        //gmp.relayMetricValue0 = relayMetricValues[0]
+        //gmp.relayMetricValue1 = relayMetricValues[1]
+        //gmp.relayMetricValue2 = relayMetricValues[2]
+        //gmp.relayMetricValue3 = relayMetricValues[3]
+ 
         logMetricToServerDb(gmp)
     }
    
@@ -701,20 +695,14 @@ function logMetric() {
 }
 
 function waterThePlants() {
-    //log(">>> Watering the plants, cr.waterDuration = "+cr.waterDuration)
+    //log(">>> Watering the plants, waterDuration = "+waterDuration)
     setRelay(WATER,ON)
     setTimeout(() => {
-        //log("Watering the plants OFF")
+        log("Watering the plants OFF")
         setRelay(WATER,OFF)
-
-        cr.lastWaterTs = getDateStr()
-        cr.lastWaterSecs = cr.waterDuration
-        cr.lastUpdateTs = cr.lastWaterTs
-
-        // Update values back into server DB
-        updServerDb(cr)
-
-    }, cr.waterDuration * secondsToMilliseconds)
+        lastWaterTs = getDateStr()
+        lastWaterSecs = waterDuration
+    }, waterDuration * secondsToMilliseconds)
 }
 
 function _waterOn(waterSeconds) {
@@ -748,6 +736,7 @@ app.get('/getConfigRec', function routeHandler(req, res) {
     res.json(cr)
 })
 
+/*
 app.post('/updConfigRec', function routeHandler(req, res) {
     // update the params from web values
     cr.targetTemperature = parseFloat(req.body.targetTemperature)
@@ -768,6 +757,7 @@ app.post('/updConfigRec', function routeHandler(req, res) {
 
     res.json(cr)
 })
+*/
 
 app.get('/genvGetSelfie', function routeHandler(req, res) {
     webcam = nodeWebcamPkg.create(webcamOptions)

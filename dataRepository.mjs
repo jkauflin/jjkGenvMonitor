@@ -22,6 +22,8 @@ Modification History
 2024-12-30 JJK  Got new Config, MetricPoint, and Image container read and
 				updates working
 2025-05-30 JJK	Added getServerDb to get the current GenvConfig item
+2025-07-04 JJK	Added getLatestConfigId to get id of the latest config rec
+				and removed the cr update
 =============================================================================*/
 import 'dotenv/config'
 import fs, { readFileSync } from 'node:fs'
@@ -50,6 +52,33 @@ const { container: imageContainer } = await database.containers.createIfNotExist
 
 // Functions to interact with Azure Cosmos DB NoSQL
 
+export async function getLatestConfigId() {
+	let cr = null
+	try {
+		const query = {
+			query: 'SELECT * FROM c ORDER BY c._ts DESC OFFSET 0 LIMIT 1'
+		};
+
+		const { resources: results } = await container.items
+			.query(query, { enableCrossPartitionQuery: true })
+			.fetchAll();
+
+		if (results.length > 0) {
+			cr = results[0];
+		} else {
+			console.log("in getLatestConfigId, No items found ")
+		}
+
+		return cr
+
+	} catch (err) {
+		//throw err
+		// Just log the error instead of throwing for now
+		console.log("in getLatestConfigId, "+err)
+		return null
+	}
+}
+
 export async function getServerDb(cr) {
 	try {
 		const { resource: item } = await configContainer.item(cr.id,cr.ConfigId).read()
@@ -63,6 +92,7 @@ export async function getServerDb(cr) {
 }
 
 // Update configuration parameter values into the backend server database
+/*
 export async function updServerDb(cr) {
 	try {
 		cr.lastUpdateTs = getDateStr()
@@ -73,6 +103,7 @@ export async function updServerDb(cr) {
 		console.log("in updServerDb, "+err)
 	}
 }
+*/
 
 // Update configuration parameter values into the backend server database
 export async function logMetricToServerDb(gmp) {
