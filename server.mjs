@@ -320,7 +320,8 @@ board.on("ready", () => {
 
     // Trigger the next watering based on the watering interval and last watering timestamp
     //setTimeout(triggerWatering, cr.waterInterval * hoursToMilliseconds)
-    log("before triggerWatering, lastWaterTs = "+lastWaterTs+", waterInterval = "+waterInterval)
+    //log("before triggerWatering, lastWaterTs = "+lastWaterTs+", waterInterval = "+waterInterval)
+    // >>>>>>>>> will have to get the set of lastWaterTs correct - get from last Metric rec??????
     let tempMs = msToNextWatering(lastWaterTs,waterInterval)
     setTimeout(triggerWatering, tempMs)
 
