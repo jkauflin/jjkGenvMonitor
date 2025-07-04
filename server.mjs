@@ -319,6 +319,7 @@ board.on("ready", () => {
 
     // Trigger the next watering based on the watering interval and last watering timestamp
     //setTimeout(triggerWatering, cr.waterInterval * hoursToMilliseconds)
+    log("before triggerWatering, lastWaterTs = "+lastWaterTs+", waterInterval = "+waterInterval)
     let tempMs = msToNextWatering(lastWaterTs,waterInterval)
     setTimeout(triggerWatering, tempMs)
 
