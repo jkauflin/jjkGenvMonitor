@@ -190,7 +190,8 @@ var currLightsVal = OFF
 
 var waterDuration = 0
 var waterInterval = 0
-var lastWaterTs = '2099-01-01'
+var lastWaterTs = getDateStr()
+
 var lastWaterSecs = 0
 var currTemperature = 0.0
 
