@@ -238,7 +238,7 @@ async function initConfigQuery() {
     log("Initial Config Query")
     // Get latest config rec from the cloud datasource
     cr = await getLatestConfigId()
-    cr = getDataSetParams(cr)
+    cr = await getDataSetParams(cr)
     log("init, plantingDate = "+cr.plantingDate)
 }
 
@@ -630,12 +630,12 @@ function getTemperature() {
 }
     
 // Send metric values to a website
-function logMetric() {
+async function logMetric() {
     // Set the current temperature from the one-wire overlay file
     getTemperature()
 
     // Get GenvConfig from cloud datasource, and apply param calc logic
-    cr = getDataSetParams(cr)
+    cr = await getDataSetParams(cr)
 
     /*
     let metricJSON = "{" + "temperature:" + currTemperature
