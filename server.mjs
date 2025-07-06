@@ -316,7 +316,7 @@ async function getDataSetParams(cr) {
     // Get the Cosmos DB item for cr
     cr = await getServerDb(cr)
     //log("Successful get of CR record from cloud datasource")
-    log("in getDataSetParams, plantingDate = "+cr.plantingDate)
+    //log("in getDataSetParams, plantingDate = "+cr.plantingDate)
 
     let days = daysFromDate(cr.plantingDate)
     //log(">>> Stage-watering, Days from PlantingDate = "+days)
