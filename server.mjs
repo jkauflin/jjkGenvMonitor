@@ -242,6 +242,7 @@ async function initConfigQuery() {
     cr = await getLatestConfigId()
     cr = await getDataSetParams(cr)
     log("init, plantingDate = "+cr.plantingDate)
+    log("init, logMetricInterval = "+cr.logMetricInterval)
 }
 
 // Create Johnny-Five board object
