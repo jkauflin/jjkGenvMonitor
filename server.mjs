@@ -127,6 +127,7 @@ Modification History
 2025-07-04 JJK  Modifying to go back to datasource as primary record of 
                 truth, adding stages to replace auto-calc, and changing
                 update to use patch of specific fields instead of replace
+2925-07-05 JJK  Corrected bug in stage calcs
 =============================================================================*/
 
 import 'dotenv/config'
@@ -200,30 +201,6 @@ var relays = null
 // Configuration parameters for operations (also stored in server database)
 var cr
 
-/*
-    "s0day": 0,
-    "s0waterDuration": 6,
-    "s0waterInterval": 7,
-    "s1day": 10,
-    "s1waterDuration": 7,
-    "s1waterInterval": 9,
-    "s2day": 20,
-    "s2waterDuration": 14,
-    "s2waterInterval": 20,
-    "s3day": 25,
-    "s3waterDuration": 24,
-    "s3waterInterval": 24,
-    "s4day": 32,
-    "s4waterDuration": 27,
-    "s4waterInterval": 24,
-    "s5day": 40,
-    "s5waterDuration": 30,
-    "s5waterInterval": 24,
-    "s6day": 45,
-    "s6waterDuration": 35,
-    "s6waterInterval": 24,
-*/
-
 // Genv Metric Point
 var gmp = {
     id: 'guid',
@@ -261,7 +238,7 @@ async function initConfigQuery() {
     log("Initial Config Query")
     // Get latest config rec from the cloud datasource
     cr = await getLatestConfigId()
-    getDataSetParams(cr)
+    cr = getDataSetParams(cr)
 }
 
 // Create Johnny-Five board object
@@ -340,7 +317,7 @@ async function getDataSetParams(cr) {
     //log("Successful get of CR record from cloud datasource")
 
     let days = daysFromDate(cr.plantingDate)
-    //log(">>> Set stage-watering, Days from PlantingDate = "+days)
+    //log(">>> Stage-watering, Days from PlantingDate = "+days)
 
     // Set the values for Stage 0 (germination), but after planting count on un-plugging the water 
     // and doing manual misting until the sprout is strong enough (about 7 to 10 days)
@@ -655,6 +632,9 @@ function logMetric() {
     // Set the current temperature from the one-wire overlay file
     getTemperature()
 
+    // Get GenvConfig from cloud datasource, and apply param calc logic
+    cr = getDataSetParams(cr)
+
     /*
     let metricJSON = "{" + "temperature:" + currTemperature
         + ",heatDuration:" + cr.heatDuration
@@ -737,29 +717,6 @@ app.listen(3035, function(err){
 app.get('/getConfigRec', function routeHandler(req, res) {
     res.json(cr)
 })
-
-/*
-app.post('/updConfigRec', function routeHandler(req, res) {
-    // update the params from web values
-    cr.targetTemperature = parseFloat(req.body.targetTemperature)
-    cr.configCheckInterval = parseInt(req.body.configCheckInterval)
-    cr.heatInterval = parseFloat(req.body.heatInterval)
-    cr.heatDuration = parseFloat(req.body.heatDuration)
-    cr.waterDuration = parseFloat(req.body.waterDuration)
-    cr.waterInterval = parseFloat(req.body.waterInterval)
-
-    cr.loggingOn = parseInt(req.body.loggingOn)
-    //log(`in Update, cr.loggingOn = ${cr.loggingOn}`)
-    cr.selfieOn = parseInt(req.body.selfieOn)
-    //log(`in Update, cr.selfieOn = ${cr.selfieOn}`)
-    cr.autoSetOn = parseInt(req.body.autoSetOn)
-    //log(`in Update, cr.selfieOn = ${cr.selfieOn}`)
-
-    updServerDb(cr)
-
-    res.json(cr)
-})
-*/
 
 app.get('/genvGetSelfie', function routeHandler(req, res) {
     webcam = nodeWebcamPkg.create(webcamOptions)
