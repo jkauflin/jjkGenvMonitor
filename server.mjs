@@ -159,6 +159,7 @@ var webcamOptions = {
 var webcam = nodeWebcamPkg.create(webcamOptions)
 
 // General handler for any uncaught exceptions
+/*
 process.on('uncaughtException', function (e) {
     log("UncaughtException, error = " + e)
     // if NOT RestError than print stack?
@@ -168,6 +169,7 @@ process.on('uncaughtException', function (e) {
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> UN-COMMENT IF NEEDED <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     //setTimeout(rebootSystem, 5000)
 })
+*/
 
 // Global variables
 const minutesToMilliseconds = 60 * 1000
