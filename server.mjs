@@ -239,6 +239,7 @@ async function initConfigQuery() {
     // Get latest config rec from the cloud datasource
     cr = await getLatestConfigId()
     cr = getDataSetParams(cr)
+    log("init, plantingDate = "+cr.plantingDate)
 }
 
 // Create Johnny-Five board object
@@ -315,6 +316,7 @@ async function getDataSetParams(cr) {
     // Get the Cosmos DB item for cr
     cr = await getServerDb(cr)
     //log("Successful get of CR record from cloud datasource")
+    log("in getDataSetParams, plantingDate = "+cr.plantingDate)
 
     let days = daysFromDate(cr.plantingDate)
     //log(">>> Stage-watering, Days from PlantingDate = "+days)
