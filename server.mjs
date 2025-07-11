@@ -311,7 +311,6 @@ board.on("ready", () => {
     log("End of board.on (initialize) event")
 })
 
-
 // Function to set light and water parameters based on the days from Planting Date
 async function getDataSetParams(cr) {
     // Get the Cosmos DB item for cr
