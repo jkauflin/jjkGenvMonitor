@@ -24,6 +24,7 @@ Modification History
 2025-05-30 JJK	Added getServerDb to get the current GenvConfig item
 2025-07-04 JJK	Added getLatestConfigId to get id of the latest config rec
 				and removed the cr update
+2025-07-23 JJK	Added getLatestGenvMetricPoint to get the latest metric point
 =============================================================================*/
 import 'dotenv/config'
 import fs, { readFileSync } from 'node:fs'
@@ -91,6 +92,31 @@ export async function getServerDb(cr) {
 	}
 }
 
+export async function getLatestGenvMetricPoint() {
+	let gmp = null
+	try {
+		const query = {
+			query: 'SELECT * FROM c ORDER BY c._ts DESC OFFSET 0 LIMIT 1 '
+		};
+		const { resources: results } = await metricPointContainer.items
+			.query(query, { enableCrossPartitionQuery: true })
+			.fetchAll();
+		if (results.length > 0) {
+			gmp = results[0];
+		} else {
+			console.log("in getLatestGenvMetricPoint, No items found ")
+		}
+
+		return gmp
+
+	} catch (err) {
+		//throw err
+		// Just log the error instead of throwing for now
+		console.log("in getLatestConfigId, "+err)
+		return null
+	}
+}
+
 // Update configuration parameter values into the backend server database
 /*
 export async function updServerDb(cr) {
@@ -113,6 +139,8 @@ export async function logMetricToServerDb(gmp) {
 		//throw err
 		// Just log the error instead of throwing for now
 		console.log("in logMetricToServerDb, "+err)
+
+		// retry once???
 	}
 }
 

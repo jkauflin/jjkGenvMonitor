@@ -127,7 +127,9 @@ Modification History
 2025-07-04 JJK  Modifying to go back to datasource as primary record of 
                 truth, adding stages to replace auto-calc, and changing
                 update to use patch of specific fields instead of replace
-2925-07-05 JJK  Corrected bug in stage calcs
+2025-07-05 JJK  Corrected bug in stage calcs
+2025-07-23 JJK  Added getLatestGenvMetricPoint to get the latest metric point
+                and working on command request logic
 =============================================================================*/
 
 import 'dotenv/config'
@@ -140,7 +142,7 @@ import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 import nodeWebcamPkg from 'enhanced-node-webcam'
 import {log,getDateStr,addDays,daysFromDate,getPointDay,getPointDayTime} from './util.mjs'
-import {getServerDb,getLatestConfigId,logMetricToServerDb,insertImage} from './dataRepository.mjs'
+import {getServerDb,getLatestConfigId,getLatestGenvMetricPoint,logMetricToServerDb,insertImage} from './dataRepository.mjs'
 import express from 'express';
 
 const app = express();
@@ -238,9 +240,21 @@ async function initConfigQuery() {
     log("Initial Config Query")
     // Get latest config rec from the cloud datasource
     cr = await getLatestConfigId()
+
+    latestGmp = await getLatestGenvMetricPoint()
+    if (latestGmp != null) {
+        //log("gmp = "+JSON.stringify(latestGmp))
+        lastWaterTs = latestGmp.lastWaterTs
+        lastWaterSecs = latestGmp.lastWaterSecs
+    } else {
+        log("No Genv Metric Point found, using defaults")
+    }
+
     cr = await getDataSetParams(cr)
     log("init, plantingDate = "+cr.plantingDate)
     log("init, logMetricInterval = "+cr.logMetricInterval)
+    log("init, lastWaterTs = "+lastWaterTs)
+    log("init, lastWaterSecs = "+lastWaterSecs)
 }
 
 // Create Johnny-Five board object
@@ -676,6 +690,11 @@ async function logMetric() {
    
     // Set the next time the function will run
     setTimeout(logMetric, cr.logMetricInterval * secondsToMilliseconds)
+
+    if (cr.commandRequestOn) {
+        // If command Request on, process command requests
+        
+    }
 }
 
 function waterThePlants() {
