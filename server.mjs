@@ -638,17 +638,17 @@ async function logMetric() {
             //log("Command Request found: "+JSON.stringify(commReq))
             if (commReq.requestCommand == "WaterOn") {
                 let waterSeconds = parseInt(commReq.requestValue)
-                //_waterOn(waterSeconds)
+                _waterOn(waterSeconds)
                 commReq.requestResult = "Water turned on for "+waterSeconds+" secs"
                 await updCommReq(commReq)
             } else if (commReq.requestCommand == "TakeSelfie") {
-                //_letMeTakeASelfie()
+                _letMeTakeASelfie()
                 commReq.requestResult = "Selfie taken "
                 await updCommReq(commReq)
             } else if (commReq.requestCommand == "REBOOT") {
                 commReq.requestResult = "Initiating REBOOT... "
                 await updCommReq(commReq)
-                //rebootSystem()
+                rebootSystem()
             }
             //log("Command Request Result: "+commReq.requestResult)
         }   

@@ -26,6 +26,7 @@ Modification History
 				and removed the cr update
 2025-07-23 JJK	Added getLatestGenvMetricPoint to get the latest metric point
 2025-07-24 JJK	Added getNextCommandRequest to get the next command request
+2025-07-24 JJK	Added updCommReq to update the command request after processing
 =============================================================================*/
 import 'dotenv/config'
 import fs, { readFileSync } from 'node:fs'
@@ -156,20 +157,6 @@ export async function updCommReq(commReq) {
 		console.log("in updCommReq, "+err)
 	}
 }
-
-// Update configuration parameter values into the backend server database
-/*
-export async function updServerDb(cr) {
-	try {
-		cr.lastUpdateTs = getDateStr()
-		configContainer.item(cr.id,cr.ConfigId).replace(cr); 
-	} catch (err) {
-		//throw err
-		// Just log the error instead of throwing for now
-		console.log("in updServerDb, "+err)
-	}
-}
-*/
 
 // Update configuration parameter values into the backend server database
 export async function logMetricToServerDb(gmp) {
