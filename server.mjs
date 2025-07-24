@@ -634,7 +634,7 @@ async function logMetric() {
     if (cr.commandRequestOn) {
         // If command Request on, process command requests
 
-        let commReq = getNextCommandRequest()
+        let commReq = await getNextCommandRequest()
 /*
     "id": "32730a30-ac6b-4303-bfce-6435a582e99e",
     "ConfigId": 9,
