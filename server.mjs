@@ -646,7 +646,7 @@ async function logMetric() {
     "responseTime": "0001-01-01T00:00:00",
 */        
         if (commReq != null) {
-            //log("Command Request found: "+JSON.stringify(commReq))
+            log("Command Request found: "+JSON.stringify(commReq))
             //commReq.requestCommand = commandRequest.command
             //commReq.requestValue = commandRequest.value
             //commReq.requestResult = ""
