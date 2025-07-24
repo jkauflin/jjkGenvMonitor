@@ -25,6 +25,7 @@ Modification History
 2025-07-04 JJK	Added getLatestConfigId to get id of the latest config rec
 				and removed the cr update
 2025-07-23 JJK	Added getLatestGenvMetricPoint to get the latest metric point
+2025-07-24 JJK	Added getNextCommandRequest to get the next command request
 =============================================================================*/
 import 'dotenv/config'
 import fs, { readFileSync } from 'node:fs'

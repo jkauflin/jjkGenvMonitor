@@ -646,22 +646,23 @@ async function logMetric() {
     "responseTime": "0001-01-01T00:00:00",
 */        
         if (commReq != null) {
-            log("Command Request found: "+JSON.stringify(commandRequest))
-            commReq.requestCommand = commandRequest.command
-            commReq.requestValue = commandRequest.value
-            commReq.requestResult = ""
+            //log("Command Request found: "+JSON.stringify(commReq))
+            //commReq.requestCommand = commandRequest.command
+            //commReq.requestValue = commandRequest.value
+            //commReq.requestResult = ""
             if (commReq.requestCommand == "WaterOn") {
                 let waterSeconds = parseInt(commReq.requestValue)
-                _waterOn(waterSeconds)
+                //_waterOn(waterSeconds)
                 commReq.requestResult = "Water turned on for "+waterSeconds+" secs"
             } else if (cr.requestCommand == "TakeSelfie") {
-                _letMeTakeASelfie()
+                //_letMeTakeASelfie()
                 commReq.requestResult = "Selfie taken "
             } else if (cr.requestCommand == "REBOOT") {
                 commReq.requestResult = "Initiating REBOOT... "
-                await updServerDb(cr)
-                rebootSystem()
+                //await updServerDb(cr)
+                //rebootSystem()
             }
+            log("Command Request Result: "+commReq.requestResult)
         }   
     }
 }
