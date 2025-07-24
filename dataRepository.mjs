@@ -145,6 +145,18 @@ export async function getNextCommandRequest() {
 	}
 }
 
+export async function updCommReq(commReq) {
+	try {
+		commReq.responseTime = getDateStr()
+		commReq.processed = true
+		commandRequestContainer.item(commReq.id,commReq.ConfigId).replace(commReq); 
+	} catch (err) {
+		//throw err
+		// Just log the error instead of throwing for now
+		console.log("in updCommReq, "+err)
+	}
+}
+
 // Update configuration parameter values into the backend server database
 /*
 export async function updServerDb(cr) {
