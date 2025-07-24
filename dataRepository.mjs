@@ -39,6 +39,7 @@ const cosmos_db_id = process.env.GENV_DB_ID
 const cosmos_db_config_id = process.env.GENV_DB_CONFIG_ID
 const cosmos_db_metric_point_id = process.env.GENV_DB_METRIC_POINT_ID
 const cosmos_db_image_id = process.env.GENV_DB_IMAGE_ID
+const cosmos_db_command_request_id = process.env.GENV_DB_COMMAND_REQUEST_ID
 
 // Create a CosmosClient instance 
 const cosmosClient = new CosmosClient({
@@ -50,6 +51,7 @@ const { database } = await cosmosClient.databases.createIfNotExists({ id: cosmos
 const { container: configContainer } = await database.containers.createIfNotExists({ id: cosmos_db_config_id });
 const { container: metricPointContainer } = await database.containers.createIfNotExists({ id: cosmos_db_metric_point_id });
 const { container: imageContainer } = await database.containers.createIfNotExists({ id: cosmos_db_image_id });
+const { container: commandRequestContainer } = await database.containers.createIfNotExists({ id: cosmos_db_command_request_id });
 
 // Functions to interact with Azure Cosmos DB NoSQL
 
@@ -113,6 +115,31 @@ export async function getLatestGenvMetricPoint() {
 		//throw err
 		// Just log the error instead of throwing for now
 		console.log("in getLatestConfigId, "+err)
+		return null
+	}
+}
+
+export async function getNextCommandRequest() {
+	let commReq = null
+	try {
+		const query = {
+			query: 'SELECT * FROM c WHERE c.processed = false ORDER BY c._ts OFFSET 0 LIMIT 1 '
+		};
+		const { resources: results } = await commandRequestContainer.items
+			.query(query, { enableCrossPartitionQuery: true })
+			.fetchAll();
+		if (results.length > 0) {
+			commReq = results[0];
+		} else {
+			//console.log("in getLatestGenvMetricPoint, No items found ")
+		}
+
+		return commReq
+
+	} catch (err) {
+		//throw err
+		// Just log the error instead of throwing for now
+		console.log("in getNextCommandRequest, "+err)
 		return null
 	}
 }

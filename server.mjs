@@ -142,7 +142,7 @@ import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 import nodeWebcamPkg from 'enhanced-node-webcam'
 import {log,getDateStr,addDays,daysFromDate,getPointDay,getPointDayTime} from './util.mjs'
-import {getServerDb,getLatestConfigId,getLatestGenvMetricPoint,logMetricToServerDb,insertImage} from './dataRepository.mjs'
+import {getServerDb,getLatestConfigId,getLatestGenvMetricPoint,getNextCommandRequest,logMetricToServerDb,insertImage} from './dataRepository.mjs'
 import express from 'express';
 
 const app = express();
@@ -379,66 +379,6 @@ function msToNextWatering(lastWaterTs,waterInterval) {
     return msToNext
 }
 
-/*
-async function triggerUpdServerDb() {
-    //log("Triggering updServerDb, cr.configCheckInterval = "+cr.configCheckInterval)
-
-    // If turned on, calculate the auto-set values before doing an update
-    //if (cr.autoSetOn) {
-        getDataSetParams(cr)
-    //}
-
-    // Get the Cosmos DB item for cr
-    let dbCr = await getServerDb(cr)
-
-    //------------------------------------------------------------------------------------
-    // Handle requests
-    //------------------------------------------------------------------------------------
-    if (dbCr != null && dbCr.requestCommand != null && dbCr.requestCommand != "") {
-        //log("dbCr.requestCommand = "+dbCr.requestCommand)
-        cr.requestResult = ""
-        if (dbCr.requestCommand == "WaterOn") {
-            let waterSeconds = parseInt(dbCr.requestValue)
-            _waterOn(waterSeconds)
-            cr.requestCommand = ""
-            cr.requestValue = ""
-            cr.requestResult = "Water turned on for "+waterSeconds+" secs"
-        } else if (dbCr.requestCommand == "SetAutoSetOn") {
-            cr.autoSetOn = parseInt(dbCr.requestValue)
-            cr.requestCommand = ""
-            cr.requestValue = ""
-            cr.requestResult = "autoSetOn set to "+cr.autoSetOn
-        } else if (dbCr.requestCommand == "TakeSelfie") {
-            _letMeTakeASelfie()
-            cr.requestCommand = ""
-            cr.requestValue = ""
-            cr.requestResult = "Selfie taken "
-        } else if (dbCr.requestCommand == "WaterDuration") {
-            cr.waterDuration = parseInt(dbCr.requestValue)
-            cr.requestCommand = ""
-            cr.requestValue = ""
-            cr.requestResult = "waterDuration set to "+cr.waterDuration
-        } else if (dbCr.requestCommand == "WaterInterval") {
-            cr.waterInterval = parseInt(dbCr.requestValue)
-            cr.requestCommand = ""
-            cr.requestValue = ""
-            cr.requestResult = "waterInterval set to "+cr.waterInterval
-        } else if (dbCr.requestCommand == "REBOOT") {
-            cr.requestCommand = ""
-            cr.requestValue = ""
-            cr.requestResult = "Initiating REBOOT... "
-            await updServerDb(cr)
-            rebootSystem()
-        } 
-        //log(cr.requestResult)
-    }
-
-    // Set the current values into the backend server data store
-    updServerDb(cr)
-    // Set the next time to check the update
-    setTimeout(triggerUpdServerDb, cr.configCheckInterval * secondsToMilliseconds)
-}
-*/
 
 function _letMeTakeASelfie() {
     //log("in letMeTakeASelfie")
@@ -693,9 +633,98 @@ async function logMetric() {
 
     if (cr.commandRequestOn) {
         // If command Request on, process command requests
-        
+
+        let commReq = getNextCommandRequest()
+/*
+    "id": "32730a30-ac6b-4303-bfce-6435a582e99e",
+    "ConfigId": 9,
+    "processed": false,
+    "requestCommand": "WaterOn",
+    "requestValue": "3",
+    "requestResult": "Pending",
+    "requestTime": "2025-07-23T17:32:59.988106Z",
+    "responseTime": "0001-01-01T00:00:00",
+*/        
+        if (commReq != null) {
+            log("Command Request found: "+JSON.stringify(commandRequest))
+            commReq.requestCommand = commandRequest.command
+            commReq.requestValue = commandRequest.value
+            commReq.requestResult = ""
+            if (commReq.requestCommand == "WaterOn") {
+                let waterSeconds = parseInt(commReq.requestValue)
+                _waterOn(waterSeconds)
+                commReq.requestResult = "Water turned on for "+waterSeconds+" secs"
+            } else if (cr.requestCommand == "TakeSelfie") {
+                _letMeTakeASelfie()
+                commReq.requestResult = "Selfie taken "
+            } else if (cr.requestCommand == "REBOOT") {
+                commReq.requestResult = "Initiating REBOOT... "
+                await updServerDb(cr)
+                rebootSystem()
+            }
+        }   
     }
 }
+/*
+async function triggerUpdServerDb() {
+    //log("Triggering updServerDb, cr.configCheckInterval = "+cr.configCheckInterval)
+
+    // If turned on, calculate the auto-set values before doing an update
+    //if (cr.autoSetOn) {
+        getDataSetParams(cr)
+    //}
+
+    // Get the Cosmos DB item for cr
+    let dbCr = await getServerDb(cr)
+
+    //------------------------------------------------------------------------------------
+    // Handle requests
+    //------------------------------------------------------------------------------------
+    if (dbCr != null && dbCr.requestCommand != null && dbCr.requestCommand != "") {
+        //log("dbCr.requestCommand = "+dbCr.requestCommand)
+        cr.requestResult = ""
+        if (dbCr.requestCommand == "WaterOn") {
+            let waterSeconds = parseInt(dbCr.requestValue)
+            _waterOn(waterSeconds)
+            cr.requestCommand = ""
+            cr.requestValue = ""
+            cr.requestResult = "Water turned on for "+waterSeconds+" secs"
+        } else if (dbCr.requestCommand == "SetAutoSetOn") {
+            cr.autoSetOn = parseInt(dbCr.requestValue)
+            cr.requestCommand = ""
+            cr.requestValue = ""
+            cr.requestResult = "autoSetOn set to "+cr.autoSetOn
+        } else if (dbCr.requestCommand == "TakeSelfie") {
+            _letMeTakeASelfie()
+            cr.requestCommand = ""
+            cr.requestValue = ""
+            cr.requestResult = "Selfie taken "
+        } else if (dbCr.requestCommand == "WaterDuration") {
+            cr.waterDuration = parseInt(dbCr.requestValue)
+            cr.requestCommand = ""
+            cr.requestValue = ""
+            cr.requestResult = "waterDuration set to "+cr.waterDuration
+        } else if (dbCr.requestCommand == "WaterInterval") {
+            cr.waterInterval = parseInt(dbCr.requestValue)
+            cr.requestCommand = ""
+            cr.requestValue = ""
+            cr.requestResult = "waterInterval set to "+cr.waterInterval
+        } else if (dbCr.requestCommand == "REBOOT") {
+            cr.requestCommand = ""
+            cr.requestValue = ""
+            cr.requestResult = "Initiating REBOOT... "
+            await updServerDb(cr)
+            rebootSystem()
+        } 
+        //log(cr.requestResult)
+    }
+
+    // Set the current values into the backend server data store
+    updServerDb(cr)
+    // Set the next time to check the update
+    setTimeout(triggerUpdServerDb, cr.configCheckInterval * secondsToMilliseconds)
+}
+*/
 
 function waterThePlants() {
     //log(">>> Watering the plants, waterDuration = "+waterDuration)
