@@ -633,7 +633,6 @@ async function logMetric() {
 
     if (cr.commandRequestOn) {
         // If command Request on, process command requests
-
         let commReq = await getNextCommandRequest()
 /*
     "id": "32730a30-ac6b-4303-bfce-6435a582e99e",
@@ -646,7 +645,7 @@ async function logMetric() {
     "responseTime": "0001-01-01T00:00:00",
 */        
         if (commReq != null) {
-            log("Command Request found: "+JSON.stringify(commReq))
+            //log("Command Request found: "+JSON.stringify(commReq))
             //commReq.requestCommand = commandRequest.command
             //commReq.requestValue = commandRequest.value
             //commReq.requestResult = ""
@@ -662,7 +661,7 @@ async function logMetric() {
                 //await updServerDb(cr)
                 //rebootSystem()
             }
-            log("Command Request Result: "+commReq.requestResult)
+            //log("Command Request Result: "+commReq.requestResult)
         }   
     }
 }
