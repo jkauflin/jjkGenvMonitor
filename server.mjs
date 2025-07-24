@@ -241,7 +241,7 @@ async function initConfigQuery() {
     // Get latest config rec from the cloud datasource
     cr = await getLatestConfigId()
 
-    latestGmp = await getLatestGenvMetricPoint()
+    let latestGmp = await getLatestGenvMetricPoint()
     if (latestGmp != null) {
         //log("gmp = "+JSON.stringify(latestGmp))
         lastWaterTs = latestGmp.lastWaterTs
