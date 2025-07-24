@@ -654,10 +654,10 @@ async function logMetric() {
                 let waterSeconds = parseInt(commReq.requestValue)
                 //_waterOn(waterSeconds)
                 commReq.requestResult = "Water turned on for "+waterSeconds+" secs"
-            } else if (cr.requestCommand == "TakeSelfie") {
+            } else if (commReq.requestCommand == "TakeSelfie") {
                 //_letMeTakeASelfie()
                 commReq.requestResult = "Selfie taken "
-            } else if (cr.requestCommand == "REBOOT") {
+            } else if (commReq.requestCommand == "REBOOT") {
                 commReq.requestResult = "Initiating REBOOT... "
                 //await updServerDb(cr)
                 //rebootSystem()
