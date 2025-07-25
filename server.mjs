@@ -329,7 +329,7 @@ board.on("ready", () => {
 // Function to set light and water parameters based on the days from Planting Date
 async function getDataSetParams(cr) {
     // Get the Cosmos DB item for cr
-    newCr = await getServerDb(cr)
+    let newCr = await getServerDb(cr)
     if (newCr != null) {
         // Only replace the cr if we got a new one
         cr = newCr
