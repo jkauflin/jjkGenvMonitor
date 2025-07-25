@@ -130,6 +130,7 @@ Modification History
 2025-07-05 JJK  Corrected bug in stage calcs
 2025-07-23 JJK  Added getLatestGenvMetricPoint to get the latest metric point
                 and working on command request logic
+2025-07-24 JJK  Working on error handling getting cr record
 =============================================================================*/
 
 import 'dotenv/config'
@@ -328,7 +329,11 @@ board.on("ready", () => {
 // Function to set light and water parameters based on the days from Planting Date
 async function getDataSetParams(cr) {
     // Get the Cosmos DB item for cr
-    cr = await getServerDb(cr)
+    newCr = await getServerDb(cr)
+    if (newCr != null) {
+        // Only replace the cr if we got a new one
+        cr = newCr
+    }
     //log("Successful get of CR record from cloud datasource")
     //log("in getDataSetParams, plantingDate = "+cr.plantingDate)
 
