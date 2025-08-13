@@ -369,6 +369,8 @@ async function getDataSetParams(cr) {
         waterInterval = cr.s0waterInterval
     }
 
+    log("in getDataSetParams, waterDuration = "+waterDuration+", waterInterval = "+waterInterval)
+
     return cr
 }
 
