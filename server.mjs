@@ -131,6 +131,9 @@ Modification History
 2025-07-23 JJK  Added getLatestGenvMetricPoint to get the latest metric point
                 and working on command request logic
 2025-07-24 JJK  Working on error handling getting cr record
+2025-11-28 JJK  Removing express web server functions for local admin
+                Going back to all backend server DB interactions
+                (also removed env and fetch imports)
 =============================================================================*/
 
 import 'dotenv/config'
@@ -139,14 +142,13 @@ import fs, { readFileSync } from 'node:fs'
 import crypto from 'node:crypto'
 import { syncBuiltinESMExports } from 'node:module'
 import { Buffer } from 'node:buffer'
-import fetch from 'node-fetch'              // Fetch to make HTTPS calls
 import johnnyFivePkg from 'johnny-five'     // Library to control the Arduino board
 import nodeWebcamPkg from 'enhanced-node-webcam'
 import {log,getDateStr,addDays,daysFromDate,getPointDay,getPointDayTime} from './util.mjs'
 import {getServerDb,getLatestConfigId,getLatestGenvMetricPoint,getNextCommandRequest,updCommReq,logMetricToServerDb,insertImage} from './dataRepository.mjs'
-import express from 'express';
-
-const app = express();
+//import fetch from 'node-fetch'              // Fetch to make HTTPS calls
+//import express from 'express';
+//const app = express();
 
 const {Board,Led,Relays} = johnnyFivePkg
 
@@ -168,7 +170,7 @@ process.on('uncaughtException', function (e) {
     console.error(e.stack)
     
     // Try rebooting the system if there is an uncaught error 
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> UN-COMMENT IF NEEDED <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> UN-COMMENT IF NEEDED <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     //setTimeout(rebootSystem, 5000)
 })
 
@@ -212,12 +214,12 @@ var gmp = {
     //            YYhhMMss
     //              HH      needs to be 24-hr
     PointDayTime: 24125959,
-    targetTemperature: parseFloat(process.env.targetTemperature),
-    currTemperature: parseFloat(process.env.targetTemperature),
-    airInterval: parseFloat(process.env.airInterval),
-    airDuration: parseFloat(process.env.airDuration),
-    heatInterval: parseFloat(process.env.heatInterval),
-    heatDuration: parseFloat(process.env.heatDuration),
+    targetTemperature: 0.0,
+    currTemperature: 0.0,
+    airInterval: 0.0,
+    airDuration: 0.0,
+    heatInterval: 0.0,
+    heatDuration: 0.0,
     waterDuration: waterDuration,
     waterInterval: waterInterval,
     lastWaterTs: getDateStr(),
@@ -692,36 +694,3 @@ function rebootSystem() {
         }
     })
 }
-
-app.use(express.static('public'))
-app.use(express.json())
-app.listen(3035, function(err){
-    if (err) console.log("*** Error in web server setup")
-    console.log("Web Server listening on Port 3035");
-})
-
-app.get('/getConfigRec', function routeHandler(req, res) {
-    res.json(cr)
-})
-
-app.get('/genvGetSelfie', function routeHandler(req, res) {
-    webcam = nodeWebcamPkg.create(webcamOptions)
-    webcam.capture("temp",function(err, base64ImgData) {
-        if (err != null) {
-            res.status(400).send()
-        } else {
-            res.send(base64ImgData)
-            webcam.clear()
-        }
-    })
-    // get images and save to disk
-    //saveImageToFile()
-    //res.send()
-})
-
-app.post('/genvWaterOn', function routeHandler(req, res) {
-    let waterSecs = parseInt(req.body.waterSeconds)
-    _waterOn(waterSecs) 
-    res.send(`Water turned ON for ${waterSecs} seconds`)
-})
-
