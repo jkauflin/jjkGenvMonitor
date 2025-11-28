@@ -131,12 +131,10 @@ Modification History
 2025-07-23 JJK  Added getLatestGenvMetricPoint to get the latest metric point
                 and working on command request logic
 2025-07-24 JJK  Working on error handling getting cr record
-2025-11-28 JJK  Removing express web server functions for local admin
+2025-11-28 JJK  Removing express web server and fetch functions for local admin
                 Going back to all backend server DB interactions
-                (also removed env and fetch imports)
 =============================================================================*/
 
-import 'dotenv/config'
 import {exec} from 'child_process'          // Class to execute Linux commands
 import fs, { readFileSync } from 'node:fs'
 import crypto from 'node:crypto'
